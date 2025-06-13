@@ -59,7 +59,8 @@ export default function Home() {
       {/* Scrollable Message Area */}
       <main
         ref={scrollContainerRef}
-        className="flex-1 overflow-y-auto flex justify-center px-4 pt-4"
+        className="overflow-y-auto flex justify-center px-4 pt-4"
+        style={{ maxHeight: "calc(100vh - 8rem)" }}
       >
         <div className="w-full sm:w-[66%] space-y-4 pb-6">
           {messages.map((msg, idx) => {
@@ -69,13 +70,13 @@ export default function Home() {
                 key={idx}
                 data-last-message={isLast ? "true" : undefined}
                 className={`
-                  font-mono text-sm max-w-[80%] px-4 py-2 break-words whitespace-pre-wrap
-                  ${
-                    msg.role === "user"
-                      ? "bg-zinc-700 text-white self-end ml-auto rounded-lg"
-                      : "text-white self-start mr-auto"
-                  }
-                `}
+            font-mono text-sm max-w-[80%] px-4 py-2 break-words whitespace-pre-wrap
+            ${
+              msg.role === "user"
+                ? "bg-zinc-700 text-white self-end ml-auto rounded-lg"
+                : "text-white self-start mr-auto"
+            }
+          `}
               >
                 {msg.content}
               </div>
@@ -91,7 +92,7 @@ export default function Home() {
             relative flex flex-col items-stretch justify-start 
             bg-zinc-800 border border-zinc-700 
             rounded-4xl px-4 pt-0 shadow-md 
-            w-[66%] mx-auto 
+            w-full max-w-[90%] sm:w-[66%] mx-auto 
             hover:w-[70%] transition-all duration-300
             min-h-[3.25rem]
           "
