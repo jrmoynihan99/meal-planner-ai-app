@@ -18,29 +18,19 @@ export default function Home() {
     if (!container) return;
 
     const lastMessage = container.querySelector("[data-last-message]");
-    if (lastMessage && lastMessage instanceof HTMLElement) {
+    if (lastMessage instanceof HTMLElement) {
       const containerTop = container.getBoundingClientRect().top;
       const messageTop = lastMessage.getBoundingClientRect().top;
       const offset = messageTop - containerTop;
-
-      container.scrollTo({
-        top: offset,
-        behavior: "smooth",
-      });
+      container.scrollTo({ top: offset, behavior: "smooth" });
     }
   }, [messages]);
 
   const handleSend = () => {
     if (!input.trim()) return;
-
-    const newMessage = { role: "user", content: input.trim() };
-    setMessages((prev) => [...prev, newMessage]);
+    setMessages((prev) => [...prev, { role: "user", content: input.trim() }]);
     setInput("");
-
-    if (textareaRef.current) {
-      textareaRef.current.style.height = "auto";
-    }
-
+    if (textareaRef.current) textareaRef.current.style.height = "auto";
     setTimeout(() => {
       setMessages((prev) => [
         ...prev,
@@ -56,8 +46,8 @@ export default function Home() {
         <h1 className="text-xl font-semibold mr-4">Meal Planner AI Chat</h1>
         <Typewriter
           texts={["Automate Your Meals", "Plan Your Week", "Cook with Ease"]}
-          typingSpeed={75}
-          deletingSpeed={25}
+          typingSpeed={100}
+          deletingSpeed={50}
           delayBeforeDelete={1200}
           delayBetween={500}
           fontClass="font-mono"
@@ -71,7 +61,7 @@ export default function Home() {
         ref={scrollContainerRef}
         className="flex-1 overflow-y-auto flex justify-center px-4 pt-4"
       >
-        <div className="w-[66%] space-y-4 pb-6">
+        <div className="w-full sm:w-[66%] space-y-4 pb-6">
           {messages.map((msg, idx) => {
             const isLast = idx === messages.length - 1;
             return (
@@ -101,7 +91,8 @@ export default function Home() {
             relative flex flex-col items-stretch justify-start 
             bg-zinc-800 border border-zinc-700 
             rounded-4xl px-4 pt-0 shadow-md 
-            w-[66%] mx-auto hover:w-[70%] transition-all duration-300
+            w-[66%] mx-auto 
+            hover:w-[70%] transition-all duration-300
             min-h-[3.25rem]
           "
         >
