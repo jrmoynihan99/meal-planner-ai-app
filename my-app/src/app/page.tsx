@@ -1,52 +1,70 @@
 "use client";
 
-import { useState, useRef, useLayoutEffect } from "react";
-import { ArrowUpIcon } from "@heroicons/react/24/solid";
+import { useState, useRef, useLayoutEffect, useEffect } from "react";
+import { ArrowUpIcon, ArrowDownIcon } from "@heroicons/react/24/solid";
 import { Typewriter } from "../components/Typewriter";
 import { useChat } from "ai/react";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function Home() {
   const [isThinking, setIsThinking] = useState(false);
-  const scrollContainerRef = useRef<HTMLDivElement | null>(null);
+  const [autoScrollEnabled, setAutoScrollEnabled] = useState(true);
+  const chatCanvasRef = useRef<HTMLDivElement | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
 
   const { messages, input, handleInputChange, handleSubmit, isLoading } =
     useChat({
       api: "/api/chat",
-      onResponse: () => {
-        // Hide thinking animation when response starts streaming
-        setIsThinking(false);
-      },
-      onFinish: () => {
-        // Response is complete
-        setIsThinking(false);
-      },
+      onResponse: () => setIsThinking(false),
+      onFinish: () => setIsThinking(false),
     });
 
+  const lastMessage = messages[messages.length - 1];
+  const hasAssistantResponse =
+    lastMessage?.role === "assistant" && lastMessage?.content;
+
   useLayoutEffect(() => {
-    const container = scrollContainerRef.current;
+    if (hasAssistantResponse && isThinking) {
+      setIsThinking(false);
+    }
+  }, [hasAssistantResponse, isThinking]);
+
+  useLayoutEffect(() => {
+    const container = chatCanvasRef.current;
+    if (!container || !autoScrollEnabled) return;
+    container.scrollTo({ top: container.scrollHeight, behavior: "smooth" });
+  }, [messages, isThinking, autoScrollEnabled]);
+
+  useEffect(() => {
+    const container = chatCanvasRef.current;
     if (!container) return;
 
-    const lastMessage = container.querySelector("[data-last-message]");
-    if (lastMessage instanceof HTMLElement) {
-      const containerTop = container.getBoundingClientRect().top;
-      const messageTop = lastMessage.getBoundingClientRect().top;
-      const offset = messageTop - containerTop;
-      container.scrollTo({ top: offset, behavior: "smooth" });
+    const handleScroll = () => {
+      const isAtBottom =
+        Math.abs(
+          container.scrollHeight - container.scrollTop - container.clientHeight
+        ) < 50;
+      setAutoScrollEnabled(isAtBottom);
+    };
+
+    container.addEventListener("scroll", handleScroll);
+    return () => container.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  const scrollToBottom = () => {
+    const container = chatCanvasRef.current;
+    if (container) {
+      container.scrollTo({ top: container.scrollHeight, behavior: "smooth" });
+      setAutoScrollEnabled(true);
     }
-  }, [messages, isThinking]);
+  };
 
   const handleFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!input.trim() || isLoading) return;
 
-    // Show thinking animation
     setIsThinking(true);
-
-    // Reset textarea height
     if (textareaRef.current) textareaRef.current.style.height = "auto";
-
-    // Use the AI SDK's handleSubmit
     handleSubmit(e);
   };
 
@@ -58,9 +76,8 @@ export default function Home() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-zinc-900 text-white">
-      {/* Header */}
-      <header className="bg-zinc-800 px-4 py-3 border-b border-zinc-700 flex items-baseline gap-2">
+    <div className="flex flex-col h-screen bg-zinc-900 text-white">
+      <header className="sticky top-0 z-50 bg-zinc-800 px-4 py-3 border-b border-zinc-700 flex items-baseline gap-2">
         <h1 className="text-lg sm:text-xl font-semibold mr-4">
           Meal Planner AI Chat
         </h1>
@@ -76,80 +93,104 @@ export default function Home() {
         />
       </header>
 
-      {/* Message Area */}
-      <main
-        ref={scrollContainerRef}
-        className="flex-1 overflow-y-auto overscroll-contain flex justify-center px-2 pt-4"
-      >
-        <div className="w-full max-w-[95%] sm:max-w-[66%] mx-auto space-y-4 pb-6">
-          {messages.map((msg, idx) => {
-            const isLast = idx === messages.length - 1;
-            return (
-              <div
-                key={msg.id || idx}
-                data-last-message={isLast ? "true" : undefined}
-                className={`
-                  font-mono text-xs sm:text-sm max-w-[80%] px-3 py-2 
-                  break-words whitespace-pre-wrap rounded-lg
-                  ${
-                    msg.role === "user"
-                      ? "bg-zinc-700 text-white self-end ml-auto"
-                      : "text-white self-start mr-auto"
-                  }
-                `}
-              >
-                {msg.content}
-              </div>
-            );
-          })}
+      <main className="flex-1 flex flex-col relative overflow-hidden">
+        <div
+          id="chat-canvas"
+          ref={chatCanvasRef}
+          className="flex-1 overflow-y-auto scroll-smooth px-2 pt-4"
+        >
+          <div className="w-full max-w-[95%] sm:max-w-[66%] mx-auto space-y-4 pb-6">
+            <AnimatePresence initial={false}>
+              {messages.map((msg, idx) => {
+                const isLast = idx === messages.length - 1;
+                if (msg.role === "user") {
+                  return (
+                    <motion.div
+                      key={`user-${idx}`}
+                      initial={{ opacity: 0, y: 30, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                      transition={{
+                        type: "spring",
+                        stiffness: 500,
+                        damping: 30,
+                      }}
+                      className="font-mono text-xs sm:text-sm max-w-[80%] px-3 py-2 break-words whitespace-pre-wrap rounded-lg bg-zinc-700 text-white self-end ml-auto"
+                    >
+                      {msg.content}
+                    </motion.div>
+                  );
+                } else {
+                  return (
+                    <div
+                      key={`assistant-${idx}`}
+                      data-last-message={isLast ? "true" : undefined}
+                      className="font-mono text-xs sm:text-sm max-w-[80%] px-3 py-2 break-words whitespace-pre-wrap rounded-lg text-white self-start mr-auto"
+                    >
+                      {msg.role === "assistant" && isLast ? (
+                        <Typewriter
+                          texts={[msg.content]}
+                          typingSpeed={5}
+                          deletingSpeed={0}
+                          delayBeforeDelete={999999}
+                          delayBetween={0}
+                          fontClass="font-mono"
+                          sizeClass="text-xs sm:text-sm"
+                          colorClass="text-white"
+                        />
+                      ) : (
+                        msg.content
+                      )}
+                    </div>
+                  );
+                }
+              })}
+            </AnimatePresence>
 
-          {/* Thinking Animation */}
-          {isThinking && (
-            <div
-              data-last-message="true"
-              className="font-mono text-xs sm:text-sm max-w-[80%] px-3 py-2 text-white self-start mr-auto"
-            >
-              <div className="flex items-center space-x-1">
-                <div className="flex space-x-1">
-                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-pulse"></div>
-                  <div
-                    className="w-2 h-2 bg-gray-400 rounded-full animate-pulse"
-                    style={{ animationDelay: "0.2s" }}
-                  ></div>
-                  <div
-                    className="w-2 h-2 bg-gray-400 rounded-full animate-pulse"
-                    style={{ animationDelay: "0.4s" }}
-                  ></div>
-                </div>
-                <span className="text-gray-400 ml-2">Thinking...</span>
+            {isThinking && !hasAssistantResponse && (
+              <div className="font-mono text-xs text-gray-400 animate-pulse">
+                Thinking...
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
+
+        {!autoScrollEnabled && (
+          <div
+            className={`absolute bottom-5 left-1/2 transform -translate-x-1/2 transition-opacity duration-300 ${
+              autoScrollEnabled
+                ? "opacity-0 pointer-events-none"
+                : "opacity-100"
+            }`}
+          >
+            <button
+              onClick={scrollToBottom}
+              className="p-1 rounded-full bg-black text-white border border-white/40 hover:border-white/60 hover:bg-zinc-800 shadow-md transition cursor-pointer"
+              aria-label="Scroll to bottom"
+            >
+              <ArrowDownIcon className="h-4 w-4" />
+            </button>
+          </div>
+        )}
       </main>
 
-      {/* Footer Input */}
-      <footer className="bg-zinc-900 px-4 pb-4 min-h-24">
+      <footer className="sticky bottom-0 z-50 bg-zinc-900 px-4 pb-4 min-h-24">
         <form onSubmit={handleFormSubmit}>
           <div
-            className="
-              relative flex flex-col items-stretch justify-start 
+            className="relative flex flex-col items-stretch justify-start 
               bg-zinc-800 border border-zinc-700 
               rounded-4xl px-4 pt-0 shadow-md 
               w-full max-w-[95%] sm:w-[66%] sm:hover:w-[70%] mx-auto 
-              transition-all duration-300 min-h-[3.25rem]
-            "
+              transition-all duration-300 min-h-[3.25rem]"
           >
             <textarea
               ref={textareaRef}
-              className="
-                w-full text-sm sm:text-base font-mono text-white bg-transparent 
+              className="w-full text-sm sm:text-base font-mono text-white bg-transparent 
                 focus:outline-none px-2 pr-10 placeholder-gray-400 
                 resize-none overflow-hidden 
                 break-words whitespace-pre-wrap 
                 leading-[1.25rem] sm:leading-[1.5rem] 
-                py-[0.75rem] sm:py-[1rem] max-h-24 sm:max-h-40
-              "
+                py-[0.75rem] sm:py-[1rem] max-h-24 sm:max-h-40"
               placeholder="Type your message..."
               value={input}
               name="message"
@@ -165,7 +206,7 @@ export default function Home() {
             />
             <button
               type="submit"
-              className="absolute top-1/2 right-2 -translate-y-1/2 p-2 rounded-full bg-blue-500 text-white hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="absolute top-1/2 right-2 -translate-y-1/2 p-2 rounded-full bg-blue-500 text-white hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
               disabled={isLoading || !input.trim()}
             >
               <ArrowUpIcon className="h-4 w-4 sm:h-5 sm:w-5" />
