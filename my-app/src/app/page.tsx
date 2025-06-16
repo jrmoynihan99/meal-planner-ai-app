@@ -185,7 +185,7 @@ export default function Home() {
           >
             <textarea
               ref={textareaRef}
-              className="w-full text-sm sm:text-base font-mono text-white bg-transparent 
+              className="w-full text-base font-mono text-white bg-transparent 
                 focus:outline-none px-2 pr-10 placeholder-gray-400 
                 resize-none overflow-hidden 
                 break-words whitespace-pre-wrap 
