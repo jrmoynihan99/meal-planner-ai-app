@@ -6,6 +6,8 @@ import { Typewriter } from "../components/Typewriter";
 import { useChat } from "ai/react";
 import { motion } from "framer-motion";
 
+const MessageWrapper = motion.div;
+
 export default function Home() {
   const [isThinking, setIsThinking] = useState(false);
   const [autoScrollEnabled, setAutoScrollEnabled] = useState(true);
@@ -60,11 +62,13 @@ export default function Home() {
     }
   };
 
-  const submitMessage = () => {
+  const handleFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
     if (!input.trim() || isLoading) return;
+
     setIsThinking(true);
     if (textareaRef.current) textareaRef.current.style.height = "auto";
-    handleSubmit();
+    handleSubmit(e);
   };
 
   const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -75,7 +79,7 @@ export default function Home() {
   };
 
   return (
-    <div className="flex flex-col h-[100dvh] bg-zinc-900 text-white overflow-hidden">
+    <div className="flex flex-col h-[100dvh] bg-zinc-900 text-white">
       {/* Header */}
       <header className="sticky top-0 z-50 bg-zinc-800 px-4 py-3 border-b border-zinc-700 flex items-baseline gap-2">
         <h1 className="text-lg sm:text-xl font-semibold mr-4">
@@ -99,49 +103,49 @@ export default function Home() {
         <div
           id="chat-canvas"
           ref={chatCanvasRef}
-          className="flex-1 overflow-y-auto scroll-smooth px-2 pt-4 max-h-full"
+          className="flex-1 overflow-y-auto scroll-smooth px-2 pt-4"
         >
           <div className="w-full max-w-[95%] sm:max-w-[66%] mx-auto space-y-4 pb-6">
             {messages.map((msg, idx) => {
               const isLast = idx === messages.length - 1;
-              const isUser = msg.role === "user";
-              const MessageWrapper = isUser ? motion.div : "div";
-              const messageProps = isUser
-                ? {
-                    initial: { opacity: 0, scale: 0.9, y: 10 },
-                    animate: { opacity: 1, scale: 1, y: 0 },
-                    transition: { type: "spring", stiffness: 500, damping: 30 },
-                  }
-                : {};
-
               return (
-                <MessageWrapper
+                <div
                   key={msg.id || idx}
-                  data-last-message={isLast ? "true" : undefined}
-                  className={`font-mono text-[16px] sm:text-sm max-w-[80%] px-3 py-2 
-                    break-words whitespace-pre-wrap rounded-lg
-                    ${
-                      isUser
-                        ? "bg-zinc-700 text-white self-end ml-auto"
-                        : "text-white self-start mr-auto"
-                    }`}
-                  {...messageProps}
+                  className={`w-full flex ${
+                    msg.role === "user" ? "justify-end" : "justify-start"
+                  }`}
                 >
-                  {msg.role === "assistant" && isLast ? (
-                    <Typewriter
-                      texts={[msg.content]}
-                      typingSpeed={5}
-                      deletingSpeed={0}
-                      delayBeforeDelete={999999}
-                      delayBetween={0}
-                      fontClass="font-mono"
-                      sizeClass="text-xs sm:text-sm"
-                      colorClass="text-white"
-                    />
-                  ) : (
-                    msg.content
-                  )}
-                </MessageWrapper>
+                  <MessageWrapper
+                    data-last-message={isLast ? "true" : undefined}
+                    className={`font-mono text-[16px] sm:text-sm px-3 py-2 break-words whitespace-pre-wrap rounded-lg ${
+                      msg.role === "user"
+                        ? "bg-zinc-700 text-white max-w-[80%]"
+                        : "text-white w-full bg-zinc-900"
+                    }`}
+                    initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    transition={{
+                      type: "spring" as const,
+                      stiffness: 300,
+                      damping: 20,
+                    }}
+                  >
+                    {msg.role === "assistant" && isLast ? (
+                      <Typewriter
+                        texts={[msg.content]}
+                        typingSpeed={5}
+                        deletingSpeed={0}
+                        delayBeforeDelete={999999}
+                        delayBetween={0}
+                        fontClass="font-mono"
+                        sizeClass="text-xs sm:text-sm"
+                        colorClass="text-white"
+                      />
+                    ) : (
+                      msg.content
+                    )}
+                  </MessageWrapper>
+                </div>
               );
             })}
 
@@ -171,12 +175,7 @@ export default function Home() {
 
       {/* Footer */}
       <footer className="sticky bottom-0 z-50 bg-zinc-900 px-4 pb-4 min-h-24">
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            submitMessage();
-          }}
-        >
+        <form onSubmit={handleFormSubmit}>
           <div
             className="relative flex flex-col items-stretch justify-start 
               bg-zinc-800 border border-zinc-700 
@@ -186,7 +185,7 @@ export default function Home() {
           >
             <textarea
               ref={textareaRef}
-              className="w-full text-[16px] sm:text-base font-mono text-white bg-transparent 
+              className="w-full text-sm sm:text-base font-mono text-white bg-transparent 
                 focus:outline-none px-2 pr-10 placeholder-gray-400 
                 resize-none overflow-hidden 
                 break-words whitespace-pre-wrap 
@@ -200,7 +199,7 @@ export default function Home() {
               onKeyDown={(e) => {
                 if (e.key === "Enter" && !e.shiftKey) {
                   e.preventDefault();
-                  submitMessage();
+                  handleFormSubmit(e as React.FormEvent<HTMLFormElement>);
                 }
               }}
               disabled={isLoading}
