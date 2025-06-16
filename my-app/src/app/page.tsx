@@ -62,13 +62,13 @@ export default function Home() {
     }
   };
 
-  const handleFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const handleFormSubmit = (e?: React.FormEvent<HTMLFormElement>) => {
+    e?.preventDefault();
     if (!input.trim() || isLoading) return;
 
     setIsThinking(true);
     if (textareaRef.current) textareaRef.current.style.height = "auto";
-    handleSubmit(e);
+    handleSubmit();
   };
 
   const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -120,7 +120,7 @@ export default function Home() {
                     className={`font-mono text-[16px] sm:text-sm px-3 py-2 break-words whitespace-pre-wrap rounded-lg ${
                       msg.role === "user"
                         ? "bg-zinc-700 text-white max-w-[80%]"
-                        : "text-white w-full bg-zinc-900"
+                        : "text-white w-full"
                     }`}
                     initial={{ opacity: 0, scale: 0.95, y: 10 }}
                     animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -175,7 +175,7 @@ export default function Home() {
 
       {/* Footer */}
       <footer className="sticky bottom-0 z-50 bg-zinc-900 px-4 pb-4 min-h-24">
-        <form onSubmit={handleFormSubmit}>
+        <form onSubmit={(e) => handleFormSubmit(e)}>
           <div
             className="relative flex flex-col items-stretch justify-start 
               bg-zinc-800 border border-zinc-700 
@@ -199,7 +199,7 @@ export default function Home() {
               onKeyDown={(e) => {
                 if (e.key === "Enter" && !e.shiftKey) {
                   e.preventDefault();
-                  handleFormSubmit(e as React.FormEvent<HTMLFormElement>);
+                  handleFormSubmit();
                 }
               }}
               disabled={isLoading}
