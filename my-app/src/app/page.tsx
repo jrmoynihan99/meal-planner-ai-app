@@ -7,13 +7,6 @@ import { Typewriter } from "../components/Typewriter";
 import { useChat } from "ai/react";
 import { motion, AnimatePresence } from "framer-motion";
 
-function isMobileDevice() {
-  return (
-    typeof window !== "undefined" &&
-    /Mobi|Android|iPhone/i.test(navigator.userAgent)
-  );
-}
-
 export default function Home() {
   const [isThinking, setIsThinking] = useState(false);
   const [autoScrollEnabled, setAutoScrollEnabled] = useState(true);
