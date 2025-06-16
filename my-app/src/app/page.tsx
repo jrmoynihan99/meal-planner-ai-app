@@ -1,10 +1,18 @@
 "use client";
 
 import { useState, useRef, useLayoutEffect, useEffect } from "react";
-import { ArrowUpIcon, ArrowDownIcon } from "@heroicons/react/24/solid";
+import { ArrowUpIcon } from "@heroicons/react/24/solid";
+import { ArrowDownIcon } from "@heroicons/react/24/solid";
 import { Typewriter } from "../components/Typewriter";
 import { useChat } from "ai/react";
 import { motion, AnimatePresence } from "framer-motion";
+
+function isMobileDevice() {
+  return (
+    typeof window !== "undefined" &&
+    /Mobi|Android|iPhone/i.test(navigator.userAgent)
+  );
+}
 
 export default function Home() {
   const [isThinking, setIsThinking] = useState(false);
@@ -44,6 +52,7 @@ export default function Home() {
         Math.abs(
           container.scrollHeight - container.scrollTop - container.clientHeight
         ) < 50;
+
       setAutoScrollEnabled(isAtBottom);
     };
 
@@ -59,13 +68,11 @@ export default function Home() {
     }
   };
 
-  const handleFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const submitMessage = () => {
     if (!input.trim() || isLoading) return;
-
     setIsThinking(true);
     if (textareaRef.current) textareaRef.current.style.height = "auto";
-    handleSubmit(e);
+    handleSubmit();
   };
 
   const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -103,47 +110,40 @@ export default function Home() {
             <AnimatePresence initial={false}>
               {messages.map((msg, idx) => {
                 const isLast = idx === messages.length - 1;
-                if (msg.role === "user") {
-                  return (
-                    <motion.div
-                      key={`user-${idx}`}
-                      initial={{ opacity: 0, y: 30, scale: 0.95 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                      transition={{
-                        type: "spring",
-                        stiffness: 500,
-                        damping: 30,
-                      }}
-                      className="font-mono text-xs sm:text-sm max-w-[80%] px-3 py-2 break-words whitespace-pre-wrap rounded-lg bg-zinc-700 text-white self-end ml-auto"
-                    >
-                      {msg.content}
-                    </motion.div>
-                  );
-                } else {
-                  return (
-                    <div
-                      key={`assistant-${idx}`}
-                      data-last-message={isLast ? "true" : undefined}
-                      className="font-mono text-xs sm:text-sm max-w-[80%] px-3 py-2 break-words whitespace-pre-wrap rounded-lg text-white self-start mr-auto"
-                    >
-                      {msg.role === "assistant" && isLast ? (
-                        <Typewriter
-                          texts={[msg.content]}
-                          typingSpeed={5}
-                          deletingSpeed={0}
-                          delayBeforeDelete={999999}
-                          delayBetween={0}
-                          fontClass="font-mono"
-                          sizeClass="text-xs sm:text-sm"
-                          colorClass="text-white"
-                        />
-                      ) : (
-                        msg.content
-                      )}
-                    </div>
-                  );
-                }
+
+                return msg.role === "user" ? (
+                  <motion.div
+                    key={`user-${idx}`}
+                    initial={{ opacity: 0, y: 30, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                    transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                    className="font-mono text-xs sm:text-sm max-w-[80%] px-3 py-2 break-words whitespace-pre-wrap rounded-lg bg-zinc-700 text-white self-end ml-auto"
+                  >
+                    {msg.content}
+                  </motion.div>
+                ) : (
+                  <div
+                    key={`assistant-${idx}`}
+                    data-last-message={isLast ? "true" : undefined}
+                    className="font-mono text-xs sm:text-sm max-w-[80%] px-3 py-2 break-words whitespace-pre-wrap rounded-lg text-white self-start mr-auto"
+                  >
+                    {msg.role === "assistant" && isLast ? (
+                      <Typewriter
+                        texts={[msg.content]}
+                        typingSpeed={5}
+                        deletingSpeed={0}
+                        delayBeforeDelete={999999}
+                        delayBetween={0}
+                        fontClass="font-mono"
+                        sizeClass="text-xs sm:text-sm"
+                        colorClass="text-white"
+                      />
+                    ) : (
+                      msg.content
+                    )}
+                  </div>
+                );
               })}
             </AnimatePresence>
 
@@ -155,42 +155,32 @@ export default function Home() {
           </div>
         </div>
 
-        {!autoScrollEnabled && (
-          <div
-            className={`absolute bottom-5 left-1/2 transform -translate-x-1/2 transition-opacity duration-300 ${
-              autoScrollEnabled
-                ? "opacity-0 pointer-events-none"
-                : "opacity-100"
-            }`}
+        <div
+          className={`absolute bottom-5 left-1/2 transform -translate-x-1/2 transition-opacity duration-300 ${
+            autoScrollEnabled ? "opacity-0 pointer-events-none" : "opacity-100"
+          }`}
+        >
+          <button
+            onClick={scrollToBottom}
+            className="p-1 rounded-full bg-black text-white border border-white/40 hover:border-white/60 hover:bg-zinc-800 shadow-md transition cursor-pointer"
+            aria-label="Scroll to bottom"
           >
-            <button
-              onClick={scrollToBottom}
-              className="p-1 rounded-full bg-black text-white border border-white/40 hover:border-white/60 hover:bg-zinc-800 shadow-md transition cursor-pointer"
-              aria-label="Scroll to bottom"
-            >
-              <ArrowDownIcon className="h-4 w-4" />
-            </button>
-          </div>
-        )}
+            <ArrowDownIcon className="h-4 w-4" />
+          </button>
+        </div>
       </main>
 
       <footer className="sticky bottom-0 z-50 bg-zinc-900 px-4 pb-4 min-h-24">
-        <form onSubmit={handleFormSubmit}>
-          <div
-            className="relative flex flex-col items-stretch justify-start 
-              bg-zinc-800 border border-zinc-700 
-              rounded-4xl px-4 pt-0 shadow-md 
-              w-full max-w-[95%] sm:w-[66%] sm:hover:w-[70%] mx-auto 
-              transition-all duration-300 min-h-[3.25rem]"
-          >
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            submitMessage();
+          }}
+        >
+          <div className="relative flex flex-col items-stretch justify-start bg-zinc-800 border border-zinc-700 rounded-4xl px-4 pt-0 shadow-md w-full max-w-[95%] sm:w-[66%] sm:hover:w-[70%] mx-auto transition-all duration-300 min-h-[3.25rem]">
             <textarea
               ref={textareaRef}
-              className="w-full text-sm sm:text-base font-mono text-white bg-transparent 
-                focus:outline-none px-2 pr-10 placeholder-gray-400 
-                resize-none overflow-hidden 
-                break-words whitespace-pre-wrap 
-                leading-[1.25rem] sm:leading-[1.5rem] 
-                py-[0.75rem] sm:py-[1rem] max-h-24 sm:max-h-40"
+              className="w-full text-sm sm:text-base font-mono text-white bg-transparent focus:outline-none px-2 pr-10 placeholder-gray-400 resize-none overflow-hidden break-words whitespace-pre-wrap leading-[1.25rem] sm:leading-[1.5rem] py-[0.75rem] sm:py-[1rem] max-h-24 sm:max-h-40"
               placeholder="Type your message..."
               value={input}
               name="message"
@@ -199,7 +189,7 @@ export default function Home() {
               onKeyDown={(e) => {
                 if (e.key === "Enter" && !e.shiftKey) {
                   e.preventDefault();
-                  handleFormSubmit(e as any);
+                  submitMessage();
                 }
               }}
               disabled={isLoading}
