@@ -117,7 +117,7 @@ export default function Home() {
                 >
                   <MessageWrapper
                     data-last-message={isLast ? "true" : undefined}
-                    className={`font-mono text-[16px] sm:text-sm px-3 py-2 break-words whitespace-pre-wrap rounded-lg ${
+                    className={`font-mono text-sm sm:text-base px-3 py-2 break-words whitespace-pre-wrap rounded-lg ${
                       msg.role === "user"
                         ? "bg-zinc-700 text-white max-w-[80%]"
                         : "text-white w-full"
