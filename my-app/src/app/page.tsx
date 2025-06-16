@@ -1,11 +1,10 @@
 "use client";
 
 import { useState, useRef, useLayoutEffect, useEffect } from "react";
-import { ArrowUpIcon } from "@heroicons/react/24/solid";
-import { ArrowDownIcon } from "@heroicons/react/24/solid";
+import { ArrowUpIcon, ArrowDownIcon } from "@heroicons/react/24/solid";
 import { Typewriter } from "../components/Typewriter";
 import { useChat } from "ai/react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 
 export default function Home() {
   const [isThinking, setIsThinking] = useState(false);
@@ -76,7 +75,8 @@ export default function Home() {
   };
 
   return (
-    <div className="flex flex-col h-screen bg-zinc-900 text-white">
+    <div className="flex flex-col h-[100dvh] bg-zinc-900 text-white overflow-hidden">
+      {/* Header */}
       <header className="sticky top-0 z-50 bg-zinc-800 px-4 py-3 border-b border-zinc-700 flex items-baseline gap-2">
         <h1 className="text-lg sm:text-xl font-semibold mr-4">
           Meal Planner AI Chat
@@ -93,52 +93,57 @@ export default function Home() {
         />
       </header>
 
+      {/* Main layout wrapper */}
       <main className="flex-1 flex flex-col relative overflow-hidden">
+        {/* Scrollable canvas for messages */}
         <div
           id="chat-canvas"
           ref={chatCanvasRef}
-          className="flex-1 overflow-y-auto scroll-smooth px-2 pt-4"
+          className="flex-1 overflow-y-auto scroll-smooth px-2 pt-4 max-h-full"
         >
           <div className="w-full max-w-[95%] sm:max-w-[66%] mx-auto space-y-4 pb-6">
-            <AnimatePresence initial={false}>
-              {messages.map((msg, idx) => {
-                const isLast = idx === messages.length - 1;
+            {messages.map((msg, idx) => {
+              const isLast = idx === messages.length - 1;
+              const isUser = msg.role === "user";
+              const MessageWrapper = isUser ? motion.div : "div";
+              const messageProps = isUser
+                ? {
+                    initial: { opacity: 0, scale: 0.9, y: 10 },
+                    animate: { opacity: 1, scale: 1, y: 0 },
+                    transition: { type: "spring", stiffness: 500, damping: 30 },
+                  }
+                : {};
 
-                return msg.role === "user" ? (
-                  <motion.div
-                    key={`user-${idx}`}
-                    initial={{ opacity: 0, y: 30, scale: 0.95 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                    transition={{ type: "spring", stiffness: 500, damping: 30 }}
-                    className="font-mono text-xs sm:text-sm max-w-[80%] px-3 py-2 break-words whitespace-pre-wrap rounded-lg bg-zinc-700 text-white self-end ml-auto"
-                  >
-                    {msg.content}
-                  </motion.div>
-                ) : (
-                  <div
-                    key={`assistant-${idx}`}
-                    data-last-message={isLast ? "true" : undefined}
-                    className="font-mono text-xs sm:text-sm max-w-[80%] px-3 py-2 break-words whitespace-pre-wrap rounded-lg text-white self-start mr-auto"
-                  >
-                    {msg.role === "assistant" && isLast ? (
-                      <Typewriter
-                        texts={[msg.content]}
-                        typingSpeed={5}
-                        deletingSpeed={0}
-                        delayBeforeDelete={999999}
-                        delayBetween={0}
-                        fontClass="font-mono"
-                        sizeClass="text-xs sm:text-sm"
-                        colorClass="text-white"
-                      />
-                    ) : (
-                      msg.content
-                    )}
-                  </div>
-                );
-              })}
-            </AnimatePresence>
+              return (
+                <MessageWrapper
+                  key={msg.id || idx}
+                  data-last-message={isLast ? "true" : undefined}
+                  className={`font-mono text-[16px] sm:text-sm max-w-[80%] px-3 py-2 
+                    break-words whitespace-pre-wrap rounded-lg
+                    ${
+                      isUser
+                        ? "bg-zinc-700 text-white self-end ml-auto"
+                        : "text-white self-start mr-auto"
+                    }`}
+                  {...messageProps}
+                >
+                  {msg.role === "assistant" && isLast ? (
+                    <Typewriter
+                      texts={[msg.content]}
+                      typingSpeed={5}
+                      deletingSpeed={0}
+                      delayBeforeDelete={999999}
+                      delayBetween={0}
+                      fontClass="font-mono"
+                      sizeClass="text-xs sm:text-sm"
+                      colorClass="text-white"
+                    />
+                  ) : (
+                    msg.content
+                  )}
+                </MessageWrapper>
+              );
+            })}
 
             {isThinking && !hasAssistantResponse && (
               <div className="font-mono text-xs text-gray-400 animate-pulse">
@@ -148,6 +153,7 @@ export default function Home() {
           </div>
         </div>
 
+        {/* Scroll-to-bottom button */}
         <div
           className={`absolute bottom-5 left-1/2 transform -translate-x-1/2 transition-opacity duration-300 ${
             autoScrollEnabled ? "opacity-0 pointer-events-none" : "opacity-100"
@@ -163,6 +169,7 @@ export default function Home() {
         </div>
       </main>
 
+      {/* Footer */}
       <footer className="sticky bottom-0 z-50 bg-zinc-900 px-4 pb-4 min-h-24">
         <form
           onSubmit={(e) => {
@@ -170,10 +177,21 @@ export default function Home() {
             submitMessage();
           }}
         >
-          <div className="relative flex flex-col items-stretch justify-start bg-zinc-800 border border-zinc-700 rounded-4xl px-4 pt-0 shadow-md w-full max-w-[95%] sm:w-[66%] sm:hover:w-[70%] mx-auto transition-all duration-300 min-h-[3.25rem]">
+          <div
+            className="relative flex flex-col items-stretch justify-start 
+              bg-zinc-800 border border-zinc-700 
+              rounded-4xl px-4 pt-0 shadow-md 
+              w-full max-w-[95%] sm:w-[66%] sm:hover:w-[70%] mx-auto 
+              transition-all duration-300 min-h-[3.25rem]"
+          >
             <textarea
               ref={textareaRef}
-              className="w-full text-sm sm:text-base font-mono text-white bg-transparent focus:outline-none px-2 pr-10 placeholder-gray-400 resize-none overflow-hidden break-words whitespace-pre-wrap leading-[1.25rem] sm:leading-[1.5rem] py-[0.75rem] sm:py-[1rem] max-h-24 sm:max-h-40"
+              className="w-full text-[16px] sm:text-base font-mono text-white bg-transparent 
+                focus:outline-none px-2 pr-10 placeholder-gray-400 
+                resize-none overflow-hidden 
+                break-words whitespace-pre-wrap 
+                leading-[1.25rem] sm:leading-[1.5rem] 
+                py-[0.75rem] sm:py-[1rem] max-h-24 sm:max-h-40"
               placeholder="Type your message..."
               value={input}
               name="message"
