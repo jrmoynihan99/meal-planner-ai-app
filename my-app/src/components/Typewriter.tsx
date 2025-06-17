@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState, useRef } from "react";
 
 interface TypewriterProps {
   texts: string[];
@@ -11,7 +11,8 @@ interface TypewriterProps {
   fontClass?: string;
   sizeClass?: string;
   colorClass?: string;
-  onTypingEnd?: () => void; // ✅ new
+  onTypingEnd?: () => void;
+  isStreaming?: boolean;
 }
 
 export function Typewriter({
@@ -24,50 +25,68 @@ export function Typewriter({
   sizeClass = "text-xl",
   colorClass = "text-white",
   onTypingEnd,
+  isStreaming = false,
 }: TypewriterProps) {
-  const [index, setIndex] = useState(0);
+  const [displayed, setDisplayed] = useState("");
   const [subIndex, setSubIndex] = useState(0);
-  const [deleting, setDeleting] = useState(false);
-  const fullText = texts[index];
+  const previousTextRef = useRef("");
+  const lastTextLengthRef = useRef(0);
+  const inactivityTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const hasCalledOnEndRef = useRef(false);
+
+  const fullText = texts[0] || "";
 
   useEffect(() => {
-    // Finished typing forward
-    if (!deleting && subIndex === fullText.length) {
-      onTypingEnd?.(); // ✅ trigger callback
-      const t = setTimeout(() => setDeleting(true), delayBeforeDelete);
-      return () => clearTimeout(t);
+    if (isStreaming) {
+      const current = fullText;
+      const prev = previousTextRef.current;
+
+      if (current.length > prev.length) {
+        const nextChar = current.slice(prev.length, prev.length + 1);
+        const timeout = setTimeout(() => {
+          previousTextRef.current = prev + nextChar;
+          setDisplayed(prev + nextChar);
+        }, typingSpeed);
+        hasCalledOnEndRef.current = false;
+        return () => clearTimeout(timeout);
+      }
+
+      // If no new characters for 500ms, trigger onTypingEnd
+      if (!hasCalledOnEndRef.current && current.length === prev.length) {
+        if (inactivityTimerRef.current)
+          clearTimeout(inactivityTimerRef.current);
+        inactivityTimerRef.current = setTimeout(() => {
+          hasCalledOnEndRef.current = true;
+          onTypingEnd?.();
+        }, 500);
+      }
+    } else {
+      if (subIndex === fullText.length && !onTypingEnd) return;
+
+      if (subIndex === fullText.length) {
+        const timeout = setTimeout(() => onTypingEnd?.(), delayBeforeDelete);
+        return () => clearTimeout(timeout);
+      }
+
+      const timeout = setTimeout(() => {
+        setDisplayed(fullText.substring(0, subIndex + 1));
+        setSubIndex((i) => i + 1);
+      }, typingSpeed);
+
+      return () => clearTimeout(timeout);
     }
-
-    // Finished deleting
-    if (deleting && subIndex === 0) {
-      const t = setTimeout(() => {
-        setDeleting(false);
-        setIndex((i) => (i + 1) % texts.length);
-      }, delayBetween);
-      return () => clearTimeout(t);
-    }
-
-    const t = setTimeout(
-      () => setSubIndex((i) => i + (deleting ? -1 : 1)),
-      deleting ? deletingSpeed : typingSpeed
-    );
-
-    return () => clearTimeout(t);
   }, [
-    subIndex,
-    deleting,
     fullText,
+    subIndex,
+    isStreaming,
     typingSpeed,
-    deletingSpeed,
     delayBeforeDelete,
-    delayBetween,
-    texts,
     onTypingEnd,
   ]);
 
   return (
     <span className={`${fontClass} ${sizeClass} ${colorClass}`}>
-      {fullText.substring(0, subIndex)}
+      {displayed}
       <span className="inline-block w-1 bg-white animate-pulse ml-1" />
     </span>
   );

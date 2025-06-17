@@ -15,6 +15,9 @@ const MessageWrapper = motion.div;
 export default function Home() {
   const [autoScrollEnabled, setAutoScrollEnabled] = useState(true);
   const [hasTyped, setHasTyped] = useState(false);
+  const [lastTypedMessageId, setLastTypedMessageId] = useState<string | null>(
+    null
+  );
 
   const chatCanvasRef = useRef<HTMLDivElement | null>(null);
   const messagesContainerRef = useRef<HTMLDivElement | null>(null);
@@ -31,8 +34,13 @@ export default function Home() {
     lastMessage?.role === "assistant" && lastMessage?.content;
 
   useEffect(() => {
-    setHasTyped(false); // Reset when new assistant message appears
-  }, [lastMessage?.content]);
+    if (
+      lastMessage?.role === "assistant" &&
+      lastMessage.id !== lastTypedMessageId
+    ) {
+      setHasTyped(false);
+    }
+  }, [lastMessage?.id]);
 
   const scrollToBottom = () => {
     const container = chatCanvasRef.current;
@@ -66,11 +74,9 @@ export default function Home() {
     const handleScroll = () => {
       const footerHeight =
         footerRef.current?.getBoundingClientRect().height || 0;
-
       const isAtBottom =
         container.scrollTop + container.clientHeight >=
         container.scrollHeight - footerHeight;
-
       setAutoScrollEnabled(isAtBottom);
     };
 
@@ -104,7 +110,6 @@ export default function Home() {
 
   return (
     <div className="flex flex-col h-[100dvh] bg-zinc-900 text-white">
-      {/* Header */}
       <header className="sticky top-0 z-50 bg-zinc-800 px-4 py-3 border-b border-zinc-700 flex items-baseline gap-2">
         <h1 className="text-lg sm:text-xl font-semibold mr-4">
           Meal Planner AI Chat
@@ -121,7 +126,6 @@ export default function Home() {
         />
       </header>
 
-      {/* Main layout wrapper */}
       <main className="flex-1 flex flex-col relative overflow-hidden">
         <div
           id="chat-canvas"
@@ -134,13 +138,12 @@ export default function Home() {
           >
             {messages.map((msg, idx) => {
               const isLast = idx === messages.length - 1;
-
-              if (msg.role === "assistant") {
-                console.log(
-                  "Assistant raw markdown message:",
-                  JSON.stringify(msg.content)
-                );
-              }
+              const isBeingTyped =
+                msg.role === "assistant" &&
+                msg.id === lastTypedMessageId &&
+                !hasTyped;
+              const isFormatted =
+                msg.role === "assistant" && !isBeingTyped && msg.content;
 
               return (
                 <div
@@ -158,59 +161,39 @@ export default function Home() {
                     }`}
                     initial={{ opacity: 0, scale: 0.95, y: 10 }}
                     animate={{ opacity: 1, scale: 1, y: 0 }}
-                    transition={{
-                      type: "spring" as const,
-                      stiffness: 300,
-                      damping: 20,
-                    }}
+                    transition={{ type: "spring", stiffness: 300, damping: 20 }}
                   >
-                    {msg.role === "assistant" && isLast && !hasTyped ? (
-                      <Typewriter
-                        texts={[msg.content]}
-                        typingSpeed={5}
-                        deletingSpeed={0}
-                        delayBeforeDelete={999999}
-                        delayBetween={0}
-                        fontClass="font-mono"
-                        sizeClass="text-xs sm:text-sm"
-                        colorClass="text-white"
-                        onTypingEnd={() => setHasTyped(true)}
-                      />
-                    ) : msg.role === "assistant" ? (
-                      <div
-                        className="prose prose-invert prose-sm max-w-none 
-                                  [&_ul]:list-disc 
-                                  [&_ol]:list-decimal 
-                                  [&_ul]:pl-5 
-                                  [&_ol]:pl-5 
-                                  [&_ul]:my-4 
-                                  [&_ol]:my-4 
-                                  [&_table]:my-4 
-                                  [&_li]:mb-1 
-                                  [&_p]:mb-2 
-                                  [&_p:last-child]:mb-0 
-                                  [&_h1]:mb-3 
-                                  [&_h2]:mb-2 
-                                  [&_h3]:mb-2 
-                                  [&_table]:w-full 
-                                  [&_table]:border 
-                                  [&_th]:border 
-                                  [&_td]:border 
-                                  [&_td]:px-2 
-                                  [&_td]:py-1 
-                                  [&_th]:px-2 
-                                  [&_th]:py-1 
-                                  [&_thead]:bg-zinc-800 
-                                  [&_tbody_tr:nth-child(odd)]:bg-zinc-900 
-                                  [&_tbody_tr:nth-child(even)]:bg-zinc-800"
-                      >
-                        <ReactMarkdown
-                          remarkPlugins={[remarkGfm]}
-                          rehypePlugins={[rehypeHighlight]}
-                        >
+                    {msg.role === "assistant" ? (
+                      isBeingTyped ? (
+                        <Typewriter
+                          texts={[msg.content]}
+                          typingSpeed={5}
+                          deletingSpeed={0}
+                          delayBeforeDelete={999999}
+                          delayBetween={0}
+                          fontClass="font-mono"
+                          sizeClass="text-xs sm:text-sm"
+                          colorClass="text-white"
+                          isStreaming={true}
+                          onTypingEnd={() => {
+                            setHasTyped(true);
+                            if (msg.id) setLastTypedMessageId(msg.id);
+                          }}
+                        />
+                      ) : hasTyped ? (
+                        <div className="prose prose-invert prose-sm max-w-none [&_ul]:list-disc [&_ol]:list-decimal [&_ul]:pl-5 [&_ol]:pl-5 [&_ul]:my-4 [&_ol]:my-4 [&_table]:my-4 [&_li]:mb-1 [&_p]:mb-2 [&_p:last-child]:mb-0 [&_h1]:mb-3 [&_h2]:mb-2 [&_h3]:mb-2 [&_table]:w-full [&_table]:border [&_th]:border [&_td]:border [&_td]:px-2 [&_td]:py-1 [&_th]:px-2 [&_th]:py-1 [&_thead]:bg-zinc-800 [&_tbody_tr:nth-child(odd)]:bg-zinc-900 [&_tbody_tr:nth-child(even)]:bg-zinc-800">
+                          <ReactMarkdown
+                            remarkPlugins={[remarkGfm]}
+                            rehypePlugins={[rehypeHighlight]}
+                          >
+                            {msg.content}
+                          </ReactMarkdown>
+                        </div>
+                      ) : (
+                        <span className="font-mono text-xs sm:text-sm text-white whitespace-pre-wrap">
                           {msg.content}
-                        </ReactMarkdown>
-                      </div>
+                        </span>
+                      )
                     ) : (
                       msg.content
                     )}
@@ -227,7 +210,6 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Scroll-to-bottom button */}
         <div
           className={`absolute bottom-5 left-1/2 transform -translate-x-1/2 transition-opacity duration-300 ${
             autoScrollEnabled ? "opacity-0 pointer-events-none" : "opacity-100"
@@ -243,27 +225,15 @@ export default function Home() {
         </div>
       </main>
 
-      {/* Footer */}
       <footer
         ref={footerRef}
         className="sticky bottom-0 z-50 bg-zinc-900 px-4 pb-4 min-h-24"
       >
         <form onSubmit={(e) => handleFormSubmit(e)}>
-          <div
-            className="relative flex flex-col items-stretch justify-start 
-              bg-zinc-800 border border-zinc-700 
-              rounded-4xl px-4 pt-0 shadow-md 
-              w-full max-w-[95%] sm:w-[66%] sm:hover:w-[70%] mx-auto 
-              transition-all duration-300 min-h-[3.25rem]"
-          >
+          <div className="relative flex flex-col items-stretch justify-start bg-zinc-800 border border-zinc-700 rounded-4xl px-4 pt-0 shadow-md w-full max-w-[95%] sm:w-[66%] sm:hover:w-[70%] mx-auto transition-all duration-300 min-h-[3.25rem]">
             <textarea
               ref={textareaRef}
-              className="w-full text-base font-mono text-white bg-transparent 
-                focus:outline-none px-2 pr-10 placeholder-gray-400 
-                resize-none overflow-hidden 
-                break-words whitespace-pre-wrap 
-                leading-[1.25rem] sm:leading-[1.5rem] 
-                py-[0.75rem] sm:py-[1rem] max-h-24 sm:max-h-40"
+              className="w-full text-base font-mono text-white bg-transparent focus:outline-none px-2 pr-10 placeholder-gray-400 resize-none overflow-hidden break-words whitespace-pre-wrap leading-[1.25rem] sm:leading-[1.5rem] py-[0.75rem] sm:py-[1rem] max-h-24 sm:max-h-40"
               placeholder="Type your message..."
               value={input}
               name="message"
