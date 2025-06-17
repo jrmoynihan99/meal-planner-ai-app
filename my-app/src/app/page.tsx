@@ -12,7 +12,9 @@ export default function Home() {
   const [isThinking, setIsThinking] = useState(false);
   const [autoScrollEnabled, setAutoScrollEnabled] = useState(true);
   const chatCanvasRef = useRef<HTMLDivElement | null>(null);
+  const messagesContainerRef = useRef<HTMLDivElement | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+  const footerRef = useRef<HTMLElement | null>(null);
 
   const { messages, input, handleInputChange, handleSubmit, isLoading } =
     useChat({
@@ -31,21 +33,49 @@ export default function Home() {
     }
   }, [hasAssistantResponse, isThinking]);
 
+  // Auto-scroll logic
+  const scrollToBottom = () => {
+    const container = chatCanvasRef.current;
+    if (container) {
+      container.scrollTo({ top: container.scrollHeight, behavior: "smooth" });
+    }
+  };
+
   useLayoutEffect(() => {
     const container = chatCanvasRef.current;
     if (!container || !autoScrollEnabled) return;
-    container.scrollTo({ top: container.scrollHeight, behavior: "smooth" });
+    scrollToBottom();
   }, [messages, isThinking, autoScrollEnabled]);
+
+  // ResizeObserver to handle typewriter content changes
+  useEffect(() => {
+    const messagesContainer = messagesContainerRef.current;
+    if (!messagesContainer) return;
+
+    const resizeObserver = new ResizeObserver(() => {
+      if (autoScrollEnabled) {
+        scrollToBottom();
+      }
+    });
+
+    resizeObserver.observe(messagesContainer);
+
+    return () => {
+      resizeObserver.disconnect();
+    };
+  }, [autoScrollEnabled]);
 
   useEffect(() => {
     const container = chatCanvasRef.current;
     if (!container) return;
 
     const handleScroll = () => {
+      const footerHeight =
+        footerRef.current?.getBoundingClientRect().height || 0;
+
       const isAtBottom =
-        Math.abs(
-          container.scrollHeight - container.scrollTop - container.clientHeight
-        ) < 50;
+        container.scrollTop + container.clientHeight >=
+        container.scrollHeight - footerHeight;
 
       setAutoScrollEnabled(isAtBottom);
     };
@@ -54,17 +84,12 @@ export default function Home() {
     return () => container.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const scrollToBottom = () => {
-    const container = chatCanvasRef.current;
-    if (container) {
-      container.scrollTo({ top: container.scrollHeight, behavior: "smooth" });
-      setAutoScrollEnabled(true);
-    }
-  };
-
   const handleFormSubmit = (e?: React.FormEvent<HTMLFormElement>) => {
     e?.preventDefault();
     if (!input.trim() || isLoading) return;
+
+    // Reset scroll behavior for new exchange
+    setAutoScrollEnabled(true);
 
     setIsThinking(true);
     if (textareaRef.current) textareaRef.current.style.height = "auto";
@@ -76,6 +101,14 @@ export default function Home() {
     const el = e.target;
     el.style.height = "auto";
     el.style.height = `${el.scrollHeight}px`;
+  };
+
+  const scrollToBottomButton = () => {
+    const container = chatCanvasRef.current;
+    if (container) {
+      container.scrollTo({ top: container.scrollHeight, behavior: "smooth" });
+      setAutoScrollEnabled(true);
+    }
   };
 
   return (
@@ -105,7 +138,10 @@ export default function Home() {
           ref={chatCanvasRef}
           className="flex-1 overflow-y-auto scroll-smooth px-2 pt-4"
         >
-          <div className="w-full max-w-[95%] sm:max-w-[66%] mx-auto space-y-4 pb-6">
+          <div
+            ref={messagesContainerRef}
+            className="w-full max-w-[95%] sm:max-w-[66%] mx-auto space-y-4 pb-6"
+          >
             {messages.map((msg, idx) => {
               const isLast = idx === messages.length - 1;
               return (
@@ -164,7 +200,7 @@ export default function Home() {
           }`}
         >
           <button
-            onClick={scrollToBottom}
+            onClick={scrollToBottomButton}
             className="p-1 rounded-full bg-black text-white border border-white/40 hover:border-white/60 hover:bg-zinc-800 shadow-md transition cursor-pointer"
             aria-label="Scroll to bottom"
           >
@@ -174,7 +210,10 @@ export default function Home() {
       </main>
 
       {/* Footer */}
-      <footer className="sticky bottom-0 z-50 bg-zinc-900 px-4 pb-4 min-h-24">
+      <footer
+        ref={footerRef}
+        className="sticky bottom-0 z-50 bg-zinc-900 px-4 pb-4 min-h-24"
+      >
         <form onSubmit={(e) => handleFormSubmit(e)}>
           <div
             className="relative flex flex-col items-stretch justify-start 
