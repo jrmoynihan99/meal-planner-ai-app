@@ -8,14 +8,15 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeHighlight from "rehype-highlight";
 import "highlight.js/styles/github-dark.css";
+import type { ChatRequestMessage } from "ai";
 
 const MessageWrapper = motion.div;
 
 export default function Home() {
-  const [autoScrollEnabled, setAutoScrollEnabled] = useState(true);
   const [processedMessages, setProcessedMessages] = useState<Set<string>>(
     new Set()
   );
+  const [shouldAutoScroll, setShouldAutoScroll] = useState(true);
 
   const chatCanvasRef = useRef<HTMLDivElement | null>(null);
   const messagesContainerRef = useRef<HTMLDivElement | null>(null);
@@ -29,39 +30,122 @@ export default function Home() {
   const hasAssistantResponse =
     lastMessage?.role === "assistant" && lastMessage?.content;
 
-  // Process completed assistant messages after streaming ends
+  // Smooth scroll to bottom function
+  const scrollToBottom = (smooth = true) => {
+    const container = chatCanvasRef.current;
+    if (!container) return;
+
+    if (smooth) {
+      container.scrollTo({
+        top: container.scrollHeight,
+        behavior: "smooth",
+      });
+    } else {
+      container.scrollTop = container.scrollHeight;
+    }
+  };
+
+  // Handle user scroll to detect if they've scrolled up
+  useEffect(() => {
+    const container = chatCanvasRef.current;
+    if (!container) return;
+
+    const handleScroll = () => {
+      const isNearBottom =
+        container.scrollTop + container.clientHeight >=
+        container.scrollHeight - 50;
+      setShouldAutoScroll(isNearBottom);
+    };
+
+    container.addEventListener("scroll", handleScroll, { passive: true });
+    return () => container.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  // Auto-scroll when new messages arrive
+  useEffect(() => {
+    if (messages.length > 0) {
+      // Always scroll to bottom when a new message arrives
+      scrollToBottom(true);
+      setShouldAutoScroll(true);
+    }
+  }, [messages.length]);
+
+  // Auto-scroll during streaming (as assistant types)
+  useEffect(() => {
+    if (isLoading && shouldAutoScroll) {
+      const container = chatCanvasRef.current;
+      if (!container) return;
+
+      // Use MutationObserver to watch for content changes during streaming
+      const observer = new MutationObserver(() => {
+        if (shouldAutoScroll) {
+          // Use requestAnimationFrame for smooth scrolling during typing
+          requestAnimationFrame(() => {
+            container.scrollTop = container.scrollHeight;
+          });
+        }
+      });
+
+      const messagesContainer = messagesContainerRef.current;
+      if (messagesContainer) {
+        observer.observe(messagesContainer, {
+          childList: true,
+          subtree: true,
+          characterData: true,
+        });
+      }
+
+      return () => observer.disconnect();
+    }
+  }, [isLoading, shouldAutoScroll]);
+
+  // Process messages for markdown rendering
   useEffect(() => {
     if (!isLoading && lastMessage?.role === "assistant" && lastMessage?.id) {
       const messageId = lastMessage.id;
       if (!processedMessages.has(messageId)) {
-        // Store current scroll position before applying markdown
-        const container = chatCanvasRef.current;
-        const wasAtBottom = container
-          ? container.scrollTop + container.clientHeight >=
-            container.scrollHeight - 10
-          : true;
-
-        // Add a small delay to ensure streaming is completely finished
         const timer = setTimeout(() => {
           setProcessedMessages((prev) => new Set([...prev, messageId]));
 
-          // Restore scroll position after markdown is applied
-          if (container && wasAtBottom) {
-            requestAnimationFrame(() => {
-              container.scrollTo({
-                top: container.scrollHeight,
-                behavior: "smooth",
-              });
-            });
+          // After markdown is applied, handle the layout changes
+          if (shouldAutoScroll) {
+            // Give the DOM time to fully render the markdown
+            setTimeout(() => {
+              scrollToBottom(true);
+            }, 50);
           }
         }, 100);
         return () => clearTimeout(timer);
       }
     }
-  }, [isLoading, lastMessage, processedMessages]);
+  }, [isLoading, lastMessage, processedMessages, shouldAutoScroll]);
 
-  // Check if a message should be rendered as markdown
-  const shouldRenderAsMarkdown = (msg: any) => {
+  // Watch for layout changes after markdown rendering
+  useEffect(() => {
+    const container = chatCanvasRef.current;
+    const messagesContainer = messagesContainerRef.current;
+    if (!container || !messagesContainer) return;
+
+    // Only observe when we have processed messages and should auto-scroll
+    if (processedMessages.size > 0 && shouldAutoScroll) {
+      const resizeObserver = new ResizeObserver(() => {
+        if (shouldAutoScroll) {
+          // Use a small delay to ensure all layout is complete
+          setTimeout(() => {
+            scrollToBottom(false); // Use instant scroll for layout adjustments
+          }, 10);
+        }
+      });
+
+      resizeObserver.observe(messagesContainer);
+
+      return () => {
+        resizeObserver.disconnect();
+      };
+    }
+  }, [processedMessages.size, shouldAutoScroll]);
+
+  const shouldRenderAsMarkdown = (msg: ChatRequestMessage) => {
     return (
       msg.role === "assistant" &&
       msg.id &&
@@ -70,94 +154,17 @@ export default function Home() {
     );
   };
 
-  // Check if this is the currently streaming message
-  const isStreamingMessage = (msg: any, idx: number) => {
+  const isStreamingMessage = (msg: ChatRequestMessage, idx: number) => {
     return msg.role === "assistant" && idx === messages.length - 1 && isLoading;
   };
-
-  // Enhanced auto-scroll effect that handles streaming better
-  useEffect(() => {
-    const messagesContainer = messagesContainerRef.current;
-    const container = chatCanvasRef.current;
-    if (!messagesContainer || !container) return;
-
-    let rafId: number | null = null;
-    let scrollTimeout: NodeJS.Timeout | null = null;
-
-    const smoothScrollToBottom = () => {
-      if (!autoScrollEnabled) return;
-
-      if (rafId !== null) cancelAnimationFrame(rafId);
-      if (scrollTimeout) clearTimeout(scrollTimeout);
-
-      rafId = requestAnimationFrame(() => {
-        const footerHeight =
-          footerRef.current?.getBoundingClientRect().height || 0;
-        const targetScrollTop = container.scrollHeight - container.clientHeight;
-
-        // For streaming messages, use immediate scroll for better responsiveness
-        if (isLoading) {
-          container.scrollTop = targetScrollTop;
-        } else {
-          container.scrollTo({ top: targetScrollTop, behavior: "smooth" });
-        }
-      });
-    };
-
-    // Use both ResizeObserver and MutationObserver for better streaming detection
-    const resizeObserver = new ResizeObserver(smoothScrollToBottom);
-
-    const mutationObserver = new MutationObserver((mutations) => {
-      // Check if any text content changed (streaming updates)
-      const hasTextChanges = mutations.some(
-        (mutation) =>
-          mutation.type === "childList" ||
-          (mutation.type === "characterData" && mutation.target.textContent)
-      );
-
-      if (hasTextChanges && autoScrollEnabled) {
-        // Debounce scroll updates during rapid streaming
-        if (scrollTimeout) clearTimeout(scrollTimeout);
-        scrollTimeout = setTimeout(smoothScrollToBottom, 10);
-      }
-    });
-
-    resizeObserver.observe(messagesContainer);
-    mutationObserver.observe(messagesContainer, {
-      childList: true,
-      subtree: true,
-      characterData: true,
-    });
-
-    return () => {
-      if (rafId !== null) cancelAnimationFrame(rafId);
-      if (scrollTimeout) clearTimeout(scrollTimeout);
-      resizeObserver.disconnect();
-      mutationObserver.disconnect();
-    };
-  }, [autoScrollEnabled, isLoading]);
-
-  useEffect(() => {
-    const container = chatCanvasRef.current;
-    if (!container) return;
-
-    const handleScroll = () => {
-      const footerHeight =
-        footerRef.current?.getBoundingClientRect().height || 0;
-      const isAtBottom =
-        container.scrollTop + container.clientHeight >=
-        container.scrollHeight - footerHeight - 20; // Increased threshold for better detection
-      setAutoScrollEnabled(isAtBottom);
-    };
-
-    container.addEventListener("scroll", handleScroll, { passive: true });
-    return () => container.removeEventListener("scroll", handleScroll);
-  }, []);
 
   const handleFormSubmit = (e?: React.FormEvent<HTMLFormElement>) => {
     e?.preventDefault();
     if (!input.trim() || isLoading) return;
-    setAutoScrollEnabled(true);
+
+    // Reset auto-scroll for new message
+    setShouldAutoScroll(true);
+
     if (textareaRef.current) textareaRef.current.style.height = "auto";
     handleSubmit();
   };
@@ -171,6 +178,29 @@ export default function Home() {
 
   return (
     <div className="flex flex-col h-[100dvh] bg-zinc-900 text-white">
+      <style jsx global>{`
+        /* Custom scrollbar styling */
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: #27272a; /* zinc-800 */
+          border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: #52525b; /* zinc-600 */
+          border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: #71717a; /* zinc-500 */
+        }
+
+        /* Firefox scrollbar styling */
+        .custom-scrollbar {
+          scrollbar-width: thin;
+          scrollbar-color: #52525b #27272a;
+        }
+      `}</style>
       <header className="sticky top-0 z-50 bg-zinc-800 px-4 py-3 border-b border-zinc-700">
         <h1 className="text-lg sm:text-xl font-semibold">
           Meal Planner AI Chat
@@ -180,7 +210,7 @@ export default function Home() {
       <main className="flex-1 flex flex-col relative overflow-hidden">
         <div
           ref={chatCanvasRef}
-          className="flex-1 overflow-y-auto scroll-smooth px-2 pt-4"
+          className="flex-1 overflow-y-auto scroll-smooth px-2 pt-4 custom-scrollbar"
         >
           <div
             ref={messagesContainerRef}
@@ -226,11 +256,7 @@ export default function Home() {
                           </ReactMarkdown>
                         ) : (
                           <div className="min-h-[1.25rem]">
-                            <span
-                              className={`whitespace-pre-wrap ${
-                                isCurrentlyStreaming ? "" : ""
-                              }`}
-                            >
+                            <span className="whitespace-pre-wrap">
                               {msg.content}
                               {isCurrentlyStreaming && (
                                 <span className="inline-block w-2 h-4 bg-blue-500 ml-1 animate-pulse" />
@@ -257,16 +283,13 @@ export default function Home() {
 
         <div
           className={`absolute bottom-5 left-1/2 transform -translate-x-1/2 transition-opacity duration-300 ${
-            autoScrollEnabled ? "opacity-0 pointer-events-none" : "opacity-100"
+            shouldAutoScroll ? "opacity-0 pointer-events-none" : "opacity-100"
           }`}
         >
           <button
             onClick={() => {
-              chatCanvasRef.current?.scrollTo({
-                top: chatCanvasRef.current.scrollHeight,
-                behavior: "smooth",
-              });
-              setAutoScrollEnabled(true);
+              scrollToBottom(true);
+              setShouldAutoScroll(true);
             }}
             className="p-1 rounded-full bg-black text-white border border-white/40 hover:border-white/60 hover:bg-zinc-800 shadow-md transition cursor-pointer"
             aria-label="Scroll to bottom"
