@@ -5,12 +5,17 @@ import { ArrowUpIcon, ArrowDownIcon } from "@heroicons/react/24/solid";
 import { Typewriter } from "../components/Typewriter";
 import { useChat } from "ai/react";
 import { motion } from "framer-motion";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import rehypeHighlight from "rehype-highlight";
+import "highlight.js/styles/github-dark.css";
 
 const MessageWrapper = motion.div;
 
 export default function Home() {
-  const [isThinking, setIsThinking] = useState(false);
   const [autoScrollEnabled, setAutoScrollEnabled] = useState(true);
+  const [hasTyped, setHasTyped] = useState(false);
+
   const chatCanvasRef = useRef<HTMLDivElement | null>(null);
   const messagesContainerRef = useRef<HTMLDivElement | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
@@ -19,21 +24,16 @@ export default function Home() {
   const { messages, input, handleInputChange, handleSubmit, isLoading } =
     useChat({
       api: "/api/chat",
-      onResponse: () => setIsThinking(false),
-      onFinish: () => setIsThinking(false),
     });
 
   const lastMessage = messages[messages.length - 1];
   const hasAssistantResponse =
     lastMessage?.role === "assistant" && lastMessage?.content;
 
-  useLayoutEffect(() => {
-    if (hasAssistantResponse && isThinking) {
-      setIsThinking(false);
-    }
-  }, [hasAssistantResponse, isThinking]);
+  useEffect(() => {
+    setHasTyped(false); // Reset when new assistant message appears
+  }, [lastMessage?.content]);
 
-  // Auto-scroll logic
   const scrollToBottom = () => {
     const container = chatCanvasRef.current;
     if (container) {
@@ -45,24 +45,18 @@ export default function Home() {
     const container = chatCanvasRef.current;
     if (!container || !autoScrollEnabled) return;
     scrollToBottom();
-  }, [messages, isThinking, autoScrollEnabled]);
+  }, [messages, autoScrollEnabled]);
 
-  // ResizeObserver to handle typewriter content changes
   useEffect(() => {
     const messagesContainer = messagesContainerRef.current;
     if (!messagesContainer) return;
 
     const resizeObserver = new ResizeObserver(() => {
-      if (autoScrollEnabled) {
-        scrollToBottom();
-      }
+      if (autoScrollEnabled) scrollToBottom();
     });
 
     resizeObserver.observe(messagesContainer);
-
-    return () => {
-      resizeObserver.disconnect();
-    };
+    return () => resizeObserver.disconnect();
   }, [autoScrollEnabled]);
 
   useEffect(() => {
@@ -88,10 +82,7 @@ export default function Home() {
     e?.preventDefault();
     if (!input.trim() || isLoading) return;
 
-    // Reset scroll behavior for new exchange
     setAutoScrollEnabled(true);
-
-    setIsThinking(true);
     if (textareaRef.current) textareaRef.current.style.height = "auto";
     handleSubmit();
   };
@@ -132,7 +123,6 @@ export default function Home() {
 
       {/* Main layout wrapper */}
       <main className="flex-1 flex flex-col relative overflow-hidden">
-        {/* Scrollable canvas for messages */}
         <div
           id="chat-canvas"
           ref={chatCanvasRef}
@@ -144,6 +134,14 @@ export default function Home() {
           >
             {messages.map((msg, idx) => {
               const isLast = idx === messages.length - 1;
+
+              if (msg.role === "assistant") {
+                console.log(
+                  "Assistant raw markdown message:",
+                  JSON.stringify(msg.content)
+                );
+              }
+
               return (
                 <div
                   key={msg.id || idx}
@@ -153,10 +151,10 @@ export default function Home() {
                 >
                   <MessageWrapper
                     data-last-message={isLast ? "true" : undefined}
-                    className={`font-mono text-sm sm:text-base px-3 py-2 break-words whitespace-pre-wrap rounded-lg ${
+                    className={`text-sm sm:text-base px-3 py-2 break-words rounded-lg ${
                       msg.role === "user"
-                        ? "bg-zinc-700 text-white max-w-[80%]"
-                        : "text-white w-full"
+                        ? "bg-zinc-700 text-white max-w-[80%] whitespace-pre-wrap"
+                        : "text-white w-full font-mono"
                     }`}
                     initial={{ opacity: 0, scale: 0.95, y: 10 }}
                     animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -166,7 +164,7 @@ export default function Home() {
                       damping: 20,
                     }}
                   >
-                    {msg.role === "assistant" && isLast ? (
+                    {msg.role === "assistant" && isLast && !hasTyped ? (
                       <Typewriter
                         texts={[msg.content]}
                         typingSpeed={5}
@@ -176,7 +174,43 @@ export default function Home() {
                         fontClass="font-mono"
                         sizeClass="text-xs sm:text-sm"
                         colorClass="text-white"
+                        onTypingEnd={() => setHasTyped(true)}
                       />
+                    ) : msg.role === "assistant" ? (
+                      <div
+                        className="prose prose-invert prose-sm max-w-none 
+                                  [&_ul]:list-disc 
+                                  [&_ol]:list-decimal 
+                                  [&_ul]:pl-5 
+                                  [&_ol]:pl-5 
+                                  [&_ul]:my-4 
+                                  [&_ol]:my-4 
+                                  [&_table]:my-4 
+                                  [&_li]:mb-1 
+                                  [&_p]:mb-2 
+                                  [&_p:last-child]:mb-0 
+                                  [&_h1]:mb-3 
+                                  [&_h2]:mb-2 
+                                  [&_h3]:mb-2 
+                                  [&_table]:w-full 
+                                  [&_table]:border 
+                                  [&_th]:border 
+                                  [&_td]:border 
+                                  [&_td]:px-2 
+                                  [&_td]:py-1 
+                                  [&_th]:px-2 
+                                  [&_th]:py-1 
+                                  [&_thead]:bg-zinc-800 
+                                  [&_tbody_tr:nth-child(odd)]:bg-zinc-900 
+                                  [&_tbody_tr:nth-child(even)]:bg-zinc-800"
+                      >
+                        <ReactMarkdown
+                          remarkPlugins={[remarkGfm]}
+                          rehypePlugins={[rehypeHighlight]}
+                        >
+                          {msg.content}
+                        </ReactMarkdown>
+                      </div>
                     ) : (
                       msg.content
                     )}
@@ -185,7 +219,7 @@ export default function Home() {
               );
             })}
 
-            {isThinking && !hasAssistantResponse && (
+            {isLoading && !hasAssistantResponse && (
               <div className="font-mono text-xs text-gray-400 animate-pulse">
                 Thinking...
               </div>

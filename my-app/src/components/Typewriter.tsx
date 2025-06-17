@@ -8,9 +8,10 @@ interface TypewriterProps {
   deletingSpeed?: number;
   delayBeforeDelete?: number;
   delayBetween?: number;
-  fontClass?: string; // e.g. "font-mono"
-  sizeClass?: string; // e.g. "text-base"
-  colorClass?: string; // e.g. "text-gray-400"
+  fontClass?: string;
+  sizeClass?: string;
+  colorClass?: string;
+  onTypingEnd?: () => void; // ✅ new
 }
 
 export function Typewriter({
@@ -22,16 +23,22 @@ export function Typewriter({
   fontClass = "font-sans",
   sizeClass = "text-xl",
   colorClass = "text-white",
+  onTypingEnd,
 }: TypewriterProps) {
   const [index, setIndex] = useState(0);
   const [subIndex, setSubIndex] = useState(0);
   const [deleting, setDeleting] = useState(false);
+  const fullText = texts[index];
 
   useEffect(() => {
-    if (!deleting && subIndex === texts[index].length) {
+    // Finished typing forward
+    if (!deleting && subIndex === fullText.length) {
+      onTypingEnd?.(); // ✅ trigger callback
       const t = setTimeout(() => setDeleting(true), delayBeforeDelete);
       return () => clearTimeout(t);
     }
+
+    // Finished deleting
     if (deleting && subIndex === 0) {
       const t = setTimeout(() => {
         setDeleting(false);
@@ -39,25 +46,28 @@ export function Typewriter({
       }, delayBetween);
       return () => clearTimeout(t);
     }
+
     const t = setTimeout(
       () => setSubIndex((i) => i + (deleting ? -1 : 1)),
       deleting ? deletingSpeed : typingSpeed
     );
+
     return () => clearTimeout(t);
   }, [
     subIndex,
-    index,
     deleting,
-    texts,
+    fullText,
     typingSpeed,
     deletingSpeed,
     delayBeforeDelete,
     delayBetween,
+    texts,
+    onTypingEnd,
   ]);
 
   return (
     <span className={`${fontClass} ${sizeClass} ${colorClass}`}>
-      {texts[index].substring(0, subIndex)}
+      {fullText.substring(0, subIndex)}
       <span className="inline-block w-1 bg-white animate-pulse ml-1" />
     </span>
   );
