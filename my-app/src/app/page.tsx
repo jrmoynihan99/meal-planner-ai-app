@@ -8,7 +8,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeHighlight from "rehype-highlight";
 import "highlight.js/styles/github-dark.css";
-import type { ChatRequestMessage } from "ai";
+import type { Message } from "ai";
 
 const MessageWrapper = motion.div;
 
@@ -145,7 +145,7 @@ export default function Home() {
     }
   }, [processedMessages.size, shouldAutoScroll]);
 
-  const shouldRenderAsMarkdown = (msg: ChatRequestMessage) => {
+  const shouldRenderAsMarkdown = (msg: Message) => {
     return (
       msg.role === "assistant" &&
       msg.id &&
@@ -154,7 +154,7 @@ export default function Home() {
     );
   };
 
-  const isStreamingMessage = (msg: ChatRequestMessage, idx: number) => {
+  const isStreamingMessage = (msg: Message, idx: number) => {
     return msg.role === "assistant" && idx === messages.length - 1 && isLoading;
   };
 
