@@ -1,8 +1,7 @@
 "use client";
 
-import { useState, useRef, useLayoutEffect, useEffect } from "react";
+import { useState, useRef, useEffect } from "react";
 import { ArrowUpIcon, ArrowDownIcon } from "@heroicons/react/24/solid";
-import { Typewriter } from "../components/Typewriter";
 import { useChat } from "ai/react";
 import { motion } from "framer-motion";
 import ReactMarkdown from "react-markdown";
@@ -14,9 +13,8 @@ const MessageWrapper = motion.div;
 
 export default function Home() {
   const [autoScrollEnabled, setAutoScrollEnabled] = useState(true);
-  const [hasTyped, setHasTyped] = useState(false);
-  const [lastTypedMessageId, setLastTypedMessageId] = useState<string | null>(
-    null
+  const [processedMessages, setProcessedMessages] = useState<Set<string>>(
+    new Set()
   );
 
   const chatCanvasRef = useRef<HTMLDivElement | null>(null);
@@ -25,47 +23,119 @@ export default function Home() {
   const footerRef = useRef<HTMLElement | null>(null);
 
   const { messages, input, handleInputChange, handleSubmit, isLoading } =
-    useChat({
-      api: "/api/chat",
-    });
+    useChat({ api: "/api/chat" });
 
   const lastMessage = messages[messages.length - 1];
   const hasAssistantResponse =
     lastMessage?.role === "assistant" && lastMessage?.content;
 
+  // Process completed assistant messages after streaming ends
   useEffect(() => {
-    if (
-      lastMessage?.role === "assistant" &&
-      lastMessage.id !== lastTypedMessageId
-    ) {
-      setHasTyped(false);
-    }
-  }, [lastMessage?.id]);
+    if (!isLoading && lastMessage?.role === "assistant" && lastMessage?.id) {
+      const messageId = lastMessage.id;
+      if (!processedMessages.has(messageId)) {
+        // Store current scroll position before applying markdown
+        const container = chatCanvasRef.current;
+        const wasAtBottom = container
+          ? container.scrollTop + container.clientHeight >=
+            container.scrollHeight - 10
+          : true;
 
-  const scrollToBottom = () => {
-    const container = chatCanvasRef.current;
-    if (container) {
-      container.scrollTo({ top: container.scrollHeight, behavior: "smooth" });
+        // Add a small delay to ensure streaming is completely finished
+        const timer = setTimeout(() => {
+          setProcessedMessages((prev) => new Set([...prev, messageId]));
+
+          // Restore scroll position after markdown is applied
+          if (container && wasAtBottom) {
+            requestAnimationFrame(() => {
+              container.scrollTo({
+                top: container.scrollHeight,
+                behavior: "smooth",
+              });
+            });
+          }
+        }, 100);
+        return () => clearTimeout(timer);
+      }
     }
+  }, [isLoading, lastMessage, processedMessages]);
+
+  // Check if a message should be rendered as markdown
+  const shouldRenderAsMarkdown = (msg: any) => {
+    return (
+      msg.role === "assistant" &&
+      msg.id &&
+      processedMessages.has(msg.id) &&
+      !isLoading
+    );
   };
 
-  useLayoutEffect(() => {
-    const container = chatCanvasRef.current;
-    if (!container || !autoScrollEnabled) return;
-    scrollToBottom();
-  }, [messages, autoScrollEnabled]);
+  // Check if this is the currently streaming message
+  const isStreamingMessage = (msg: any, idx: number) => {
+    return msg.role === "assistant" && idx === messages.length - 1 && isLoading;
+  };
 
+  // Enhanced auto-scroll effect that handles streaming better
   useEffect(() => {
     const messagesContainer = messagesContainerRef.current;
-    if (!messagesContainer) return;
+    const container = chatCanvasRef.current;
+    if (!messagesContainer || !container) return;
 
-    const resizeObserver = new ResizeObserver(() => {
-      if (autoScrollEnabled) scrollToBottom();
+    let rafId: number | null = null;
+    let scrollTimeout: NodeJS.Timeout | null = null;
+
+    const smoothScrollToBottom = () => {
+      if (!autoScrollEnabled) return;
+
+      if (rafId !== null) cancelAnimationFrame(rafId);
+      if (scrollTimeout) clearTimeout(scrollTimeout);
+
+      rafId = requestAnimationFrame(() => {
+        const footerHeight =
+          footerRef.current?.getBoundingClientRect().height || 0;
+        const targetScrollTop = container.scrollHeight - container.clientHeight;
+
+        // For streaming messages, use immediate scroll for better responsiveness
+        if (isLoading) {
+          container.scrollTop = targetScrollTop;
+        } else {
+          container.scrollTo({ top: targetScrollTop, behavior: "smooth" });
+        }
+      });
+    };
+
+    // Use both ResizeObserver and MutationObserver for better streaming detection
+    const resizeObserver = new ResizeObserver(smoothScrollToBottom);
+
+    const mutationObserver = new MutationObserver((mutations) => {
+      // Check if any text content changed (streaming updates)
+      const hasTextChanges = mutations.some(
+        (mutation) =>
+          mutation.type === "childList" ||
+          (mutation.type === "characterData" && mutation.target.textContent)
+      );
+
+      if (hasTextChanges && autoScrollEnabled) {
+        // Debounce scroll updates during rapid streaming
+        if (scrollTimeout) clearTimeout(scrollTimeout);
+        scrollTimeout = setTimeout(smoothScrollToBottom, 10);
+      }
     });
 
     resizeObserver.observe(messagesContainer);
-    return () => resizeObserver.disconnect();
-  }, [autoScrollEnabled]);
+    mutationObserver.observe(messagesContainer, {
+      childList: true,
+      subtree: true,
+      characterData: true,
+    });
+
+    return () => {
+      if (rafId !== null) cancelAnimationFrame(rafId);
+      if (scrollTimeout) clearTimeout(scrollTimeout);
+      resizeObserver.disconnect();
+      mutationObserver.disconnect();
+    };
+  }, [autoScrollEnabled, isLoading]);
 
   useEffect(() => {
     const container = chatCanvasRef.current;
@@ -76,18 +146,17 @@ export default function Home() {
         footerRef.current?.getBoundingClientRect().height || 0;
       const isAtBottom =
         container.scrollTop + container.clientHeight >=
-        container.scrollHeight - footerHeight;
+        container.scrollHeight - footerHeight - 20; // Increased threshold for better detection
       setAutoScrollEnabled(isAtBottom);
     };
 
-    container.addEventListener("scroll", handleScroll);
+    container.addEventListener("scroll", handleScroll, { passive: true });
     return () => container.removeEventListener("scroll", handleScroll);
   }, []);
 
   const handleFormSubmit = (e?: React.FormEvent<HTMLFormElement>) => {
     e?.preventDefault();
     if (!input.trim() || isLoading) return;
-
     setAutoScrollEnabled(true);
     if (textareaRef.current) textareaRef.current.style.height = "auto";
     handleSubmit();
@@ -100,35 +169,16 @@ export default function Home() {
     el.style.height = `${el.scrollHeight}px`;
   };
 
-  const scrollToBottomButton = () => {
-    const container = chatCanvasRef.current;
-    if (container) {
-      container.scrollTo({ top: container.scrollHeight, behavior: "smooth" });
-      setAutoScrollEnabled(true);
-    }
-  };
-
   return (
     <div className="flex flex-col h-[100dvh] bg-zinc-900 text-white">
-      <header className="sticky top-0 z-50 bg-zinc-800 px-4 py-3 border-b border-zinc-700 flex items-baseline gap-2">
-        <h1 className="text-lg sm:text-xl font-semibold mr-4">
+      <header className="sticky top-0 z-50 bg-zinc-800 px-4 py-3 border-b border-zinc-700">
+        <h1 className="text-lg sm:text-xl font-semibold">
           Meal Planner AI Chat
         </h1>
-        <Typewriter
-          texts={["Automate Your Meals", "Plan Your Week", "Cook with Ease"]}
-          typingSpeed={100}
-          deletingSpeed={50}
-          delayBeforeDelete={1200}
-          delayBetween={500}
-          fontClass="font-mono"
-          sizeClass="text-sm sm:text-base"
-          colorClass="text-gray-400"
-        />
       </header>
 
       <main className="flex-1 flex flex-col relative overflow-hidden">
         <div
-          id="chat-canvas"
           ref={chatCanvasRef}
           className="flex-1 overflow-y-auto scroll-smooth px-2 pt-4"
         >
@@ -138,12 +188,8 @@ export default function Home() {
           >
             {messages.map((msg, idx) => {
               const isLast = idx === messages.length - 1;
-              const isBeingTyped =
-                msg.role === "assistant" &&
-                msg.id === lastTypedMessageId &&
-                !hasTyped;
-              const isFormatted =
-                msg.role === "assistant" && !isBeingTyped && msg.content;
+              const renderAsMarkdown = shouldRenderAsMarkdown(msg);
+              const isCurrentlyStreaming = isStreamingMessage(msg, idx);
 
               return (
                 <div
@@ -154,7 +200,7 @@ export default function Home() {
                 >
                   <MessageWrapper
                     data-last-message={isLast ? "true" : undefined}
-                    className={`text-sm sm:text-base px-3 py-2 break-words rounded-lg ${
+                    className={`text-sm sm:text-sm px-3 py-2 break-words rounded-lg ${
                       msg.role === "user"
                         ? "bg-zinc-700 text-white max-w-[80%] whitespace-pre-wrap"
                         : "text-white w-full font-mono"
@@ -164,38 +210,37 @@ export default function Home() {
                     transition={{ type: "spring", stiffness: 300, damping: 20 }}
                   >
                     {msg.role === "assistant" ? (
-                      isBeingTyped ? (
-                        <Typewriter
-                          texts={[msg.content]}
-                          typingSpeed={5}
-                          deletingSpeed={0}
-                          delayBeforeDelete={999999}
-                          delayBetween={0}
-                          fontClass="font-mono"
-                          sizeClass="text-xs sm:text-sm"
-                          colorClass="text-white"
-                          isStreaming={true}
-                          onTypingEnd={() => {
-                            setHasTyped(true);
-                            if (msg.id) setLastTypedMessageId(msg.id);
-                          }}
-                        />
-                      ) : hasTyped ? (
-                        <div className="prose prose-invert prose-sm max-w-none [&_ul]:list-disc [&_ol]:list-decimal [&_ul]:pl-5 [&_ol]:pl-5 [&_ul]:my-4 [&_ol]:my-4 [&_table]:my-4 [&_li]:mb-1 [&_p]:mb-2 [&_p:last-child]:mb-0 [&_h1]:mb-3 [&_h2]:mb-2 [&_h3]:mb-2 [&_table]:w-full [&_table]:border [&_th]:border [&_td]:border [&_td]:px-2 [&_td]:py-1 [&_th]:px-2 [&_th]:py-1 [&_thead]:bg-zinc-800 [&_tbody_tr:nth-child(odd)]:bg-zinc-900 [&_tbody_tr:nth-child(even)]:bg-zinc-800">
+                      <div
+                        className={`transition-opacity duration-200 ${
+                          renderAsMarkdown
+                            ? "prose prose-invert prose-xs max-w-none [&_ul]:list-disc [&_ol]:list-decimal [&_ul]:pl-5 [&_ol]:pl-5 [&_ul]:my-4 [&_ol]:my-4 [&_table]:my-4 [&_li]:mb-1 [&_p]:mb-2 [&_p:last-child]:mb-0 [&_h1]:mb-3 [&_h2]:mb-2 [&_h3]:mb-2 [&_table]:w-full [&_table]:border [&_th]:border [&_td]:border [&_td]:px-2 [&_td]:py-1 [&_th]:px-2 [&_th]:py-1 [&_thead]:bg-zinc-800 [&_tbody_tr:nth-child(odd)]:bg-zinc-900 [&_tbody_tr:nth-child(even)]:bg-zinc-800"
+                            : ""
+                        }`}
+                      >
+                        {renderAsMarkdown ? (
                           <ReactMarkdown
                             remarkPlugins={[remarkGfm]}
                             rehypePlugins={[rehypeHighlight]}
                           >
                             {msg.content}
                           </ReactMarkdown>
-                        </div>
-                      ) : (
-                        <span className="font-mono text-xs sm:text-sm text-white whitespace-pre-wrap">
-                          {msg.content}
-                        </span>
-                      )
+                        ) : (
+                          <div className="min-h-[1.25rem]">
+                            <span
+                              className={`whitespace-pre-wrap ${
+                                isCurrentlyStreaming ? "" : ""
+                              }`}
+                            >
+                              {msg.content}
+                              {isCurrentlyStreaming && (
+                                <span className="inline-block w-2 h-4 bg-blue-500 ml-1 animate-pulse" />
+                              )}
+                            </span>
+                          </div>
+                        )}
+                      </div>
                     ) : (
-                      msg.content
+                      <span className="whitespace-pre-wrap">{msg.content}</span>
                     )}
                   </MessageWrapper>
                 </div>
@@ -216,7 +261,13 @@ export default function Home() {
           }`}
         >
           <button
-            onClick={scrollToBottomButton}
+            onClick={() => {
+              chatCanvasRef.current?.scrollTo({
+                top: chatCanvasRef.current.scrollHeight,
+                behavior: "smooth",
+              });
+              setAutoScrollEnabled(true);
+            }}
             className="p-1 rounded-full bg-black text-white border border-white/40 hover:border-white/60 hover:bg-zinc-800 shadow-md transition cursor-pointer"
             aria-label="Scroll to bottom"
           >
@@ -229,7 +280,7 @@ export default function Home() {
         ref={footerRef}
         className="sticky bottom-0 z-50 bg-zinc-900 px-4 pb-4 min-h-24"
       >
-        <form onSubmit={(e) => handleFormSubmit(e)}>
+        <form onSubmit={handleFormSubmit}>
           <div className="relative flex flex-col items-stretch justify-start bg-zinc-800 border border-zinc-700 rounded-4xl px-4 pt-0 shadow-md w-full max-w-[95%] sm:w-[66%] sm:hover:w-[70%] mx-auto transition-all duration-300 min-h-[3.25rem]">
             <textarea
               ref={textareaRef}

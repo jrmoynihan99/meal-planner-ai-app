@@ -30,6 +30,7 @@ export function Typewriter({
   const [displayed, setDisplayed] = useState("");
   const [subIndex, setSubIndex] = useState(0);
   const previousTextRef = useRef("");
+  const displayedRef = useRef(""); // NEW
   const lastTextLengthRef = useRef(0);
   const inactivityTimerRef = useRef<NodeJS.Timeout | null>(null);
   const hasCalledOnEndRef = useRef(false);
@@ -39,24 +40,43 @@ export function Typewriter({
   useEffect(() => {
     if (isStreaming) {
       const current = fullText;
-      const prev = previousTextRef.current;
+      const prev = displayedRef.current;
+
+      console.log(
+        "🧪 [Typewriter] useEffect fired | fullText.length:",
+        current.length,
+        "| prev.length:",
+        prev.length
+      );
 
       if (current.length > prev.length) {
         const nextChar = current.slice(prev.length, prev.length + 1);
+        console.log(
+          "✏️ Adding char:",
+          nextChar,
+          "| new length will be:",
+          prev.length + 1
+        );
         const timeout = setTimeout(() => {
-          previousTextRef.current = prev + nextChar;
-          setDisplayed(prev + nextChar);
+          const newDisplayed = prev + nextChar;
+          displayedRef.current = newDisplayed;
+          previousTextRef.current = newDisplayed;
+          setDisplayed(newDisplayed);
         }, typingSpeed);
+
         hasCalledOnEndRef.current = false;
         return () => clearTimeout(timeout);
       }
 
       // If no new characters for 500ms, trigger onTypingEnd
       if (!hasCalledOnEndRef.current && current.length === prev.length) {
-        if (inactivityTimerRef.current)
+        console.log("⏳ Waiting 500ms — possible end of stream?");
+        if (inactivityTimerRef.current) {
           clearTimeout(inactivityTimerRef.current);
+        }
         inactivityTimerRef.current = setTimeout(() => {
           hasCalledOnEndRef.current = true;
+          console.log("🔥 onTypingEnd triggered inside Typewriter");
           onTypingEnd?.();
         }, 500);
       }
