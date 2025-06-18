@@ -32,22 +32,17 @@ export default function Home() {
   const hasAssistantResponse =
     lastMessage?.role === "assistant" && lastMessage?.content;
 
-  // Smooth scroll to bottom function
   const scrollToBottom = (smooth = true) => {
     const container = chatCanvasRef.current;
     if (!container) return;
 
     if (smooth) {
-      container.scrollTo({
-        top: container.scrollHeight,
-        behavior: "smooth",
-      });
+      container.scrollTo({ top: container.scrollHeight, behavior: "smooth" });
     } else {
       container.scrollTop = container.scrollHeight;
     }
   };
 
-  // Handle user scroll to detect if they've scrolled up
   useEffect(() => {
     const container = chatCanvasRef.current;
     if (!container) return;
@@ -63,25 +58,20 @@ export default function Home() {
     return () => container.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // Auto-scroll when new messages arrive
   useEffect(() => {
     if (messages.length > 0) {
-      // Always scroll to bottom when a new message arrives
       scrollToBottom(true);
       setShouldAutoScroll(true);
     }
   }, [messages.length]);
 
-  // Auto-scroll during streaming (as assistant types)
   useEffect(() => {
     if (isLoading && shouldAutoScroll) {
       const container = chatCanvasRef.current;
       if (!container) return;
 
-      // Use MutationObserver to watch for content changes during streaming
       const observer = new MutationObserver(() => {
         if (shouldAutoScroll) {
-          // Use requestAnimationFrame for smooth scrolling during typing
           requestAnimationFrame(() => {
             container.scrollTop = container.scrollHeight;
           });
@@ -101,17 +91,13 @@ export default function Home() {
     }
   }, [isLoading, shouldAutoScroll]);
 
-  // Process messages for markdown rendering
   useEffect(() => {
     if (!isLoading && lastMessage?.role === "assistant" && lastMessage?.id) {
       const messageId = lastMessage.id;
       if (!processedMessages.has(messageId)) {
         const timer = setTimeout(() => {
           setProcessedMessages((prev) => new Set([...prev, messageId]));
-
-          // After markdown is applied, handle the layout changes
           if (shouldAutoScroll) {
-            // Give the DOM time to fully render the markdown
             setTimeout(() => {
               scrollToBottom(true);
             }, 50);
@@ -122,51 +108,38 @@ export default function Home() {
     }
   }, [isLoading, lastMessage, processedMessages, shouldAutoScroll]);
 
-  // Watch for layout changes after markdown rendering
   useEffect(() => {
     const container = chatCanvasRef.current;
     const messagesContainer = messagesContainerRef.current;
     if (!container || !messagesContainer) return;
 
-    // Only observe when we have processed messages and should auto-scroll
     if (processedMessages.size > 0 && shouldAutoScroll) {
       const resizeObserver = new ResizeObserver(() => {
         if (shouldAutoScroll) {
-          // Use a small delay to ensure all layout is complete
           setTimeout(() => {
-            scrollToBottom(false); // Use instant scroll for layout adjustments
+            scrollToBottom(false);
           }, 10);
         }
       });
 
       resizeObserver.observe(messagesContainer);
-
-      return () => {
-        resizeObserver.disconnect();
-      };
+      return () => resizeObserver.disconnect();
     }
   }, [processedMessages.size, shouldAutoScroll]);
 
-  const shouldRenderAsMarkdown = (msg: Message) => {
-    return (
-      msg.role === "assistant" &&
-      msg.id &&
-      processedMessages.has(msg.id) &&
-      !isLoading
-    );
-  };
+  const shouldRenderAsMarkdown = (msg: Message) =>
+    msg.role === "assistant" &&
+    msg.id &&
+    processedMessages.has(msg.id) &&
+    !isLoading;
 
-  const isStreamingMessage = (msg: Message, idx: number) => {
-    return msg.role === "assistant" && idx === messages.length - 1 && isLoading;
-  };
+  const isStreamingMessage = (msg: Message, idx: number) =>
+    msg.role === "assistant" && idx === messages.length - 1 && isLoading;
 
   const handleFormSubmit = (e?: React.FormEvent<HTMLFormElement>) => {
     e?.preventDefault();
     if (!input.trim() || isLoading) return;
-
-    // Reset auto-scroll for new message
     setShouldAutoScroll(true);
-
     if (textareaRef.current) textareaRef.current.style.height = "auto";
     handleSubmit();
   };
@@ -181,28 +154,26 @@ export default function Home() {
   return (
     <div className="flex flex-col h-[100dvh] bg-zinc-900 text-white">
       <style jsx global>{`
-        /* Custom scrollbar styling */
         .custom-scrollbar::-webkit-scrollbar {
           width: 8px;
         }
         .custom-scrollbar::-webkit-scrollbar-track {
-          background: #27272a; /* zinc-800 */
+          background: #27272a;
           border-radius: 4px;
         }
         .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: #52525b; /* zinc-600 */
+          background: #52525b;
           border-radius: 4px;
         }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: #71717a; /* zinc-500 */
+          background: #71717a;
         }
-
-        /* Firefox scrollbar styling */
         .custom-scrollbar {
           scrollbar-width: thin;
           scrollbar-color: #52525b #27272a;
         }
       `}</style>
+
       <header className="sticky top-0 z-50 bg-zinc-800 px-4 py-3 border-b border-zinc-700">
         <div className="flex items-center justify-start gap-3">
           <MenuButton onClick={() => console.log("Menu clicked")} />
@@ -309,9 +280,7 @@ export default function Home() {
         className="sticky bottom-0 z-50 bg-zinc-900 px-4 pb-4 min-h-24"
       >
         <div className="w-full max-w-[95%] sm:max-w-[66%] mx-auto mb-2">
-          <PhaseButtons
-            onSelect={(text) => handleInputChange({ target: { value: text } })}
-          />
+          <PhaseButtons onSelect={(text) => setInput(text)} />
         </div>
         <form onSubmit={handleFormSubmit}>
           <div className="relative flex flex-col items-stretch justify-start bg-zinc-800 border border-zinc-700 rounded-4xl px-4 pt-0 shadow-md w-full max-w-[95%] sm:w-[66%] sm:hover:w-[70%] mx-auto transition-all duration-300 min-h-[3.25rem]">
