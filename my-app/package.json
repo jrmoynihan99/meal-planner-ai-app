@@ -15,6 +15,7 @@
     "@vercel/kv": "^1.0.1",
     "ai": "^4.3.16",
     "framer-motion": "^12.18.1",
+    "lucide-react": "^0.517.0",
     "next": "15.3.3",
     "openai": "^5.3.0",
     "react": "^19.0.0",
@@ -23,7 +24,8 @@
     "rehype-highlight": "^7.0.2",
     "remark-gfm": "^4.0.1",
     "uuid": "^9.0.1",
-    "xlsx": "^0.18.5"
+    "xlsx": "^0.18.5",
+    "zustand": "^5.0.5"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",

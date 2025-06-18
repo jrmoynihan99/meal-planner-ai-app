@@ -9,6 +9,8 @@ import remarkGfm from "remark-gfm";
 import rehypeHighlight from "rehype-highlight";
 import "highlight.js/styles/github-dark.css";
 import type { Message } from "ai";
+import { PhaseButtons } from "@/components/PhaseButtons";
+import { MenuButton } from "@/components/MenuButton";
 
 const MessageWrapper = motion.div;
 
@@ -202,9 +204,12 @@ export default function Home() {
         }
       `}</style>
       <header className="sticky top-0 z-50 bg-zinc-800 px-4 py-3 border-b border-zinc-700">
-        <h1 className="text-lg sm:text-xl font-semibold">
-          Meal Planner AI Chat
-        </h1>
+        <div className="flex items-center justify-start gap-3">
+          <MenuButton onClick={() => console.log("Menu clicked")} />
+          <h1 className="text-lg sm:text-xl font-semibold whitespace-nowrap">
+            Meal Planner AI Chat
+          </h1>
+        </div>
       </header>
 
       <main className="flex-1 flex flex-col relative overflow-hidden">
@@ -303,6 +308,11 @@ export default function Home() {
         ref={footerRef}
         className="sticky bottom-0 z-50 bg-zinc-900 px-4 pb-4 min-h-24"
       >
+        <div className="w-full max-w-[95%] sm:max-w-[66%] mx-auto mb-2">
+          <PhaseButtons
+            onSelect={(text) => handleInputChange({ target: { value: text } })}
+          />
+        </div>
         <form onSubmit={handleFormSubmit}>
           <div className="relative flex flex-col items-stretch justify-start bg-zinc-800 border border-zinc-700 rounded-4xl px-4 pt-0 shadow-md w-full max-w-[95%] sm:w-[66%] sm:hover:w-[70%] mx-auto transition-all duration-300 min-h-[3.25rem]">
             <textarea
