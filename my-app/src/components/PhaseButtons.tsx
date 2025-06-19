@@ -81,10 +81,7 @@ export function PhaseButtons({ onSelect }: PhaseButtonsProps) {
     setInfoVisible(true);
   };
 
-  const handleArrowClick = (
-    text: string,
-    e: MouseEvent<HTMLDivElement | HTMLButtonElement>
-  ) => {
+  const handleArrowClick = (text: string, e: React.MouseEvent) => {
     e.stopPropagation();
 
     // Add this button to animating set to trigger animation
