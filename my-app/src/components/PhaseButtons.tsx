@@ -5,7 +5,6 @@ import { useEffect, useState } from "react";
 import { InfoOverlay } from "./InfoOverlay";
 import { Info } from "lucide-react";
 import { SendIconButton } from "./SendIconButton";
-import type { MouseEvent } from "react";
 
 interface PhaseButtonsProps {
   onSelect: (text: string, immediate?: boolean) => void;
