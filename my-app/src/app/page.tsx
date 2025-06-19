@@ -128,7 +128,7 @@ export default function HomePage() {
                 {/* Arrow icon (Bottom Right) */}
                 <div className="absolute bottom-4 right-4">
                   <Link
-                    href="/step-one-setup"
+                    href="/step-two-planner"
                     className="inline-flex items-center justify-center rounded-full p-2 hover:bg-zinc-800 transition border border-zinc-700"
                   >
                     <ArrowRight className="h-5 w-5 text-zinc-400 hover:text-white transition" />
