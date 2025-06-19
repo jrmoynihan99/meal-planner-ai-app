@@ -25,8 +25,6 @@ export default function Home() {
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const footerRef = useRef<HTMLElement | null>(null);
 
-  const [isOpen, setIsOpen] = useState(false);
-
   const {
     messages,
     input,

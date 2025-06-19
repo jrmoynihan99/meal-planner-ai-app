@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { InfoOverlay } from "./InfoOverlay";
 import { Info } from "lucide-react";
 import { SendIconButton } from "./SendIconButton";
+import type { MouseEvent } from "react";
 
 interface PhaseButtonsProps {
   onSelect: (text: string, immediate?: boolean) => void;
@@ -80,7 +81,10 @@ export function PhaseButtons({ onSelect }: PhaseButtonsProps) {
     setInfoVisible(true);
   };
 
-  const handleArrowClick = (text: string, e: any) => {
+  const handleArrowClick = (
+    text: string,
+    e: MouseEvent<HTMLDivElement | HTMLButtonElement>
+  ) => {
     e.stopPropagation();
 
     // Add this button to animating set to trigger animation
