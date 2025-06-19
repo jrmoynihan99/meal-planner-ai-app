@@ -11,6 +11,8 @@ import "highlight.js/styles/github-dark.css";
 import type { Message } from "ai";
 import { PhaseButtons } from "@/components/PhaseButtons";
 import { SendIconButton } from "@/components/SendIconButton";
+import { SquarePen } from "lucide-react";
+import { MenuButton } from "@/components/MenuButton";
 
 const MessageWrapper = motion.div;
 
@@ -176,11 +178,29 @@ export default function Home() {
 
   return (
     <div className="flex flex-col h-[100dvh] bg-zinc-900 text-white">
-      <header className="sticky top-0 z-50 bg-zinc-800 px-4 py-3 border-b border-zinc-700">
-        <div className="flex items-center space-x-4">
-          <h1 className="text-lg sm:text-xl font-semibold">
-            Meal Planner AI Chat
-          </h1>
+      <header className="sticky top-0 z-50 bg-zinc-900 px-4 py-3">
+        <div className="flex items-center justify-between max-w-5xl mx-auto">
+          {/* Left: Menu Button */}
+          <MenuButton />
+
+          {/* Center: Title */}
+          <div className="flex items-baseline justify-center text-white space-x-1">
+            <h1 className="text-lg sm:text-xl font-semibold font-sans">
+              Meal Planner
+            </h1>
+            <span className="text-sm sm:text-base font-normal font-mono text-zinc-400">
+              ai
+            </span>
+          </div>
+
+          {/* Right: New Chat Icon */}
+          <button
+            onClick={() => window.location.reload()} // or your reset handler
+            className="text-zinc-400 hover:text-white transition cursor-pointer"
+            aria-label="New Chat"
+          >
+            <SquarePen className="w-6 h-6" />
+          </button>
         </div>
       </header>
 
@@ -209,7 +229,7 @@ export default function Home() {
                     data-last-message={isLast ? "true" : undefined}
                     className={`text-sm sm:text-sm px-3 py-2 break-words rounded-lg ${
                       msg.role === "user"
-                        ? "bg-zinc-700 text-white max-w-[80%] whitespace-pre-wrap"
+                        ? "bg-indigo-500 text-white max-w-[80%] px-5 py-3 break-words whitespace-pre-wrap rounded-2xl sm:rounded-3xl"
                         : "text-white w-full font-mono"
                     }`}
                     initial={{ opacity: 0, scale: 0.95, y: 10 }}
@@ -294,7 +314,6 @@ export default function Home() {
           />
         </div>
 
-        {/* Form stays unchanged */}
         <form onSubmit={handleFormSubmit}>
           <div className="relative flex group w-full max-w-[95%] sm:w-[66%] sm:hover:w-[70%] mx-auto transition-all duration-300">
             <div className="absolute -inset-[2px] bg-gradient-to-r from-[#44BCFF] via-[#FF44EC] to-[#FF675E] rounded-3xl blur-sm opacity-60 group-focus-within:opacity-100 transition-opacity duration-300 pointer-events-none" />

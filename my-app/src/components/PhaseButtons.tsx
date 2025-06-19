@@ -98,7 +98,7 @@ export function PhaseButtons({ onSelect }: PhaseButtonsProps) {
   const handleArrowClick = (text: string, e: MouseEvent<Element>) => {
     e.stopPropagation();
     setAnimatingButtons((prev) => new Set(prev).add(text));
-    setTimeout(() => onSelect(text, true), 200);
+    setTimeout(() => onSelect(prompts[text] || text, true), 200);
     setTimeout(() => {
       setAnimatingButtons((prev) => {
         const newSet = new Set(prev);
@@ -121,11 +121,15 @@ export function PhaseButtons({ onSelect }: PhaseButtonsProps) {
             <div className="absolute inset-0 bg-zinc-700 rounded-xl" />
             <div className="relative flex items-center justify-between gap-2 px-4 py-4 text-sm font-medium font-sans text-zinc-200 transition-colors duration-200 bg-zinc-800 hover:bg-zinc-700 rounded-xl focus:outline-none cursor-pointer whitespace-nowrap shrink-0">
               <span
-                onClick={() => onSelect(text, false)}
+                onClick={() => onSelect(prompts[text] || text, false)}
                 className="cursor-pointer"
               >
                 {text}
               </span>
+              {/* Hover Preview Tooltip */}
+              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden md:block w-max max-w-xs px-3 py-2 rounded bg-zinc-800 text-xs text-zinc-200 border border-zinc-700 shadow-md whitespace-pre-line z-50 opacity-0 group-hover:opacity-100 transition-opacity">
+                {prompts[text]}
+              </div>
               <div className="flex items-center gap-1">
                 <Info
                   size={16}

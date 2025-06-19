@@ -1,33 +1,43 @@
-// components/MenuButton.tsx
 "use client";
 
+import { useState } from "react";
+
 interface MenuButtonProps {
-  isOpen: boolean;
-  onClick: () => void;
+  ariaLabel?: string;
 }
 
-export function MenuButton({ isOpen, onClick }: MenuButtonProps) {
+export function MenuButton({ ariaLabel = "Menu" }: MenuButtonProps) {
+  const [open, setOpen] = useState(false);
+
   return (
     <button
-      className="md:hidden absolute top-4 left-4 z-50 flex flex-col justify-between w-8 h-6 focus:outline-none"
-      onClick={onClick}
-      aria-label="Toggle menu"
+      aria-label={ariaLabel}
+      onClick={() => setOpen(!open)}
+      className="relative flex items-center justify-center w-10 h-10 rounded-xl bg-zinc-800 hover:bg-zinc-700 transition-colors cursor-pointer"
     >
-      <span
-        className={`h-0.5 w-full bg-red-500 transform transition duration-300 ease-in-out ${
-          isOpen ? "rotate-45 translate-y-2" : ""
-        }`}
-      />
-      <span
-        className={`h-0.5 w-full bg-red-500 transition-all duration-300 ease-in-out ${
-          isOpen ? "opacity-0" : "opacity-100"
-        }`}
-      />
-      <span
-        className={`h-0.5 w-full bg-red-500 transform transition duration-300 ease-in-out ${
-          isOpen ? "-rotate-45 -translate-y-2" : ""
-        }`}
-      />
+      <div className="relative w-6 h-6">
+        {/* Top line (white) */}
+        <span
+          className={`absolute left-0 h-[2px] rounded-sm bg-white transition-all duration-300 ease-in-out origin-center
+            ${
+              open
+                ? "top-1/2 w-5 -translate-y-1/2 rotate-45"
+                : "top-[30%] w-6 translate-y-0 rotate-0"
+            }
+          `}
+        />
+
+        {/* Bottom line (blue) */}
+        <span
+          className={`absolute left-0 h-[2px] rounded-sm bg-blue-500 transition-all duration-300 ease-in-out origin-center
+            ${
+              open
+                ? "top-1/2 w-5 -translate-y-1/2 -rotate-45"
+                : "top-[65%] w-4 translate-y-0 rotate-0"
+            }
+          `}
+        />
+      </div>
     </button>
   );
 }
