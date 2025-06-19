@@ -302,7 +302,7 @@ export default function Home() {
               <textarea
                 ref={textareaRef}
                 className="w-full text-base font-mono text-white bg-transparent focus:outline-none px-2 pr-10 placeholder-gray-400 resize-none overflow-hidden break-words whitespace-pre-wrap h-[3rem] leading-[3rem]"
-                placeholder="Type your message..."
+                placeholder="Ask or share anything..."
                 value={input}
                 name="message"
                 rows={1}

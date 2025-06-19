@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { InfoOverlay } from "./InfoOverlay";
 import { Info } from "lucide-react";
 import { SendIconButton } from "./SendIconButton";
+import type { MouseEvent } from "react";
 
 interface PhaseButtonsProps {
   onSelect: (text: string, immediate?: boolean) => void;
@@ -12,7 +13,7 @@ interface PhaseButtonsProps {
 
 const suggestionsByPhase: Record<string, string[]> = {
   ingredients: [
-    "Meat-heavy",
+    "Animal Based",
     "Vegetarian",
     "Low-carb",
     "Text 1",
@@ -44,7 +45,7 @@ const suggestionsByPhase: Record<string, string[]> = {
 };
 
 const descriptions: Record<string, string> = {
-  "Meat-heavy": "Focus on meals that prioritize red meat, chicken, and fish.",
+  "Animal Based": "Simple... Meat, dairy, fruit, and honey",
   Vegetarian: "Only plant-based ingredients, no meat or fish.",
   "Low-carb":
     "Meals that avoid breads, pasta, rice, or other starch-heavy foods.",
@@ -58,6 +59,18 @@ const descriptions: Record<string, string> = {
     "Ensure each meal includes a meaningful amount of vegetables.",
 };
 
+const prompts: Record<string, string> = {
+  "Animal Based":
+    "Beef, chicken, pork, eggs, raw honey, fruit, milk, fruit juice",
+  Vegetarian: "Exclude all meat and fish from meals.",
+  "Low-carb": "Create meals without rice, bread, or pasta.",
+  "Add variety": "Diversify ingredients used across all meals.",
+  "Remove high-fat meals": "Filter out any meals that are high in fats.",
+  "Swap carbs": "Replace high-GI carbs with low-GI alternatives.",
+  "Add more veggies":
+    "Ensure every meal includes at least 2 servings of vegetables.",
+};
+
 export function PhaseButtons({ onSelect }: PhaseButtonsProps) {
   const currentPhase = useAppStore((state) => state.currentPhase);
   const [buttons, setButtons] = useState<string[]>([]);
@@ -66,6 +79,7 @@ export function PhaseButtons({ onSelect }: PhaseButtonsProps) {
     null
   );
   const [activeTitle, setActiveTitle] = useState<string | null>(null);
+  const [activePrompt, setActivePrompt] = useState<string | null>(null);
   const [animatingButtons, setAnimatingButtons] = useState<Set<string>>(
     new Set()
   );
@@ -77,21 +91,14 @@ export function PhaseButtons({ onSelect }: PhaseButtonsProps) {
   const handleInfoClick = (text: string) => {
     setActiveTitle(text);
     setActiveDescription(descriptions[text]);
+    setActivePrompt(prompts[text]);
     setInfoVisible(true);
   };
 
-  const handleArrowClick = (text: string, e: React.MouseEvent) => {
+  const handleArrowClick = (text: string, e: MouseEvent<Element>) => {
     e.stopPropagation();
-
-    // Add this button to animating set to trigger animation
     setAnimatingButtons((prev) => new Set(prev).add(text));
-
-    // Trigger the onSelect after a brief delay
-    setTimeout(() => {
-      onSelect(text, true);
-    }, 200);
-
-    // Remove from animating set after animation completes
+    setTimeout(() => onSelect(text, true), 200);
     setTimeout(() => {
       setAnimatingButtons((prev) => {
         const newSet = new Set(prev);
@@ -105,22 +112,20 @@ export function PhaseButtons({ onSelect }: PhaseButtonsProps) {
 
   return (
     <>
-      <div className="flex flex-wrap gap-3 mb-4 justify-center">
+      <div className="flex gap-3 mb-4 overflow-x-auto whitespace-nowrap sm:flex-wrap sm:justify-center sm:overflow-visible hide-scrollbar -mx-4 px-4">
         {buttons.map((text) => (
           <div
             key={text}
             className="relative inline-flex group focus-within:outline-none"
           >
-            <div className="absolute transition-all duration-500 ease-in-out opacity-60 group-hover:opacity-100 group-focus-within:opacity-100 -inset-[1px] bg-gradient-to-r from-[#44BCFF] via-[#FF44EC] to-[#FF675E] rounded-xl blur-sm" />
-
-            <div className="relative inline-flex items-center justify-between gap-2 px-4 py-2 text-sm font-medium font-sans text-zinc-200 transition-all duration-200 bg-zinc-900 rounded-xl focus:outline-none cursor-pointer overflow-hidden">
+            <div className="absolute inset-0 bg-zinc-700 rounded-xl" />
+            <div className="relative flex items-center justify-between gap-2 px-4 py-4 text-sm font-medium font-sans text-zinc-200 transition-colors duration-200 bg-zinc-800 hover:bg-zinc-700 rounded-xl focus:outline-none cursor-pointer whitespace-nowrap shrink-0">
               <span
                 onClick={() => onSelect(text, false)}
                 className="cursor-pointer"
               >
                 {text}
               </span>
-
               <div className="flex items-center gap-1">
                 <Info
                   size={16}
@@ -150,7 +155,9 @@ export function PhaseButtons({ onSelect }: PhaseButtonsProps) {
         <InfoOverlay
           title={activeTitle}
           description={activeDescription}
+          prompt={activePrompt || ""}
           onClose={() => setInfoVisible(false)}
+          showHelp={true}
         />
       )}
     </>
