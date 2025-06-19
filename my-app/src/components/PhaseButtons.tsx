@@ -4,13 +4,20 @@ import { useAppStore } from "@/lib/store";
 import { useEffect, useState } from "react";
 import { InfoOverlay } from "./InfoOverlay";
 import { Info } from "lucide-react";
+import { ArrowUpIcon } from "@heroicons/react/24/solid";
 
 interface PhaseButtonsProps {
-  onSelect: (text: string) => void;
+  onSelect: (text: string, immediate?: boolean) => void;
 }
 
 const suggestionsByPhase: Record<string, string[]> = {
-  ingredients: ["Meat-heavy", "Vegetarian", "Low-carb"],
+  ingredients: [
+    "Meat-heavy",
+    "Vegetarian",
+    "Low-carb",
+    "Text 1",
+    "Low-Testingnnn2",
+  ],
   meal_approval: [
     "Add variety",
     "Remove high-fat meals",
@@ -49,7 +56,6 @@ const descriptions: Record<string, string> = {
     "Exchange high-GI carbs (like white rice) for slower-digesting ones.",
   "Add more veggies":
     "Ensure each meal includes a meaningful amount of vegetables.",
-  // Add more if needed...
 };
 
 export function PhaseButtons({ onSelect }: PhaseButtonsProps) {
@@ -79,24 +85,37 @@ export function PhaseButtons({ onSelect }: PhaseButtonsProps) {
         {buttons.map((text) => (
           <div
             key={text}
-            className="relative inline-flex group cursor-pointer focus-within:outline-none"
-            onClick={() => onSelect(text)}
+            className="relative inline-flex group focus-within:outline-none"
           >
             <div className="absolute transition-all duration-500 ease-in-out opacity-60 group-hover:opacity-100 group-focus-within:opacity-100 -inset-[1px] bg-gradient-to-r from-[#44BCFF] via-[#FF44EC] to-[#FF675E] rounded-xl blur-sm" />
             <button
               type="button"
-              className="relative inline-flex items-center justify-center px-4 py-2 text-sm font-semibold text-white transition-all duration-200 bg-zinc-900 rounded-xl focus:outline-none cursor-pointer"
+              className="relative inline-flex items-center justify-between gap-2 px-4 py-2 text-sm font-medium font-sans text-zinc-200 transition-all duration-200 bg-zinc-900 rounded-xl focus:outline-none cursor-pointer"
+              onClick={() => {
+                // This now adds to input for editing
+                onSelect(text, false);
+              }}
             >
-              {text}
-              <Info
-                size={16}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleInfoClick(text);
-                }}
-                className="ml-2 text-zinc-400 hover:text-white transition"
-                aria-hidden="true"
-              />
+              <span>{text}</span>
+              <div className="flex items-center gap-1">
+                <Info
+                  size={16}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleInfoClick(text);
+                  }}
+                  className="text-zinc-400 hover:text-white transition"
+                  aria-hidden="true"
+                />
+                <ArrowUpIcon
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onSelect(text, true); // Immediate send
+                  }}
+                  className="h-4 w-4 text-blue-400 hover:text-blue-600 transition"
+                  aria-hidden="true"
+                />
+              </div>
             </button>
           </div>
         ))}

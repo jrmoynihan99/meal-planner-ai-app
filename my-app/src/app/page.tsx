@@ -151,6 +151,12 @@ export default function Home() {
     el.style.height = `${el.scrollHeight}px`;
   };
 
+  const updateInputFromButton = (text: string) => {
+    handleInputChange({
+      target: { value: text } as HTMLTextAreaElement,
+    } as React.ChangeEvent<HTMLTextAreaElement>);
+  };
+
   return (
     <div className="flex flex-col h-[100dvh] bg-zinc-900 text-white">
       <style jsx global>{`
@@ -277,36 +283,55 @@ export default function Home() {
 
       <footer
         ref={footerRef}
-        className="sticky bottom-0 z-50 bg-zinc-900 px-4 pb-4 min-h-24"
+        className="sticky bottom-0 z-50 bg-zinc-900 px-4 pb-12 pt-4 sm:pb-8 min-h-28"
       >
-        <div className="w-full max-w-[95%] sm:max-w-[66%] mx-auto mb-2">
-          <PhaseButtons onSelect={(text) => setInput(text)} />
+        <div className="w-full max-w-[95%] sm:max-w-[66%] mx-auto space-y-3 mb-6">
+          <PhaseButtons
+            onSelect={(text, immediate) => {
+              if (immediate) {
+                handleInputChange({
+                  target: { value: text } as HTMLTextAreaElement,
+                } as React.ChangeEvent<HTMLTextAreaElement>);
+                handleSubmit();
+              } else {
+                handleInputChange({
+                  target: { value: text } as HTMLTextAreaElement,
+                } as React.ChangeEvent<HTMLTextAreaElement>);
+              }
+            }}
+          />
         </div>
         <form onSubmit={handleFormSubmit}>
-          <div className="relative flex flex-col items-stretch justify-start bg-zinc-800 border border-zinc-700 rounded-4xl px-4 pt-0 shadow-md w-full max-w-[95%] sm:w-[66%] sm:hover:w-[70%] mx-auto transition-all duration-300 min-h-[3.25rem]">
-            <textarea
-              ref={textareaRef}
-              className="w-full text-base font-mono text-white bg-transparent focus:outline-none px-2 pr-10 placeholder-gray-400 resize-none overflow-hidden break-words whitespace-pre-wrap leading-[1.25rem] sm:leading-[1.5rem] py-[0.75rem] sm:py-[1rem] max-h-24 sm:max-h-40"
-              placeholder="Type your message..."
-              value={input}
-              name="message"
-              rows={1}
-              onChange={handleTextareaChange}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && !e.shiftKey) {
-                  e.preventDefault();
-                  handleFormSubmit();
-                }
-              }}
-              disabled={isLoading}
-            />
-            <button
-              type="submit"
-              className="absolute top-1/2 right-2 -translate-y-1/2 p-2 rounded-full bg-blue-500 text-white hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-              disabled={isLoading || !input.trim()}
-            >
-              <ArrowUpIcon className="h-4 w-4 sm:h-5 sm:w-5" />
-            </button>
+          <div className="relative flex group w-full max-w-[95%] sm:w-[66%] sm:hover:w-[70%] mx-auto transition-all duration-300">
+            {/* Glow border */}
+            <div className="absolute -inset-[2px] bg-gradient-to-r from-[#44BCFF] via-[#FF44EC] to-[#FF675E] rounded-3xl blur-sm opacity-60 group-focus-within:opacity-100 transition-opacity duration-300 pointer-events-none" />
+
+            {/* Input wrapper */}
+            <div className="relative flex flex-col items-stretch justify-start bg-zinc-800 border border-zinc-700 rounded-4xl px-4 pt-0 shadow-md w-full min-h-[3.25rem]">
+              <textarea
+                ref={textareaRef}
+                className="w-full text-base font-mono text-white bg-transparent focus:outline-none px-2 pr-10 placeholder-gray-400 resize-none overflow-hidden break-words whitespace-pre-wrap h-[3rem] leading-[3rem]"
+                placeholder="Type your message..."
+                value={input}
+                name="message"
+                rows={1}
+                onChange={handleTextareaChange}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
+                    handleFormSubmit();
+                  }
+                }}
+                disabled={isLoading}
+              />
+              <button
+                type="submit"
+                className="absolute top-1/2 right-2 -translate-y-1/2 p-2 rounded-full bg-blue-500 text-white hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                disabled={isLoading || !input.trim()}
+              >
+                <ArrowUpIcon className="h-4 w-4 sm:h-5 sm:w-5" />
+              </button>
+            </div>
           </div>
         </form>
       </footer>
