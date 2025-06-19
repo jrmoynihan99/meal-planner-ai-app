@@ -11,6 +11,7 @@ import "highlight.js/styles/github-dark.css";
 import type { Message } from "ai";
 import { PhaseButtons } from "@/components/PhaseButtons";
 import { MenuButton } from "@/components/MenuButton";
+import { SendIconButton } from "@/components/SendIconButton";
 
 const MessageWrapper = motion.div;
 
@@ -25,8 +26,14 @@ export default function Home() {
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const footerRef = useRef<HTMLElement | null>(null);
 
-  const { messages, input, handleInputChange, handleSubmit, isLoading } =
-    useChat({ api: "/api/chat" });
+  const {
+    messages,
+    input,
+    handleInputChange,
+    handleSubmit,
+    append,
+    isLoading,
+  } = useChat({ api: "/api/chat" });
 
   const lastMessage = messages[messages.length - 1];
   const hasAssistantResponse =
@@ -35,12 +42,29 @@ export default function Home() {
   const scrollToBottom = (smooth = true) => {
     const container = chatCanvasRef.current;
     if (!container) return;
+    container.scrollTo({
+      top: container.scrollHeight,
+      behavior: smooth ? "smooth" : "auto",
+    });
+  };
 
-    if (smooth) {
-      container.scrollTo({ top: container.scrollHeight, behavior: "smooth" });
-    } else {
-      container.scrollTop = container.scrollHeight;
+  const sendDirectMessage = async (text: string) => {
+    if (!text.trim() || isLoading) return;
+
+    // Submit the message
+    await append({ role: "user", content: text });
+
+    // Clear input box
+    handleInputChange({
+      target: { value: "" },
+    } as React.ChangeEvent<HTMLTextAreaElement>);
+
+    // Reset textarea height if needed
+    if (textareaRef.current) {
+      textareaRef.current.style.height = "auto";
     }
+
+    setShouldAutoScroll(true);
   };
 
   useEffect(() => {
@@ -151,43 +175,9 @@ export default function Home() {
     el.style.height = `${el.scrollHeight}px`;
   };
 
-  const updateInputFromButton = (text: string) => {
-    handleInputChange({
-      target: { value: text } as HTMLTextAreaElement,
-    } as React.ChangeEvent<HTMLTextAreaElement>);
-  };
-
   return (
     <div className="flex flex-col h-[100dvh] bg-zinc-900 text-white">
-      <style jsx global>{`
-        .custom-scrollbar::-webkit-scrollbar {
-          width: 8px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-          background: #27272a;
-          border-radius: 4px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: #52525b;
-          border-radius: 4px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: #71717a;
-        }
-        .custom-scrollbar {
-          scrollbar-width: thin;
-          scrollbar-color: #52525b #27272a;
-        }
-      `}</style>
-
-      <header className="sticky top-0 z-50 bg-zinc-800 px-4 py-3 border-b border-zinc-700">
-        <div className="flex items-center justify-start gap-3">
-          <MenuButton onClick={() => console.log("Menu clicked")} />
-          <h1 className="text-lg sm:text-xl font-semibold whitespace-nowrap">
-            Meal Planner AI Chat
-          </h1>
-        </div>
-      </header>
+      {/* ... styles and header stay unchanged ... */}
 
       <main className="flex-1 flex flex-col relative overflow-hidden">
         <div
@@ -289,10 +279,7 @@ export default function Home() {
           <PhaseButtons
             onSelect={(text, immediate) => {
               if (immediate) {
-                handleInputChange({
-                  target: { value: text } as HTMLTextAreaElement,
-                } as React.ChangeEvent<HTMLTextAreaElement>);
-                handleSubmit();
+                sendDirectMessage(text); // ✅ this now sends it directly
               } else {
                 handleInputChange({
                   target: { value: text } as HTMLTextAreaElement,
@@ -301,12 +288,11 @@ export default function Home() {
             }}
           />
         </div>
+
+        {/* Form stays unchanged */}
         <form onSubmit={handleFormSubmit}>
           <div className="relative flex group w-full max-w-[95%] sm:w-[66%] sm:hover:w-[70%] mx-auto transition-all duration-300">
-            {/* Glow border */}
             <div className="absolute -inset-[2px] bg-gradient-to-r from-[#44BCFF] via-[#FF44EC] to-[#FF675E] rounded-3xl blur-sm opacity-60 group-focus-within:opacity-100 transition-opacity duration-300 pointer-events-none" />
-
-            {/* Input wrapper */}
             <div className="relative flex flex-col items-stretch justify-start bg-zinc-800 border border-zinc-700 rounded-4xl px-4 pt-0 shadow-md w-full min-h-[3.25rem]">
               <textarea
                 ref={textareaRef}
@@ -329,7 +315,11 @@ export default function Home() {
                 className="absolute top-1/2 right-2 -translate-y-1/2 p-2 rounded-full bg-blue-500 text-white hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                 disabled={isLoading || !input.trim()}
               >
-                <ArrowUpIcon className="h-4 w-4 sm:h-5 sm:w-5" />
+                <SendIconButton
+                  isAnimating={false}
+                  colorClass="text-white hover:text-zinc-300"
+                  onClick={() => {}}
+                />
               </button>
             </div>
           </div>

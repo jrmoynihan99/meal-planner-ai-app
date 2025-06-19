@@ -5,6 +5,8 @@ import { useEffect, useState } from "react";
 import { InfoOverlay } from "./InfoOverlay";
 import { Info } from "lucide-react";
 import { ArrowUpIcon } from "@heroicons/react/24/solid";
+import { motion } from "framer-motion";
+import { SendIconButton } from "./SendIconButton";
 
 interface PhaseButtonsProps {
   onSelect: (text: string, immediate?: boolean) => void;
@@ -66,6 +68,9 @@ export function PhaseButtons({ onSelect }: PhaseButtonsProps) {
     null
   );
   const [activeTitle, setActiveTitle] = useState<string | null>(null);
+  const [animatingButtons, setAnimatingButtons] = useState<Set<string>>(
+    new Set()
+  );
 
   useEffect(() => {
     setButtons(suggestionsByPhase[currentPhase] || []);
@@ -75,6 +80,27 @@ export function PhaseButtons({ onSelect }: PhaseButtonsProps) {
     setActiveTitle(text);
     setActiveDescription(descriptions[text]);
     setInfoVisible(true);
+  };
+
+  const handleArrowClick = (text: string, e: any) => {
+    e.stopPropagation();
+
+    // Add this button to animating set to trigger animation
+    setAnimatingButtons((prev) => new Set(prev).add(text));
+
+    // Trigger the onSelect after a brief delay
+    setTimeout(() => {
+      onSelect(text, true);
+    }, 200);
+
+    // Remove from animating set after animation completes
+    setTimeout(() => {
+      setAnimatingButtons((prev) => {
+        const newSet = new Set(prev);
+        newSet.delete(text);
+        return newSet;
+      });
+    }, 800);
   };
 
   if (!buttons.length) return null;
@@ -88,15 +114,15 @@ export function PhaseButtons({ onSelect }: PhaseButtonsProps) {
             className="relative inline-flex group focus-within:outline-none"
           >
             <div className="absolute transition-all duration-500 ease-in-out opacity-60 group-hover:opacity-100 group-focus-within:opacity-100 -inset-[1px] bg-gradient-to-r from-[#44BCFF] via-[#FF44EC] to-[#FF675E] rounded-xl blur-sm" />
-            <button
-              type="button"
-              className="relative inline-flex items-center justify-between gap-2 px-4 py-2 text-sm font-medium font-sans text-zinc-200 transition-all duration-200 bg-zinc-900 rounded-xl focus:outline-none cursor-pointer"
-              onClick={() => {
-                // This now adds to input for editing
-                onSelect(text, false);
-              }}
-            >
-              <span>{text}</span>
+
+            <div className="relative inline-flex items-center justify-between gap-2 px-4 py-2 text-sm font-medium font-sans text-zinc-200 transition-all duration-200 bg-zinc-900 rounded-xl focus:outline-none cursor-pointer overflow-hidden">
+              <span
+                onClick={() => onSelect(text, false)}
+                className="cursor-pointer"
+              >
+                {text}
+              </span>
+
               <div className="flex items-center gap-1">
                 <Info
                   size={16}
@@ -107,16 +133,17 @@ export function PhaseButtons({ onSelect }: PhaseButtonsProps) {
                   className="text-zinc-400 hover:text-white transition"
                   aria-hidden="true"
                 />
-                <ArrowUpIcon
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onSelect(text, true); // Immediate send
-                  }}
-                  className="h-4 w-4 text-blue-400 hover:text-blue-600 transition"
-                  aria-hidden="true"
-                />
+                <div
+                  className="relative h-4 w-4"
+                  onClick={(e) => handleArrowClick(text, e)}
+                >
+                  <SendIconButton
+                    isAnimating={animatingButtons.has(text)}
+                    onClick={(e) => handleArrowClick(text, e)}
+                  />
+                </div>
               </div>
-            </button>
+            </div>
           </div>
         ))}
       </div>
