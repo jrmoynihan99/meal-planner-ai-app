@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { ArrowUpIcon, ArrowDownIcon } from "@heroicons/react/24/solid";
+import { ArrowDownIcon } from "@heroicons/react/24/solid";
 import { useChat } from "ai/react";
 import { motion } from "framer-motion";
 import ReactMarkdown from "react-markdown";
@@ -10,7 +10,6 @@ import rehypeHighlight from "rehype-highlight";
 import "highlight.js/styles/github-dark.css";
 import type { Message } from "ai";
 import { PhaseButtons } from "@/components/PhaseButtons";
-import { MenuButton } from "@/components/MenuButton";
 import { SendIconButton } from "@/components/SendIconButton";
 
 const MessageWrapper = motion.div;
@@ -25,6 +24,8 @@ export default function Home() {
   const messagesContainerRef = useRef<HTMLDivElement | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const footerRef = useRef<HTMLElement | null>(null);
+
+  const [isOpen, setIsOpen] = useState(false);
 
   const {
     messages,
@@ -177,7 +178,13 @@ export default function Home() {
 
   return (
     <div className="flex flex-col h-[100dvh] bg-zinc-900 text-white">
-      {/* ... styles and header stay unchanged ... */}
+      <header className="sticky top-0 z-50 bg-zinc-800 px-4 py-3 border-b border-zinc-700">
+        <div className="flex items-center space-x-4">
+          <h1 className="text-lg sm:text-xl font-semibold">
+            Meal Planner AI Chat
+          </h1>
+        </div>
+      </header>
 
       <main className="flex-1 flex flex-col relative overflow-hidden">
         <div

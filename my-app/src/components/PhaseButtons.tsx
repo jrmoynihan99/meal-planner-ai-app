@@ -4,8 +4,6 @@ import { useAppStore } from "@/lib/store";
 import { useEffect, useState } from "react";
 import { InfoOverlay } from "./InfoOverlay";
 import { Info } from "lucide-react";
-import { ArrowUpIcon } from "@heroicons/react/24/solid";
-import { motion } from "framer-motion";
 import { SendIconButton } from "./SendIconButton";
 
 interface PhaseButtonsProps {
