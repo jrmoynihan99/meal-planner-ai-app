@@ -3,31 +3,27 @@
 
 import { CloseButton } from "./CloseButton";
 import { Pencil } from "lucide-react";
+import { useAppStore } from "@/lib/store";
 
 interface StepOneSummaryOverlayProps {
   onClose: () => void;
-  sex: string;
-  heightFeet: number;
-  heightInches: number;
-  weight: number;
-  age: number;
-  activity: string;
-  goal: string;
-  calories: number;
-  protein: number;
 }
 
-export function StepOneSummaryOverlay({
-  onClose,
-  sex,
-  heightFeet,
-  heightInches,
-  weight,
-  age,
-  activity,
-  calories,
-  protein,
-}: StepOneSummaryOverlayProps) {
+export function StepOneSummaryOverlay({ onClose }: StepOneSummaryOverlayProps) {
+  const stepOneData = useAppStore((state) => state.stepOneData);
+  if (!stepOneData) return null;
+
+  const {
+    sex,
+    age,
+    heightFt,
+    heightIn,
+    weight,
+    activity,
+    calorieTarget,
+    proteinTarget,
+  } = stepOneData;
+
   return (
     <div className="fixed inset-0 z-60 backdrop-blur-sm bg-black/30 flex items-center justify-center p-4">
       <div className="relative inline-flex">
@@ -51,7 +47,7 @@ export function StepOneSummaryOverlay({
             <div className="flex justify-between">
               <span className="text-zinc-400">Height:</span>
               <span className="font-medium">
-                {heightFeet}′ {heightInches}″
+                {heightFt}′ {heightIn}″
               </span>
             </div>
             <div className="flex justify-between">
@@ -64,7 +60,7 @@ export function StepOneSummaryOverlay({
             </div>
             <div className="flex justify-between">
               <span className="text-zinc-400">Activity Level:</span>
-              <span className="font-medium">{activity}</span>
+              <span className="font-medium">{activity.label}</span>
             </div>
           </div>
 
@@ -79,15 +75,15 @@ export function StepOneSummaryOverlay({
             <div className="flex justify-between items-center">
               <span className="text-zinc-400">Calories Target:</span>
               <span className="bg-zinc-800 px-2 py-1 rounded-md text-blue-400 font-mono text-sm">
-                {typeof calories === "number"
-                  ? calories.toLocaleString() + " kcal"
+                {typeof calorieTarget === "number"
+                  ? calorieTarget.toLocaleString() + " kcal"
                   : "—"}
               </span>
             </div>
             <div className="flex justify-between items-center">
               <span className="text-zinc-400">Protein Target:</span>
               <span className="bg-zinc-800 px-2 py-1 rounded-md text-blue-400 font-mono text-sm">
-                {typeof protein === "number" ? protein + " g" : "—"}
+                {typeof proteinTarget === "number" ? proteinTarget + " g" : "—"}
               </span>
             </div>
           </div>

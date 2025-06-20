@@ -1,5 +1,6 @@
 // lib/store.ts
 import { create } from "zustand";
+import { persist } from "zustand/middleware";
 
 export type Phase =
   | "ingredients"
@@ -11,50 +12,90 @@ export type Phase =
 
 type StepKey = "step1" | "step2" | "step3";
 
+export type Sex = "male" | "female" | "";
+
+export interface ActivityLevel {
+  label: string;
+  description: string;
+  multiplier: number;
+}
+
+export interface StepOneData {
+  sex: Sex;
+  age: number;
+  heightFt: number;
+  heightIn: number;
+  weight: number;
+  activity: ActivityLevel;
+  calorieTarget: number;
+  proteinTarget: number;
+}
+
 interface AppState {
   // Planner Phase Logic (Step 2)
   currentPhase: Phase;
   setPhase: (phase: Phase) => void;
 
-  // Old optional way of tracking step progress
+  // Optional legacy step tracking
   completedSteps: Set<string>;
   markStepComplete: (step: string) => void;
 
-  // New Sidebar Step Completion State
+  // Sidebar progress state
   stepCompletion: Record<StepKey, boolean>;
   markStepAsComplete: (key: StepKey) => void;
 
-  // Placeholder for future UI trigger
+  // UI placeholder
   openEditStep: (key: StepKey) => void;
+
+  // Step 1: user data + calculated targets
+  stepOneData: StepOneData | null;
+  setStepOneData: (data: StepOneData) => void;
+
+  // Hydration flag
+  hasHydrated: boolean;
+  setHasHydrated: (hydrated: boolean) => void;
 }
 
-export const useAppStore = create<AppState>((set) => ({
-  currentPhase: "ingredients",
-  setPhase: (phase) => set({ currentPhase: phase }),
+export const useAppStore = create<AppState>()(
+  persist(
+    (set) => ({
+      currentPhase: "ingredients",
+      setPhase: (phase) => set({ currentPhase: phase }),
 
-  // Legacy or flexible step tracking (optional)
-  completedSteps: new Set(),
-  markStepComplete: (step) =>
-    set((state) => ({
-      completedSteps: new Set(state.completedSteps).add(step),
-    })),
+      completedSteps: new Set(),
+      markStepComplete: (step) =>
+        set((state) => ({
+          completedSteps: new Set(state.completedSteps).add(step),
+        })),
 
-  // Sidebar Step Completion
-  stepCompletion: {
-    step1: false,
-    step2: false,
-    step3: false,
-  },
-  markStepAsComplete: (key) =>
-    set((state) => ({
       stepCompletion: {
-        ...state.stepCompletion,
-        [key]: true,
+        step1: false,
+        step2: false,
+        step3: false,
       },
-    })),
+      markStepAsComplete: (key) =>
+        set((state) => ({
+          stepCompletion: {
+            ...state.stepCompletion,
+            [key]: true,
+          },
+        })),
 
-  openEditStep: (key) => {
-    console.log(`Opening edit component for ${key}`);
-    // This will be replaced by real UI logic
-  },
-}));
+      openEditStep: (key) => {
+        console.log(`Opening edit component for ${key}`);
+      },
+
+      stepOneData: null,
+      setStepOneData: (data) => set({ stepOneData: data }),
+
+      hasHydrated: false,
+      setHasHydrated: (hydrated) => set({ hasHydrated: hydrated }),
+    }),
+    {
+      name: "app-storage",
+      onRehydrateStorage: () => (state) => {
+        state?.setHasHydrated(true);
+      },
+    }
+  )
+);

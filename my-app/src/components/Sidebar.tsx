@@ -117,18 +117,7 @@ export function Sidebar() {
       {/* Edit Step Overlay */}
       <AnimatePresence>
         {activeEditStep === "step1" && (
-          <StepOneSummaryOverlay
-            onClose={() => setActiveEditStep(null)}
-            sex="Male"
-            heightFeet={5}
-            heightInches={10}
-            weight={170}
-            age={28}
-            activity="Moderate"
-            goal="Moderate Weight Loss"
-            calories={2200}
-            protein={150}
-          />
+          <StepOneSummaryOverlay onClose={() => setActiveEditStep(null)} />
         )}
       </AnimatePresence>
     </>
