@@ -5,7 +5,7 @@ import { useSidebar } from "./SidebarContext";
 import { useAppStore } from "@/lib/store";
 import { useEffect, useState } from "react";
 import { CheckCircle, Circle, Pencil } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence } from "framer-motion";
 import { StepOneSummaryOverlay } from "@/components/StepOneSummaryOverlay";
 
 const steps = [
