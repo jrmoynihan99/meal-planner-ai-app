@@ -1,7 +1,6 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { MenuButton } from "./MenuButton";
 
 const routeTitles: Record<string, string> = {
   "/step-one-setup": "Setup",
