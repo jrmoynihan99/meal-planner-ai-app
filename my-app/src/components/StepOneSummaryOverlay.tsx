@@ -1,7 +1,6 @@
 // components/StepOneSummaryOverlay.tsx
 "use client";
 
-import { useAppStore } from "@/lib/store";
 import { CloseButton } from "./CloseButton";
 import { Pencil } from "lucide-react";
 
