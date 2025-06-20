@@ -178,32 +178,6 @@ export default function Home() {
 
   return (
     <div className="flex flex-col h-[100dvh] bg-zinc-900 text-white">
-      <header className="sticky top-0 z-50 bg-zinc-900 px-4 py-3">
-        <div className="flex items-center justify-between max-w-5xl mx-auto">
-          {/* Left: Menu Button */}
-          <MenuButton />
-
-          {/* Center: Title */}
-          <div className="flex items-baseline justify-center text-white space-x-1">
-            <h1 className="text-lg sm:text-xl font-semibold font-sans">
-              Meal Planner
-            </h1>
-            <span className="text-sm sm:text-base font-normal font-mono text-zinc-400">
-              ai
-            </span>
-          </div>
-
-          {/* Right: New Chat Icon */}
-          <button
-            onClick={() => window.location.reload()} // or your reset handler
-            className="text-zinc-400 hover:text-white transition cursor-pointer"
-            aria-label="New Chat"
-          >
-            <SquarePen className="w-6 h-6" />
-          </button>
-        </div>
-      </header>
-
       <main className="flex-1 flex flex-col relative overflow-hidden">
         <div
           ref={chatCanvasRef}
