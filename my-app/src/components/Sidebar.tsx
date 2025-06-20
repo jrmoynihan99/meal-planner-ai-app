@@ -4,7 +4,7 @@ import { usePathname } from "next/navigation";
 import { useSidebar } from "./SidebarContext";
 import { useAppStore } from "@/lib/store";
 import { useEffect, useState } from "react";
-import { CheckCircle, Circle, Pencil } from "lucide-react";
+import { CheckCircle, Circle, Eye } from "lucide-react";
 import { AnimatePresence } from "framer-motion";
 import { StepOneSummaryOverlay } from "@/components/StepOneSummaryOverlay";
 
@@ -106,7 +106,7 @@ export function Sidebar() {
                   className="p-1 text-zinc-400 hover:text-white transition cursor-pointer"
                   aria-label={`Edit ${step.title}`}
                 >
-                  <Pencil className="w-4 h-4" />
+                  <Eye className="w-4 h-4" />
                 </button>
               </div>
             );
