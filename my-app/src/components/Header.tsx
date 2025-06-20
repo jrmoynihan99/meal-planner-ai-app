@@ -15,11 +15,6 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-10 flex h-14 items-center justify-between border-b border-zinc-800 bg-zinc-900 px-4 sm:px-8">
-      {/* Left: Mobile Menu */}
-      <div className="sm:hidden">
-        <MenuButton />
-      </div>
-
       {/* Center: Step Title */}
       <div className="text-base sm:text-lg font-semibold text-white text-center flex-1">
         {title}

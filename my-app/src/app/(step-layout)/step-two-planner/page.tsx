@@ -175,17 +175,19 @@ export default function Home() {
   };
 
   return (
-    <div className="flex flex-col h-[100dvh] bg-zinc-900 text-white">
+    <div className="flex flex-col h-full bg-zinc-900 text-white">
       {/* Header is outside this file, in layout.tsx */}
 
-      <main className="flex flex-col flex-1 min-h-0 px-4 sm:px-8">
+      <main className="flex flex-col flex-1 min-h-0">
+        {/* Outer container with scrolling */}
         <div
           ref={chatCanvasRef}
-          className="flex-1 min-h-0 overflow-y-auto scroll-smooth custom-scrollbar"
+          className="flex-1 overflow-y-auto min-h-0 scroll-smooth custom-scrollbar"
         >
+          {/* Inner padded content */}
           <div
             ref={messagesContainerRef}
-            className="w-full max-w-[95%] sm:max-w-[66%] mx-auto space-y-4 pb-6"
+            className="w-full max-w-[95%] sm:max-w-[66%] mx-auto px-4 sm:px-8 space-y-4 pb-6"
           >
             {messages.map((msg, idx) => {
               const isLast = idx === messages.length - 1;

@@ -131,3 +131,16 @@ body {
   scrollbar-width: thin;
   scrollbar-color: #555 transparent;
 }
+
+/* Tailwind-compatible glow outline effect */
+.glow-outline::before {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  border-radius: 9999px;
+  background: linear-gradient(to right, #44bcff, #ff44ec, #ff675e);
+  filter: blur(6px);
+  opacity: 0.6;
+  transition: opacity 0.3s;
+  pointer-events: none;
+}

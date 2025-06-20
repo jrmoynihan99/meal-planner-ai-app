@@ -1,8 +1,14 @@
-export default function StepOneSetup() {
+// /app/step-one-setup/page.tsx
+"use client";
+
+import StepOneForm from "@/components/StepOneForm";
+
+export default function StepOneSetupPage() {
   return (
-    <main className="p-6">
-      <h1 className="text-2xl font-semibold">Step 1: Setup</h1>
-      {/* your content here */}
+    <main className="h-full bg-black text-white px-4 py-8">
+      <div className="max-w-xl mx-auto">
+        <StepOneForm />
+      </div>
     </main>
   );
 }
