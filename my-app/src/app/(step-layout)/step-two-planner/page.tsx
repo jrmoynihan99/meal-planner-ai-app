@@ -176,10 +176,12 @@ export default function Home() {
 
   return (
     <div className="flex flex-col h-[100dvh] bg-zinc-900 text-white">
-      <main className="flex-1 flex flex-col relative overflow-hidden">
+      {/* Header is outside this file, in layout.tsx */}
+
+      <main className="flex flex-col flex-1 min-h-0 px-4 sm:px-8">
         <div
           ref={chatCanvasRef}
-          className="flex-1 overflow-y-auto scroll-smooth px-2 pt-4 custom-scrollbar"
+          className="flex-1 min-h-0 overflow-y-auto scroll-smooth custom-scrollbar"
         >
           <div
             ref={messagesContainerRef}
