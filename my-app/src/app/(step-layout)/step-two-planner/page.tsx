@@ -11,8 +11,6 @@ import "highlight.js/styles/github-dark.css";
 import type { Message } from "ai";
 import { PhaseButtons } from "@/components/PhaseButtons";
 import { SendIconButton } from "@/components/SendIconButton";
-import { SquarePen } from "lucide-react";
-import { MenuButton } from "@/components/MenuButton";
 
 const MessageWrapper = motion.div;
 
