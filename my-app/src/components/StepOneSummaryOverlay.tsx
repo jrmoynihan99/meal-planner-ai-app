@@ -25,7 +25,6 @@ export function StepOneSummaryOverlay({
   weight,
   age,
   activity,
-  goal,
   calories,
   protein,
 }: StepOneSummaryOverlayProps) {
