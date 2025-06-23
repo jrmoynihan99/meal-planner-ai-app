@@ -30,24 +30,6 @@ export function GoalTile({
   const protein =
     delta < 0 ? Math.round(weight * 1.0) : Math.round(weight * 0.8);
 
-  const pace =
-    title.includes("Fast") && title.includes("Loss")
-      ? "-2lb/week"
-      : title.includes("Moderate") && title.includes("Loss")
-      ? "-1lb/week"
-      : title.includes("Fast") && title.includes("Gain")
-      ? "+2lb/week"
-      : title.includes("Moderate") && title.includes("Gain")
-      ? "+1lb/week"
-      : "--";
-
-  const colorClass =
-    title.includes("Fast") && (title.includes("Loss") || title.includes("Gain"))
-      ? "text-red-400"
-      : title.includes("Moderate")
-      ? "text-amber-400"
-      : "text-zinc-400";
-
   return (
     <div
       onClick={onSelect}
