@@ -50,7 +50,7 @@ export default function HomePage() {
           </p>
 
           <div className="flex justify-center mt-6">
-            <Link href="/step-one-setup" onClick={handleGetStartedClick}>
+            <Link href="/step-one-data" onClick={handleGetStartedClick}>
               <div className="relative group inline-flex">
                 <div className="absolute -inset-[2px] bg-gradient-to-r from-[#44BCFF] via-[#FF44EC] to-[#FF675E] rounded-full blur-sm opacity-60 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
                 <button className="relative z-10 px-6 py-3 bg-zinc-900 text-white font-semibold text-sm uppercase tracking-wide rounded-full flex items-center justify-center space-x-2 border border-zinc-700 shadow-md hover:bg-zinc-800 transition cursor-pointer min-w-[140px]">

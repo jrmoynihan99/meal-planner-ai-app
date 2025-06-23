@@ -20,8 +20,7 @@ export function StepOneSummaryOverlay({ onClose }: StepOneSummaryOverlayProps) {
     heightIn,
     weight,
     activity,
-    calorieTarget,
-    proteinTarget,
+    maintanenceCalories,
   } = stepOneData;
 
   return (
@@ -62,28 +61,12 @@ export function StepOneSummaryOverlay({ onClose }: StepOneSummaryOverlayProps) {
               <span className="text-zinc-400">Activity Level:</span>
               <span className="font-medium">{activity.label}</span>
             </div>
-          </div>
-
-          {/* Divider */}
-          <div className="border-t border-zinc-700 my-4" />
-
-          {/* Section 2: Goal + Targets */}
-          <h3 className="text-sm font-semibold text-zinc-300 mb-3 mt-1">
-            Your Calculated Targets
-          </h3>
-          <div className="space-y-2 text-sm">
             <div className="flex justify-between items-center">
-              <span className="text-zinc-400">Calories Target:</span>
+              <span className="text-zinc-400">Maintanence Calories:</span>
               <span className="bg-zinc-800 px-2 py-1 rounded-md text-blue-400 font-mono text-sm">
-                {typeof calorieTarget === "number"
-                  ? calorieTarget.toLocaleString() + " kcal"
+                {typeof maintanenceCalories === "number"
+                  ? maintanenceCalories.toLocaleString() + " kcal"
                   : "—"}
-              </span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-zinc-400">Protein Target:</span>
-              <span className="bg-zinc-800 px-2 py-1 rounded-md text-blue-400 font-mono text-sm">
-                {typeof proteinTarget === "number" ? proteinTarget + " g" : "—"}
               </span>
             </div>
           </div>

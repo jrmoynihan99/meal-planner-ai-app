@@ -1,4 +1,3 @@
-// components/InfoOverlay.tsx
 "use client";
 
 import { CloseButton } from "./CloseButton";
@@ -9,6 +8,9 @@ interface InfoOverlayProps {
   title: string;
   description: string;
   example?: string;
+  buttonText?: string;
+  buttonColor?: string;
+  onButtonClick?: () => void;
 }
 
 export function GeneralInfoOverlay({
@@ -17,6 +19,9 @@ export function GeneralInfoOverlay({
   title,
   description,
   example,
+  buttonText,
+  buttonColor = "bg-blue-600 hover:bg-blue-700",
+  onButtonClick,
 }: InfoOverlayProps) {
   return (
     <div className="fixed inset-0 z-60 backdrop-blur-sm bg-black/30 flex items-center justify-center p-4">
@@ -39,9 +44,18 @@ export function GeneralInfoOverlay({
           </p>
 
           {example && (
-            <div className="bg-zinc-800 text-zinc-100 font-mono text-xs p-3 rounded-md border border-zinc-700 whitespace-pre-line">
+            <div className="bg-zinc-800 text-zinc-100 font-mono text-xs p-3 rounded-md border border-zinc-700 whitespace-pre-line mb-4">
               {example}
             </div>
+          )}
+
+          {buttonText && onButtonClick && (
+            <button
+              onClick={onButtonClick}
+              className={`w-full mt-2 py-2 px-4 text-sm font-semibold rounded-md cursor-pointer text-white ${buttonColor}`}
+            >
+              {buttonText}
+            </button>
           )}
         </div>
       </div>

@@ -10,8 +10,6 @@ export type Phase =
   | "week_structure"
   | "final_output";
 
-type StepKey = "step1" | "step2" | "step3";
-
 export type Sex = "male" | "female" | "";
 
 export interface ActivityLevel {
@@ -27,8 +25,15 @@ export interface StepOneData {
   heightIn: number;
   weight: number;
   activity: ActivityLevel;
-  calorieTarget: number;
-  proteinTarget: number;
+  maintanenceCalories: number;
+}
+
+export interface StepTwoData {
+  selectedGoalTitle: string;
+  goalCalories: number;
+  goalProtein: number;
+  calorieDelta: number; // e.g. -800 or +500
+  calorieDeltaText: string; // e.g. "maintenance - 800"
 }
 
 interface AppState {
@@ -36,20 +41,20 @@ interface AppState {
   currentPhase: Phase;
   setPhase: (phase: Phase) => void;
 
-  // Optional legacy step tracking
+  // Optional legacy step tracking (can be removed if unused)
   completedSteps: Set<string>;
   markStepComplete: (step: string) => void;
 
-  // Sidebar progress state
-  stepCompletion: Record<StepKey, boolean>;
-  markStepAsComplete: (key: StepKey) => void;
-
   // UI placeholder
-  openEditStep: (key: StepKey) => void;
+  openEditStep: (key: string) => void;
 
-  // Step 1: user data + calculated targets
+  // Step 1: user data + calculated maintenance
   stepOneData: StepOneData | null;
-  setStepOneData: (data: StepOneData) => void;
+  setStepOneData: (data: StepOneData | null) => void;
+
+  // Step 2: user-selected goal + targets
+  stepTwoData: StepTwoData | null;
+  setStepTwoData: (data: StepTwoData | null) => void;
 
   // Hydration flag
   hasHydrated: boolean;
@@ -68,25 +73,15 @@ export const useAppStore = create<AppState>()(
           completedSteps: new Set(state.completedSteps).add(step),
         })),
 
-      stepCompletion: {
-        step1: false,
-        step2: false,
-        step3: false,
-      },
-      markStepAsComplete: (key) =>
-        set((state) => ({
-          stepCompletion: {
-            ...state.stepCompletion,
-            [key]: true,
-          },
-        })),
-
       openEditStep: (key) => {
         console.log(`Opening edit component for ${key}`);
       },
 
       stepOneData: null,
       setStepOneData: (data) => set({ stepOneData: data }),
+
+      stepTwoData: null,
+      setStepTwoData: (data) => set({ stepTwoData: data }),
 
       hasHydrated: false,
       setHasHydrated: (hydrated) => set({ hasHydrated: hydrated }),

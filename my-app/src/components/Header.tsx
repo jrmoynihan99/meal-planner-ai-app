@@ -1,41 +1,29 @@
 "use client";
 
 import { usePathname } from "next/navigation";
+import { useState } from "react";
+import { useAppStore } from "@/lib/store";
 
 const routeTitles: Record<string, string> = {
-  "/step-one-setup": "Setup",
-  "/step-two-planner": "Planner",
-  "/step-three-schedule": "Schedule",
+  "/step-one-data": "Input Your Data",
+  "/step-two-goal": "Choose Your Goal",
+  "/step-three-planner": "Build Your Meals",
+  "/step-four-results": "Your Plan",
 };
 
 export function Header() {
   const pathname = usePathname();
   const title = routeTitles[pathname] || "Step";
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
+
+  const setStepOneData = useAppStore((s) => s.setStepOneData);
+  const setStepTwoData = useAppStore((s) => s.setStepTwoData);
+  const setPhase = useAppStore((s) => s.setPhase);
 
   return (
-    <header className="sticky top-0 z-10 flex h-14 items-center justify-between border-b border-zinc-800 bg-zinc-900 px-4 sm:px-8">
-      {/* Center: Step Title */}
+    <header className="sticky top-0 z-10 flex h-14 items-center justify-between bg-black px-4 sm:px-8">
       <div className="text-base sm:text-lg font-semibold text-white text-center flex-1">
         {title}
-      </div>
-
-      {/* Right: Step-Specific Action */}
-      <div className="w-24 text-right">
-        {pathname === "/step-one-setup" && (
-          <button className="px-3 py-1 text-sm rounded-md bg-blue-600 hover:bg-blue-700 text-white transition">
-            Save
-          </button>
-        )}
-        {pathname === "/step-two-planner" && (
-          <button className="px-3 py-1 text-sm rounded-md bg-green-600 hover:bg-green-700 text-white transition">
-            Regenerate
-          </button>
-        )}
-        {pathname === "/step-three-schedule" && (
-          <button className="px-3 py-1 text-sm rounded-md bg-purple-600 hover:bg-purple-700 text-white transition">
-            Export
-          </button>
-        )}
       </div>
     </header>
   );

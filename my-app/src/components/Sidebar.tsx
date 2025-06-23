@@ -7,38 +7,56 @@ import { useEffect, useState } from "react";
 import { CheckCircle, Circle, Eye } from "lucide-react";
 import { AnimatePresence } from "framer-motion";
 import { StepOneSummaryOverlay } from "@/components/StepOneSummaryOverlay";
+import { StepTwoSummaryOverlay } from "@/components/StepTwoSummaryOverlay";
 
 const steps = [
   {
     key: "step1",
     label: "STEP 1",
-    title: "Find Your Targets",
-    path: "/step-one-setup",
+    title: "Input Your Data",
+    path: "/step-one-data",
   },
   {
     key: "step2",
     label: "STEP 2",
-    title: "Make Your Meals",
-    path: "/step-two-planner",
+    title: "Pick Your Goal",
+    path: "/step-two-goal",
   },
   {
     key: "step3",
     label: "STEP 3",
-    title: "Your Schedule",
-    path: "/step-three-schedule",
+    title: "Make Your Meals",
+    path: "/step-three-planner",
+  },
+  {
+    key: "step4",
+    label: "STEP 4",
+    title: "Results",
+    path: "/step-four-results",
   },
 ];
 
 export function Sidebar() {
   const pathname = usePathname();
   const { isOpen, close } = useSidebar();
-  const { stepCompletion } = useAppStore();
   const [activeEditStep, setActiveEditStep] = useState<string | null>(null);
+
+  // Zustand step data
+  const stepOneData = useAppStore((s) => s.stepOneData);
+  const stepTwoData = useAppStore((s) => s.stepTwoData);
 
   // Prevent background scroll
   useEffect(() => {
     document.body.style.overflow = isOpen ? "hidden" : "";
   }, [isOpen]);
+
+  // Step completion logic (based on presence of data)
+  const stepCompletion = {
+    step1: !!stepOneData,
+    step2: !!stepTwoData,
+    step3: false, // placeholder — will update when planner is implemented
+    step4: false, // placeholder — update when results are generated
+  };
 
   return (
     <>
@@ -114,10 +132,15 @@ export function Sidebar() {
         </nav>
       </aside>
 
-      {/* Edit Step Overlay */}
+      {/* Edit Step Overlays */}
       <AnimatePresence>
         {activeEditStep === "step1" && (
           <StepOneSummaryOverlay onClose={() => setActiveEditStep(null)} />
+        )}
+      </AnimatePresence>
+      <AnimatePresence>
+        {activeEditStep === "step2" && (
+          <StepTwoSummaryOverlay onClose={() => setActiveEditStep(null)} />
         )}
       </AnimatePresence>
     </>

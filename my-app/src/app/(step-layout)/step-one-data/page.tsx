@@ -38,7 +38,7 @@ const activityOptions = [
   },
 ];
 
-function calculateTargets(
+function calculateMaintanenceCalories(
   sex: string,
   age: number,
   heightInches: number,
@@ -53,9 +53,8 @@ function calculateTargets(
       : 10 * weightKg + 6.25 * heightCm - 5 * age - 161;
 
   const calories = Math.round(bmr * multiplier);
-  const protein = Math.round(weight * 0.9);
 
-  return { calories, protein };
+  return calories;
 }
 
 export default function StepOneSetupPage() {
@@ -94,7 +93,7 @@ export default function StepOneSetupPage() {
     if (!hasHydrated) return; // wait until localStorage is loaded
 
     const heightInches = heightFt * 12 + heightIn;
-    const targets = calculateTargets(
+    const maintanenceCalories = calculateMaintanenceCalories(
       sex,
       age,
       heightInches,
@@ -109,15 +108,14 @@ export default function StepOneSetupPage() {
       heightIn,
       weight,
       activity,
-      calorieTarget: targets.calories,
-      proteinTarget: targets.protein,
+      maintanenceCalories,
     });
   }, [sex, age, heightFt, heightIn, weight, activity, hasHydrated]);
 
   if (!hasHydrated) return null; // Don't render until Zustand is ready
 
   const heightInches = heightFt * 12 + heightIn;
-  const targets = calculateTargets(
+  const maintanenceCalories = calculateMaintanenceCalories(
     sex,
     age,
     heightInches,
@@ -132,17 +130,6 @@ export default function StepOneSetupPage() {
       <main className="h-full bg-black text-white px-4 py-8">
         <div className="max-w-xl mx-auto">
           <Box className="text-white pt-0 pr-6 pb-6 pl-6 space-y-6">
-            <div className="flex items-center gap-2 mb-6">
-              <h1 className="text-2xl font-medium tracking-tight text-white/90">
-                Input Your Data
-              </h1>
-              <InfoOutlinedIcon
-                fontSize="small"
-                className="text-zinc-400 cursor-pointer hover:text-white transition-colors"
-                onClick={() => setShowStepInfo(true)}
-              />
-            </div>
-
             {/* Sex Toggle Pills */}
             <div>
               <label className="block text-sm mb-2">Sex</label>
@@ -157,7 +144,7 @@ export default function StepOneSetupPage() {
                       className={clsx(
                         "px-4 py-2 rounded-full font-mono text-xs uppercase tracking-wide border transition cursor-pointer",
                         isSelected
-                          ? "bg-indigo-600 border-indigo-600 text-white hover:bg-indigo-700"
+                          ? "bg-blue-600 border-blue-600 text-white hover:bg-blue-700"
                           : "bg-zinc-800 border-zinc-700 text-zinc-400 hover:bg-zinc-700"
                       )}
                     >
@@ -171,8 +158,7 @@ export default function StepOneSetupPage() {
             {/* Age */}
             <div>
               <label className="block text-sm mb-1">
-                Age:{" "}
-                <span className="text-indigo-400 font-semibold">{age}</span>
+                Age: <span className="text-blue-400 font-semibold">{age}</span>
               </label>
               <Slider
                 value={age}
@@ -180,7 +166,7 @@ export default function StepOneSetupPage() {
                 min={10}
                 max={100}
                 step={1}
-                sx={{ color: "#6366f1" }}
+                sx={{ color: "#60a5fa" }}
               />
             </div>
 
@@ -189,7 +175,7 @@ export default function StepOneSetupPage() {
               <div className="flex-1">
                 <label className="block text-sm mb-2">
                   Height (feet):{" "}
-                  <span className="text-indigo-400 font-semibold">
+                  <span className="text-blue-400 font-semibold">
                     {heightFt}
                   </span>
                 </label>
@@ -199,13 +185,13 @@ export default function StepOneSetupPage() {
                   min={3}
                   max={7}
                   step={1}
-                  sx={{ color: "#6366f1" }}
+                  sx={{ color: "#60a5fa" }}
                 />
               </div>
               <div className="flex-1">
                 <label className="block text-sm mb-2">
                   Height (inches):{" "}
-                  <span className="text-indigo-400 font-semibold">
+                  <span className="text-blue-400 font-semibold">
                     {heightIn}
                   </span>
                 </label>
@@ -215,7 +201,7 @@ export default function StepOneSetupPage() {
                   min={0}
                   max={11}
                   step={1}
-                  sx={{ color: "#6366f1" }}
+                  sx={{ color: "#60a5fa" }}
                 />
               </div>
             </div>
@@ -224,7 +210,7 @@ export default function StepOneSetupPage() {
             <div>
               <label className="block text-sm mb-1">
                 Weight (lb):{" "}
-                <span className="text-indigo-400 font-semibold">{weight}</span>
+                <span className="text-blue-400 font-semibold">{weight}</span>
               </label>
               <Slider
                 value={weight}
@@ -232,7 +218,7 @@ export default function StepOneSetupPage() {
                 min={80}
                 max={350}
                 step={1}
-                sx={{ color: "#6366f1" }}
+                sx={{ color: "#60a5fa" }}
               />
             </div>
 
@@ -292,7 +278,7 @@ export default function StepOneSetupPage() {
       </main>
 
       {/* Sticky Footer */}
-      {targets && (
+      {maintanenceCalories && (
         <div className="sticky bottom-0 z-50 bg-zinc-900/95 border-t border-zinc-700 backdrop-blur-md">
           <div className="w-full px-4 md:px-8 py-4 text-white text-sm font-mono flex items-center justify-between">
             <div className="flex flex-col items-start">
@@ -305,13 +291,13 @@ export default function StepOneSetupPage() {
                 />
               </div>
               <span className="inline-block bg-zinc-800 px-3 py-1.5 rounded-md text-blue-400 text-base">
-                {targets.calories.toLocaleString()} kcal
+                {maintanenceCalories.toLocaleString()} kcal
               </span>
             </div>
 
             {isFormComplete && (
               <button
-                onClick={() => (window.location.href = "/step-one-setup/goal")}
+                onClick={() => (window.location.href = "/step-two-goal")}
                 className="flex items-center gap-2 px-4 py-2 rounded-lg border border-blue-500 text-blue-400 font-semibold transition-all shadow-md hover:bg-blue-500 hover:text-white mr-4 cursor-pointer"
               >
                 <span>Next</span>

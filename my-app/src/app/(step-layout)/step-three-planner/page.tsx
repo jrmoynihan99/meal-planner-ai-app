@@ -175,7 +175,7 @@ export default function Home() {
   };
 
   return (
-    <div className="flex flex-col h-full bg-zinc-900 text-white">
+    <div className="flex flex-col h-full bg-black text-white">
       {/* Header is outside this file, in layout.tsx */}
 
       <main className="flex flex-col flex-1 min-h-0">
@@ -274,7 +274,7 @@ export default function Home() {
 
       <footer
         ref={footerRef}
-        className="sticky bottom-0 z-50 bg-zinc-900 px-4 pb-12 pt-4 sm:pb-8 min-h-28"
+        className="sticky bottom-0 z-50 bg-black px-4 pb-12 pt-4 sm:pb-8 min-h-28"
       >
         <div className="w-full max-w-[95%] sm:max-w-[66%] mx-auto space-y-3 mb-6">
           <PhaseButtons
