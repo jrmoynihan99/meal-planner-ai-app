@@ -3,7 +3,7 @@
 import type { Phase } from "./store";
 
 export const suggestionsByPhase: Record<Phase, string[]> = {
-  intro: ["Let's begin!", "How does this work?"],
+  intro: ["Let's begin!", "How does this work?", "asd", "asdasdsadasdasdsa"],
   ingredients: ["Animal Based", "Vegetarian", "Low-carb"],
   ingredients_confirmation: ["Looks good", "Remove eggs", "Add more fruits"],
   meal_tweaking: ["Add variety", "Remove remove meals", "Swap carbs"],

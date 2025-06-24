@@ -324,50 +324,44 @@ Are you ready to get started?`,
         ref={footerRef}
         className="sticky bottom-0 z-50 bg-black px-4 pb-12 pt-4 sm:pb-8 min-h-28"
       >
-        <div className="w-full max-w-[95%] sm:max-w-[66%] mx-auto">
-          <div className="flex flex-col items-center">
+        <div className="w-full max-w-[95%] sm:max-w-[66%] mx-auto space-y-2 mb-2">
+          <div className="flex justify-center">
             <button
               onClick={() => setShowSuggestions((prev) => !prev)}
-              className="flex items-center gap-1 text-sm font-mono text-white/70 hover:text-white transition mb-2 cursor-pointer"
+              className="flex items-center gap-1 text-sm font-mono text-white/70 hover:text-white transition"
             >
-              <span>
-                {showSuggestions ? "Hide suggestions" : "Show suggestions"}
-              </span>
-              <motion.span
-                animate={{
-                  rotate: showSuggestions ? 0 : 180,
-                }}
-                transition={{ duration: 0.3 }}
-              >
-                <ArrowDownIcon className="w-4 h-4" />
-              </motion.span>
+              {showSuggestions ? "Hide suggestions" : "Show suggestions"}
+              {showSuggestions ? (
+                <ChevronDownIcon className="w-4 h-4 transition-transform" />
+              ) : (
+                <ChevronUpIcon className="w-4 h-4 transition-transform" />
+              )}
             </button>
-
-            <motion.div
-              initial={false}
-              animate={{
-                height: showSuggestions ? "auto" : 0,
-                opacity: showSuggestions ? 1 : 0,
-              }}
-              transition={{
-                duration: 0.3,
-                ease: "easeInOut",
-              }}
-              className="overflow-hidden w-full"
-            >
-              <PhaseButtons
-                onSelect={(text, immediate) => {
-                  if (immediate) {
-                    sendDirectMessage(text);
-                  } else {
-                    handleInputChange({
-                      target: { value: text } as HTMLTextAreaElement,
-                    } as React.ChangeEvent<HTMLTextAreaElement>);
-                  }
-                }}
-              />
-            </motion.div>
           </div>
+
+          <AnimatePresence initial={false}>
+            {showSuggestions && (
+              <motion.div
+                key="phase-buttons"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 20 }}
+                transition={{ duration: 0.3, ease: "easeInOut" }}
+              >
+                <PhaseButtons
+                  onSelect={(text, immediate) => {
+                    if (immediate) {
+                      sendDirectMessage(text);
+                    } else {
+                      handleInputChange({
+                        target: { value: text } as HTMLTextAreaElement,
+                      } as React.ChangeEvent<HTMLTextAreaElement>);
+                    }
+                  }}
+                />
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
 
         <form onSubmit={handleFormSubmit}>
