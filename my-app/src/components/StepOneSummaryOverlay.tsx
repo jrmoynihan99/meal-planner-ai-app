@@ -1,4 +1,3 @@
-// components/StepOneSummaryOverlay.tsx
 "use client";
 
 import { CloseButton } from "./CloseButton";
@@ -11,17 +10,6 @@ interface StepOneSummaryOverlayProps {
 
 export function StepOneSummaryOverlay({ onClose }: StepOneSummaryOverlayProps) {
   const stepOneData = useAppStore((state) => state.stepOneData);
-  if (!stepOneData) return null;
-
-  const {
-    sex,
-    age,
-    heightFt,
-    heightIn,
-    weight,
-    activity,
-    maintanenceCalories,
-  } = stepOneData;
 
   return (
     <div className="fixed inset-0 z-60 backdrop-blur-sm bg-black/30 flex items-center justify-center p-4">
@@ -37,39 +25,50 @@ export function StepOneSummaryOverlay({ onClose }: StepOneSummaryOverlayProps) {
           </div>
           <h2 className="text-lg font-semibold mb-4">Your Data</h2>
 
-          {/* Section 1: User Input */}
-          <div className="space-y-2 text-sm mb-6">
-            <div className="flex justify-between">
-              <span className="text-zinc-400">Sex:</span>
-              <span className="font-medium">{sex}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-zinc-400">Height:</span>
-              <span className="font-medium">
-                {heightFt}′ {heightIn}″
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-zinc-400">Weight:</span>
-              <span className="font-medium">{weight} lbs</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-zinc-400">Age:</span>
-              <span className="font-medium">{age}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-zinc-400">Activity Level:</span>
-              <span className="font-medium">{activity.label}</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-zinc-400">Maintanence Calories:</span>
-              <span className="bg-zinc-800 px-2 py-1 rounded-md text-blue-400 font-mono text-sm">
-                {typeof maintanenceCalories === "number"
-                  ? maintanenceCalories.toLocaleString() + " kcal"
-                  : "—"}
-              </span>
-            </div>
-          </div>
+          {stepOneData ? (
+            <>
+              {/* Section 1: User Input */}
+              <div className="space-y-2 text-sm mb-6">
+                <div className="flex justify-between">
+                  <span className="text-zinc-400">Sex:</span>
+                  <span className="font-medium">{stepOneData.sex}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-zinc-400">Height:</span>
+                  <span className="font-medium">
+                    {stepOneData.heightFt}′ {stepOneData.heightIn}″
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-zinc-400">Weight:</span>
+                  <span className="font-medium">{stepOneData.weight} lbs</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-zinc-400">Age:</span>
+                  <span className="font-medium">{stepOneData.age}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-zinc-400">Activity Level:</span>
+                  <span className="font-medium">
+                    {stepOneData.activity.label}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-zinc-400">Maintanence Calories:</span>
+                  <span className="bg-zinc-800 px-2 py-1 rounded-md text-blue-400 font-mono text-sm">
+                    {typeof stepOneData.maintanenceCalories === "number"
+                      ? stepOneData.maintanenceCalories.toLocaleString() +
+                        " kcal"
+                      : "—"}
+                  </span>
+                </div>
+              </div>
+            </>
+          ) : (
+            <p className="text-sm text-zinc-400 italic mb-6">
+              No data has been entered yet.
+            </p>
+          )}
 
           {/* Edit Button */}
           <div className="mt-6">

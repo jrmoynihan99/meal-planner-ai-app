@@ -6,70 +6,15 @@ import { InfoOverlay } from "./InfoOverlay";
 import { Info } from "lucide-react";
 import { SendIconButton } from "./SendIconButton";
 import type { MouseEvent } from "react";
+import {
+  suggestionsByPhase,
+  descriptions,
+  prompts,
+} from "@/lib/phaseSuggestions";
 
 interface PhaseButtonsProps {
   onSelect: (text: string, immediate?: boolean) => void;
 }
-
-const suggestionsByPhase: Record<string, string[]> = {
-  ingredients: [
-    "Animal Based",
-    "Vegetarian",
-    "Low-carb",
-    "Text 1",
-    "Low-Testingnnn2",
-  ],
-  meal_approval: [
-    "Add variety",
-    "Remove high-fat meals",
-    "Swap carbs",
-    "Add more veggies",
-  ],
-  macro_targets: [
-    "1500 cal / 100g protein",
-    "1800 cal / 120g protein",
-    "2000 cal / 150g protein",
-  ],
-  day_generation: [
-    "Generate 3 days",
-    "Add high-protein breakfast",
-    "Remove dairy meals",
-  ],
-  week_structure: [
-    "All 7 days",
-    "Weekdays only",
-    "No Sundays",
-    "Add cheat day",
-  ],
-  final_output: [],
-};
-
-const descriptions: Record<string, string> = {
-  "Animal Based": "Simple... Meat, dairy, fruit, and honey",
-  Vegetarian: "Only plant-based ingredients, no meat or fish.",
-  "Low-carb":
-    "Meals that avoid breads, pasta, rice, or other starch-heavy foods.",
-  "Add variety":
-    "Increase diversity in meals by swapping ingredients or rotating.",
-  "Remove high-fat meals":
-    "Filter out meals that rely heavily on oils, fattier cuts, or cheese.",
-  "Swap carbs":
-    "Exchange high-GI carbs (like white rice) for slower-digesting ones.",
-  "Add more veggies":
-    "Ensure each meal includes a meaningful amount of vegetables.",
-};
-
-const prompts: Record<string, string> = {
-  "Animal Based":
-    "Beef, chicken, pork, eggs, raw honey, fruit, milk, fruit juice",
-  Vegetarian: "Exclude all meat and fish from meals.",
-  "Low-carb": "Create meals without rice, bread, or pasta.",
-  "Add variety": "Diversify ingredients used across all meals.",
-  "Remove high-fat meals": "Filter out any meals that are high in fats.",
-  "Swap carbs": "Replace high-GI carbs with low-GI alternatives.",
-  "Add more veggies":
-    "Ensure every meal includes at least 2 servings of vegetables.",
-};
 
 export function PhaseButtons({ onSelect }: PhaseButtonsProps) {
   const currentPhase = useAppStore((state) => state.currentPhase);

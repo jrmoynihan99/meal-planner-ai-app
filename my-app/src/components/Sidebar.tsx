@@ -42,8 +42,16 @@ export function Sidebar() {
   const [activeEditStep, setActiveEditStep] = useState<string | null>(null);
 
   // Zustand step data
-  const stepOneData = useAppStore((s) => s.stepOneData);
-  const stepTwoData = useAppStore((s) => s.stepTwoData);
+  const hasHydrated = useAppStore((s) => s.hasHydrated);
+  const isStepOneComplete = useAppStore((s) =>
+    hasHydrated ? s.isStepOneComplete() : false
+  );
+  const isStepTwoComplete = useAppStore((s) =>
+    hasHydrated ? s.isStepTwoComplete() : false
+  );
+  const isStepThreeComplete = useAppStore((s) =>
+    hasHydrated ? s.isStepThreeComplete() : false
+  );
 
   // Prevent background scroll
   useEffect(() => {
@@ -52,10 +60,10 @@ export function Sidebar() {
 
   // Step completion logic (based on presence of data)
   const stepCompletion = {
-    step1: !!stepOneData,
-    step2: !!stepTwoData,
-    step3: false, // placeholder — will update when planner is implemented
-    step4: false, // placeholder — update when results are generated
+    step1: isStepOneComplete,
+    step2: isStepTwoComplete,
+    step3: isStepThreeComplete,
+    step4: false, // You can add logic later
   };
 
   return (

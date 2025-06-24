@@ -77,16 +77,34 @@ export default function StepOneSetupPage() {
   const [showStepInfo, setShowStepInfo] = useState(false);
 
   // Populate initial state from Zustand after hydration
+  const [hasInitializedForm, setHasInitializedForm] = useState(false);
+
   useEffect(() => {
-    if (hasHydrated && stepOneData) {
-      setSex(stepOneData.sex ?? "");
-      setAge(stepOneData.age ?? 25);
-      setHeightFt(stepOneData.heightFt ?? 5);
-      setHeightIn(stepOneData.heightIn ?? 10);
-      setWeight(stepOneData.weight ?? 170);
-      setActivity(stepOneData.activity ?? activityOptions[2]);
+    if (!hasHydrated) return;
+
+    // ✅ First time: hydrate from Zustand if data exists
+    if (!hasInitializedForm) {
+      if (stepOneData) {
+        setSex(stepOneData.sex ?? "");
+        setAge(stepOneData.age ?? 25);
+        setHeightFt(stepOneData.heightFt ?? 5);
+        setHeightIn(stepOneData.heightIn ?? 10);
+        setWeight(stepOneData.weight ?? 170);
+        setActivity(stepOneData.activity ?? activityOptions[2]);
+      }
+      setHasInitializedForm(true);
     }
-  }, [hasHydrated]);
+
+    // ✅ After reset: if stepOneData is now null, reset UI manually
+    if (hasInitializedForm && stepOneData === null) {
+      setSex("");
+      setAge(25);
+      setHeightFt(5);
+      setHeightIn(10);
+      setWeight(170);
+      setActivity(activityOptions[2]);
+    }
+  }, [hasHydrated, hasInitializedForm, stepOneData]);
 
   // Sync live changes back to Zustand
   useEffect(() => {

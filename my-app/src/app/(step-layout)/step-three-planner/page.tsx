@@ -11,6 +11,8 @@ import "highlight.js/styles/github-dark.css";
 import type { Message } from "ai";
 import { PhaseButtons } from "@/components/PhaseButtons";
 import { SendIconButton } from "@/components/SendIconButton";
+import { useAppStore } from "@/lib/store";
+import { systemInstructionsByPhase } from "@/lib/phaseGPTinstructions";
 
 const MessageWrapper = motion.div;
 
@@ -25,6 +27,9 @@ export default function Home() {
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const footerRef = useRef<HTMLElement | null>(null);
 
+  const currentPhase = useAppStore((state) => state.currentPhase);
+  const setPhase = useAppStore((state) => state.setPhase);
+
   const {
     messages,
     input,
@@ -32,7 +37,24 @@ export default function Home() {
     handleSubmit,
     append,
     isLoading,
-  } = useChat({ api: "/api/chat" });
+  } = useChat({
+    api: "/api/chat",
+    body: { phase: currentPhase },
+    initialMessages: [
+      {
+        role: "system",
+        content: systemInstructionsByPhase[currentPhase],
+      },
+      {
+        role: "assistant",
+        content: `Welcome! Now that we have your daily calorie and protein targets, the last thing we need to do is make your meals.
+
+This is an open AI style conversation. We've included suggestions below, but feel free to type anything you want at any time.
+
+Are you ready to get started?`,
+      },
+    ],
+  });
 
   const lastMessage = messages[messages.length - 1];
   const hasAssistantResponse =
@@ -50,15 +72,12 @@ export default function Home() {
   const sendDirectMessage = async (text: string) => {
     if (!text.trim() || isLoading) return;
 
-    // Submit the message
     await append({ role: "user", content: text });
 
-    // Clear input box
     handleInputChange({
       target: { value: "" },
     } as React.ChangeEvent<HTMLTextAreaElement>);
 
-    // Reset textarea height if needed
     if (textareaRef.current) {
       textareaRef.current.style.height = "auto";
     }
@@ -150,6 +169,19 @@ export default function Home() {
     }
   }, [processedMessages.size, shouldAutoScroll]);
 
+  useEffect(() => {
+    if (messages.length === 0) {
+      append({
+        role: "assistant",
+        content: `Welcome! Now that we have your daily calorie and protein targets, the last thing we need to do is make your meals.
+
+This is an open AI style conversation. We've included suggestions below, but feel free to type anything you want at any time.
+
+Are you ready to get started?`,
+      });
+    }
+  }, [messages.length, append]);
+
   const shouldRenderAsMarkdown = (msg: Message) =>
     msg.role === "assistant" &&
     msg.id &&
@@ -176,15 +208,11 @@ export default function Home() {
 
   return (
     <div className="flex flex-col h-full bg-black text-white">
-      {/* Header is outside this file, in layout.tsx */}
-
       <main className="flex flex-col flex-1 min-h-0">
-        {/* Outer container with scrolling */}
         <div
           ref={chatCanvasRef}
           className="flex-1 overflow-y-auto min-h-0 scroll-smooth custom-scrollbar"
         >
-          {/* Inner padded content */}
           <div
             ref={messagesContainerRef}
             className="w-full max-w-[95%] sm:max-w-[66%] mx-auto px-4 sm:px-8 space-y-4 pb-6"
@@ -280,7 +308,7 @@ export default function Home() {
           <PhaseButtons
             onSelect={(text, immediate) => {
               if (immediate) {
-                sendDirectMessage(text); // ✅ this now sends it directly
+                sendDirectMessage(text);
               } else {
                 handleInputChange({
                   target: { value: text } as HTMLTextAreaElement,
@@ -292,7 +320,8 @@ export default function Home() {
 
         <form onSubmit={handleFormSubmit}>
           <div className="relative flex group w-full max-w-[95%] sm:w-[66%] sm:hover:w-[70%] mx-auto transition-all duration-300">
-            <div className="absolute -inset-[2px] bg-gradient-to-r from-[#44BCFF] via-[#FF44EC] to-[#FF675E] rounded-3xl blur-sm opacity-60 group-focus-within:opacity-100 transition-opacity duration-300 pointer-events-none" />
+            <div className="absolute glow-static" />
+            <div className="absolute glow-focus group-focus-within:opacity-100" />
             <div className="relative flex flex-col items-stretch justify-start bg-zinc-800 border border-zinc-700 rounded-4xl px-4 pt-0 shadow-md w-full min-h-[3.25rem]">
               <textarea
                 ref={textareaRef}

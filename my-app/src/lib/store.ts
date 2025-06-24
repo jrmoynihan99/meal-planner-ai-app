@@ -1,14 +1,18 @@
 // lib/store.ts
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { systemInstructionsByPhase } from "./phaseGPTinstructions";
 
 export type Phase =
+  | "intro"
   | "ingredients"
-  | "meal_approval"
-  | "macro_targets"
-  | "day_generation"
-  | "week_structure"
-  | "final_output";
+  | "ingredients_confirmation"
+  | "meal_number"
+  | "meal_tweaking"
+  | "example_day"
+  | "day_tweaking"
+  | "weekly_assignment"
+  | "conclusion";
 
 export type Sex = "male" | "female" | "";
 
@@ -32,38 +36,65 @@ export interface StepTwoData {
   selectedGoalTitle: string;
   goalCalories: number;
   goalProtein: number;
-  calorieDelta: number; // e.g. -800 or +500
-  calorieDeltaText: string; // e.g. "maintenance - 800"
+  calorieDelta: number;
+  calorieDeltaText: string;
+}
+
+export interface StepThreePlannerData {
+  approvedIngredients: string[];
+  numberOfMeals: number;
+  meals: {
+    name: string;
+    description: string;
+    ingredients: {
+      name: string;
+      amount: string;
+    }[];
+    recipe: string;
+  }[];
+  weeklySchedule: Record<string, string[]>;
 }
 
 interface AppState {
-  // Planner Phase Logic (Step 2)
   currentPhase: Phase;
   setPhase: (phase: Phase) => void;
 
-  // Optional legacy step tracking (can be removed if unused)
   completedSteps: Set<string>;
   markStepComplete: (step: string) => void;
 
-  // UI placeholder
   openEditStep: (key: string) => void;
 
-  // Step 1: user data + calculated maintenance
   stepOneData: StepOneData | null;
   setStepOneData: (data: StepOneData | null) => void;
 
-  // Step 2: user-selected goal + targets
   stepTwoData: StepTwoData | null;
   setStepTwoData: (data: StepTwoData | null) => void;
 
-  // Hydration flag
+  stepThreeData: StepThreePlannerData | null;
+  setStepThreeData: (data: Partial<StepThreePlannerData>) => void;
+  resetStepThreeData: () => void;
+
+  resetStepOneData: () => void;
+  resetStepTwoData: () => void;
+
+  isStepOneComplete: () => boolean;
+  isStepTwoComplete: () => boolean;
+  isStepThreeComplete: () => boolean;
+
   hasHydrated: boolean;
   setHasHydrated: (hydrated: boolean) => void;
 }
 
+const defaultStepThreeData: StepThreePlannerData = {
+  approvedIngredients: [],
+  numberOfMeals: 0,
+  meals: [],
+  weeklySchedule: {},
+};
+
 export const useAppStore = create<AppState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       currentPhase: "ingredients",
       setPhase: (phase) => set({ currentPhase: phase }),
 
@@ -82,6 +113,70 @@ export const useAppStore = create<AppState>()(
 
       stepTwoData: null,
       setStepTwoData: (data) => set({ stepTwoData: data }),
+
+      stepThreeData: null,
+      setStepThreeData: (partialData) => {
+        const prev = get().stepThreeData || defaultStepThreeData;
+        set({
+          stepThreeData: {
+            ...prev,
+            ...partialData,
+          },
+        });
+      },
+
+      resetStepOneData: () =>
+        set({
+          stepOneData: null,
+        }),
+
+      resetStepTwoData: () =>
+        set({
+          stepTwoData: null,
+        }),
+
+      resetStepThreeData: () =>
+        set({
+          stepThreeData: null,
+          currentPhase: "intro",
+        }),
+
+      isStepOneComplete: () => {
+        const data = get().stepOneData;
+        return (
+          !!data &&
+          data.sex !== "" &&
+          data.age > 0 &&
+          data.heightFt > 0 &&
+          data.heightIn >= 0 &&
+          data.weight > 0 &&
+          !!data.activity &&
+          typeof data.maintanenceCalories === "number"
+        );
+      },
+
+      isStepTwoComplete: () => {
+        const data = get().stepTwoData;
+        return (
+          !!data &&
+          !!data.selectedGoalTitle &&
+          typeof data.goalCalories === "number" &&
+          typeof data.goalProtein === "number"
+        );
+      },
+
+      isStepThreeComplete: () => {
+        const data = get().stepThreeData;
+        return (
+          !!data &&
+          Array.isArray(data.approvedIngredients) &&
+          data.approvedIngredients.length > 0 &&
+          data.numberOfMeals > 0 &&
+          Array.isArray(data.meals) &&
+          data.meals.length === data.numberOfMeals &&
+          Object.keys(data.weeklySchedule).length > 0
+        );
+      },
 
       hasHydrated: false,
       setHasHydrated: (hydrated) => set({ hasHydrated: hydrated }),

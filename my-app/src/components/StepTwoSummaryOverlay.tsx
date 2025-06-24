@@ -1,4 +1,3 @@
-// components/StepTwoSummaryOverlay.tsx
 "use client";
 
 import { CloseButton } from "./CloseButton";
@@ -11,10 +10,11 @@ interface StepTwoSummaryOverlayProps {
 
 export function StepTwoSummaryOverlay({ onClose }: StepTwoSummaryOverlayProps) {
   const stepTwoData = useAppStore((state) => state.stepTwoData);
-  if (!stepTwoData) return null;
 
-  const { selectedGoalTitle, goalCalories, goalProtein, calorieDelta } =
-    stepTwoData;
+  const selectedGoalTitle = stepTwoData?.selectedGoalTitle ?? "—";
+  const goalCalories = stepTwoData?.goalCalories ?? 0;
+  const goalProtein = stepTwoData?.goalProtein ?? 0;
+  const calorieDelta = stepTwoData?.calorieDelta ?? 0;
 
   return (
     <div className="fixed inset-0 z-60 backdrop-blur-sm bg-black/30 flex items-center justify-center p-4">
