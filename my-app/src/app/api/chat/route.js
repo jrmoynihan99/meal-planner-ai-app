@@ -28,7 +28,7 @@ export async function POST(req) {
     console.log("🧾 System Instructions:", systemPrompt);
 
     const result = await streamText({
-      model: openai("gpt-4-turbo"),
+      model: openai("gpt-3.5-turbo"),
       messages: [
         {
           role: "system",

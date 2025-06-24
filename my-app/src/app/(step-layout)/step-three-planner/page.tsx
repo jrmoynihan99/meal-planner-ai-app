@@ -1,9 +1,13 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { ArrowDownIcon } from "@heroicons/react/24/solid";
+import {
+  ArrowDownIcon,
+  ChevronUpIcon,
+  ChevronDownIcon,
+} from "@heroicons/react/24/solid";
 import { useChat } from "ai/react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeHighlight from "rehype-highlight";
@@ -21,6 +25,7 @@ export default function Home() {
     new Set()
   );
   const [shouldAutoScroll, setShouldAutoScroll] = useState(true);
+  const [showSuggestions, setShowSuggestions] = useState(false); // 👈 new state
 
   const chatCanvasRef = useRef<HTMLDivElement | null>(null);
   const messagesContainerRef = useRef<HTMLDivElement | null>(null);
@@ -319,18 +324,50 @@ Are you ready to get started?`,
         ref={footerRef}
         className="sticky bottom-0 z-50 bg-black px-4 pb-12 pt-4 sm:pb-8 min-h-28"
       >
-        <div className="w-full max-w-[95%] sm:max-w-[66%] mx-auto space-y-3 mb-6">
-          <PhaseButtons
-            onSelect={(text, immediate) => {
-              if (immediate) {
-                sendDirectMessage(text);
-              } else {
-                handleInputChange({
-                  target: { value: text } as HTMLTextAreaElement,
-                } as React.ChangeEvent<HTMLTextAreaElement>);
-              }
-            }}
-          />
+        <div className="w-full max-w-[95%] sm:max-w-[66%] mx-auto">
+          <div className="flex flex-col items-center">
+            <button
+              onClick={() => setShowSuggestions((prev) => !prev)}
+              className="flex items-center gap-1 text-sm font-mono text-white/70 hover:text-white transition mb-2 cursor-pointer"
+            >
+              <span>
+                {showSuggestions ? "Hide suggestions" : "Show suggestions"}
+              </span>
+              <motion.span
+                animate={{
+                  rotate: showSuggestions ? 0 : 180,
+                }}
+                transition={{ duration: 0.3 }}
+              >
+                <ArrowDownIcon className="w-4 h-4" />
+              </motion.span>
+            </button>
+
+            <motion.div
+              initial={false}
+              animate={{
+                height: showSuggestions ? "auto" : 0,
+                opacity: showSuggestions ? 1 : 0,
+              }}
+              transition={{
+                duration: 0.3,
+                ease: "easeInOut",
+              }}
+              className="overflow-hidden w-full"
+            >
+              <PhaseButtons
+                onSelect={(text, immediate) => {
+                  if (immediate) {
+                    sendDirectMessage(text);
+                  } else {
+                    handleInputChange({
+                      target: { value: text } as HTMLTextAreaElement,
+                    } as React.ChangeEvent<HTMLTextAreaElement>);
+                  }
+                }}
+              />
+            </motion.div>
+          </div>
         </div>
 
         <form onSubmit={handleFormSubmit}>
