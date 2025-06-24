@@ -36,8 +36,8 @@ export function GoalTile({
       className={clsx(
         "relative rounded-2xl p-6 border shadow-md transition-all flex flex-col justify-between min-h-[260px] cursor-pointer",
         isSelected
-          ? "border-2 border-blue-500 bg-zinc-700 shadow-blue-500/20"
-          : "border border-zinc-700 bg-zinc-800 hover:border-zinc-500 hover:shadow-lg"
+          ? "border-2 border-blue-500 bg-zinc-800 shadow-blue-500/20"
+          : "border border-zinc-700 bg-zinc-900 hover:border-zinc-500 hover:shadow-lg"
       )}
     >
       {/* Title with pace */}
@@ -52,13 +52,13 @@ export function GoalTile({
       {/* Calorie + Protein targets */}
       <div className="mt-4 space-y-1 text-sm">
         <div className="flex justify-between items-center">
-          <span className="text-zinc-400">Daily Calorie Target:</span>
+          <span className="text-zinc-400">Calorie Target:</span>
           <span className="bg-zinc-800 px-2 py-1 rounded-md text-blue-400 font-mono text-sm border border-zinc-700">
             {calories.toLocaleString()} kcal
           </span>
         </div>
         <div className="flex justify-between items-center">
-          <span className="text-zinc-400">Daily Protein Target:</span>
+          <span className="text-zinc-400">Protein Target:</span>
           <span className="bg-zinc-800 px-2 py-1 rounded-md text-blue-400 font-mono text-sm border border-zinc-700">
             {protein}g
           </span>

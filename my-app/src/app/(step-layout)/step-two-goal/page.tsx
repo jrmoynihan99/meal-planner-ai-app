@@ -1,4 +1,3 @@
-// StepTwoGoalPage.tsx
 "use client";
 
 import { GoalTile } from "@/components/GoalTile";
@@ -8,15 +7,13 @@ import { GoalPaceBadge } from "@/components/GoalPaceBadge";
 const goals = [
   {
     title: "Fast Weight Loss",
-    description:
-      "~2lb/week. Aggressive calorie deficit for quick results. Best for short-term goals.",
+    description: "Aggressive calorie deficit for fast fat loss.",
     colorClass: "text-red-400",
     calorieDelta: "-900",
   },
   {
     title: "Moderate Weight Loss",
-    description:
-      "~1lb/week. Proper cutting phase, best for muscle preservation.",
+    description: "Proper cutting phase, best for muscle preservation.",
     colorClass: "text-amber-400",
     calorieDelta: "-500",
   },
@@ -29,14 +26,13 @@ const goals = [
   {
     title: "Moderate Weight Gain",
     description:
-      "1lb/week. Proper lean bulk. Steady muscle-building/weight gain strategy",
+      "Proper lean bulk. Steady muscle-building/weight gain strategy",
     colorClass: "text-amber-400",
     calorieDelta: "500",
   },
   {
     title: "Fast Weight Gain",
-    description:
-      "~2lb/week. Higher calorie surplus for rapid mass or size increase.",
+    description: "Higher calorie surplus for rapid mass or size increase.",
     colorClass: "text-red-400",
     calorieDelta: "900",
   },
@@ -83,10 +79,10 @@ export default function StepTwoGoalPage() {
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-black text-white pb-[88px]">
-      <main className="h-full px-4 py-8">
+    <div className="flex flex-col h-full bg-black text-white">
+      <main className="px-4 py-8">
         <div className="max-w-4xl mx-auto">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {goals.map((goal) => {
               const delta = parseInt(goal.calorieDelta);
               const calorieTarget = stepOneData.maintanenceCalories + delta;
@@ -116,13 +112,13 @@ export default function StepTwoGoalPage() {
 
       {/* Sticky Footer */}
       {selectedGoal && (
-        <div className="fixed bottom-0 left-0 w-full z-50 bg-zinc-900/95 border-t border-zinc-700 backdrop-blur-md">
-          <div className="w-full px-4 md:px-8 py-4 text-white text-sm font-mono flex items-center justify-between">
+        <div className="sticky bottom-0 z-50 bg-zinc-900/95 border-t border-zinc-700 backdrop-blur-md">
+          <div className="max-w-4xl mx-auto px-4 md:px-8 py-4 text-white text-sm font-mono flex items-center justify-between">
             <div className="flex flex-col items-start">
               <div className="flex items-center gap-2 uppercase text-xs tracking-wider text-zinc-400 mb-1">
                 <span>Selected Goal:</span>
               </div>
-              <div className="inline-flex items-center gap-2 bg-zinc-800 px-3 py-1.5 rounded-md border border-zinc-700 text-blue-400 text-base">
+              <div className="inline-flex items-center gap-2 text-blue-400 text-base">
                 <span>{selectedGoal}</span>
                 <GoalPaceBadge title={selectedGoal} />
               </div>
