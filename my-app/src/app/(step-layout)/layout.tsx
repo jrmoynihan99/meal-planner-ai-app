@@ -34,15 +34,14 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
       {/* Animated main content */}
       <motion.div
         className="flex flex-col flex-1 min-w-0 max-w-full"
-        animate={{
-          x: isOpen ? 240 : 0, // Sidebar width
-          scale: isOpen ? 0.95 : 1,
-        }}
+        animate={{ x: isOpen ? 240 : 0, scale: isOpen ? 0.95 : 1 }}
         transition={{ type: "spring", stiffness: 260, damping: 20 }}
         style={{ originX: 0 }}
       >
-        <Header />
-        <main className="flex-1 overflow-y-auto">{children}</main>
+        <main className="flex-1 overflow-y-auto">
+          <Header /> {/* ← move here */}
+          {children}
+        </main>
       </motion.div>
     </div>
   );
