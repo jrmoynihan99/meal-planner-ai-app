@@ -23,7 +23,7 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
   const { isOpen } = useSidebar();
 
   return (
-    <div className="relative flex h-screen w-screen overflow-hidden bg-black text-white">
+    <div className="relative flex h-full w-full overflow-hidden bg-black text-white">
       <Sidebar />
 
       {/* Sticky MenuButton that sits above sidebar and content on mobile */}
