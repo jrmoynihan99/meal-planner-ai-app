@@ -6,10 +6,12 @@ export const suggestionsByPhase: Record<Phase, string[]> = {
   intro: ["Let's begin!", "How does this work?"],
   ingredients: ["Animal Based", "Vegetarian", "Low-carb"],
   ingredients_confirmation: ["Looks good", "Remove eggs", "Add more fruits"],
-  meal_number: ["2 meals", "3 meals", "4 meals"],
   meal_tweaking: ["Add variety", "Remove remove meals", "Swap carbs"],
+  meal_confirmation: ["Yep!", "Remove meal 1"],
+  meal_number: ["2 meals", "3 meals", "4 meals"],
   example_day: ["Swap carbs"],
   day_tweaking: ["Change breakfast", "Make lunch higher protein"],
+  day_number: ["Change breakfast", "Make lunch higher protein"],
   weekly_assignment: ["Skip Sunday", "Assign randomly"],
   conclusion: ["Show summary"],
 };

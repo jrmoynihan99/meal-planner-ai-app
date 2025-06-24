@@ -7,10 +7,12 @@ export type Phase =
   | "intro"
   | "ingredients"
   | "ingredients_confirmation"
-  | "meal_number"
   | "meal_tweaking"
+  | "meal_confirmation"
+  | "meal_number"
   | "example_day"
   | "day_tweaking"
+  | "day_number"
   | "weekly_assignment"
   | "conclusion";
 

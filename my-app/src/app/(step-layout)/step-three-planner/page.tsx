@@ -12,7 +12,7 @@ import type { Message } from "ai";
 import { PhaseButtons } from "@/components/PhaseButtons";
 import { SendIconButton } from "@/components/SendIconButton";
 import { useAppStore } from "@/lib/store";
-import { systemInstructionsByPhase } from "@/lib/phaseGPTinstructions";
+import type { Phase } from "@/lib/store";
 
 const MessageWrapper = motion.div;
 
@@ -42,10 +42,7 @@ export default function Home() {
     body: { phase: currentPhase },
     initialMessages: [
       {
-        role: "system",
-        content: systemInstructionsByPhase[currentPhase],
-      },
-      {
+        id: "welcome",
         role: "assistant",
         content: `Welcome! Now that we have your daily calorie and protein targets, the last thing we need to do is make your meals.
 
@@ -181,6 +178,24 @@ Are you ready to get started?`,
       });
     }
   }, [messages.length, append]);
+
+  useEffect(() => {
+    if (
+      lastMessage?.role === "assistant" &&
+      typeof lastMessage.content === "string"
+    ) {
+      console.log("🧠 Raw assistant message:", lastMessage.content); // 👈 logs full response
+
+      const match = lastMessage.content.match(/<!--\s*phase:\s*(\w+)\s*-->/i);
+      if (match) {
+        const newPhase = match[1] as Phase;
+        if (newPhase && newPhase !== currentPhase) {
+          console.log("🔄 Updating phase to:", newPhase);
+          setPhase(newPhase);
+        }
+      }
+    }
+  }, [lastMessage, currentPhase, setPhase]);
 
   const shouldRenderAsMarkdown = (msg: Message) =>
     msg.role === "assistant" &&

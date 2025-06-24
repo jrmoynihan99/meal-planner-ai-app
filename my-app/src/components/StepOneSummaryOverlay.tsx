@@ -73,7 +73,7 @@ export function StepOneSummaryOverlay({ onClose }: StepOneSummaryOverlayProps) {
           {/* Edit Button */}
           <div className="mt-6">
             <a
-              href="/step-one-setup"
+              href="/step-one-data"
               className="flex items-center justify-center gap-2 w-full bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium py-2 rounded-md transition"
             >
               <Pencil className="w-4 h-4" />
