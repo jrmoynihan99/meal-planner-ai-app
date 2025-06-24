@@ -23,7 +23,7 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
   const { isOpen } = useSidebar();
 
   return (
-    <div className="relative flex h-screen w-screen overflow-hidden bg-black text-white">
+    <div className="relative flex h-full w-full overflow-hidden bg-black text-white">
       <Sidebar />
 
       {/* Sticky MenuButton that sits above sidebar and content on mobile */}
@@ -34,7 +34,7 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
       {/* Animated main content */}
       <motion.div
         className="flex flex-col flex-1 min-w-0 max-w-full"
-        animate={{ x: isOpen ? 240 : 0 }}
+        animate={{ x: isOpen ? 240 : 0, scale: isOpen ? 0.95 : 1 }}
         transition={{ type: "spring", stiffness: 260, damping: 20 }}
         style={{ originX: 0 }}
       >
