@@ -1,7 +1,6 @@
 // lib/store.ts
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { systemInstructionsByPhase } from "./phaseGPTinstructions";
 
 export type Phase =
   | "intro"
