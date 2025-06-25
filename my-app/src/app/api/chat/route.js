@@ -20,7 +20,7 @@ export async function POST(req) {
     const systemPrompt = `
 ${unifiedPlannerInstructions}
 
-Known user data:
+KNOWN USER DATA FOR YOUR REFERENCE:
 - Sex: ${stepOneData?.sex || "unknown"}
 - Age: ${stepOneData?.age || "unknown"}
 - Height: ${
