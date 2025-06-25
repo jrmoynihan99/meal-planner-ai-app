@@ -1,31 +1,34 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import {
   ArrowDownIcon,
   ChevronUpIcon,
   ChevronDownIcon,
 } from "@heroicons/react/24/solid";
-import { useChat } from "ai/react";
 import { motion, AnimatePresence } from "framer-motion";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeHighlight from "rehype-highlight";
 import "highlight.js/styles/github-dark.css";
-import type { Message } from "ai";
 import { PhaseButtons } from "@/components/PhaseButtons";
 import { SendIconButton } from "@/components/SendIconButton";
 import { useAppStore } from "@/lib/store";
+import type { Message } from "ai";
 import type { Phase } from "@/lib/store";
 
 const MessageWrapper = motion.div;
 
-export default function Home() {
+export default function StepThreePage() {
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [input, setInput] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [streamingMessage, setStreamingMessage] = useState("");
   const [processedMessages, setProcessedMessages] = useState<Set<string>>(
     new Set()
   );
   const [shouldAutoScroll, setShouldAutoScroll] = useState(true);
-  const [showSuggestions, setShowSuggestions] = useState(false); // 👈 new state
+  const [showSuggestions, setShowSuggestions] = useState(false);
 
   const chatCanvasRef = useRef<HTMLDivElement | null>(null);
   const messagesContainerRef = useRef<HTMLDivElement | null>(null);
@@ -34,33 +37,9 @@ export default function Home() {
 
   const currentPhase = useAppStore((state) => state.currentPhase);
   const setPhase = useAppStore((state) => state.setPhase);
-
-  const {
-    messages,
-    input,
-    handleInputChange,
-    handleSubmit,
-    append,
-    isLoading,
-  } = useChat({
-    api: "/api/chat",
-    body: { phase: currentPhase },
-    initialMessages: [
-      {
-        id: "welcome",
-        role: "assistant",
-        content: `Welcome! Now that we have your daily calorie and protein targets, the last thing we need to do is make your meals.
-
-This is an open AI style conversation. We've included suggestions below, but feel free to type anything you want at any time.
-
-Are you ready to get started?`,
-      },
-    ],
-  });
-
-  const lastMessage = messages[messages.length - 1];
-  const hasAssistantResponse =
-    lastMessage?.role === "assistant" && lastMessage?.content;
+  const stepOneData = useAppStore((state) => state.stepOneData);
+  const stepTwoData = useAppStore((state) => state.stepTwoData);
+  const stepThreeData = useAppStore((state) => state.stepThreeData);
 
   const scrollToBottom = (smooth = true) => {
     const container = chatCanvasRef.current;
@@ -71,21 +50,199 @@ Are you ready to get started?`,
     });
   };
 
-  const sendDirectMessage = async (text: string) => {
-    if (!text.trim() || isLoading) return;
+  const extractJsonFromMessage = (content: string): any | null => {
+    const match = content.match(/```json\\s*([\\s\\S]*?)\\s*```/);
+    if (!match) return null;
 
-    await append({ role: "user", content: text });
-
-    handleInputChange({
-      target: { value: "" },
-    } as React.ChangeEvent<HTMLTextAreaElement>);
-
-    if (textareaRef.current) {
-      textareaRef.current.style.height = "auto";
+    try {
+      return JSON.parse(match[1]);
+    } catch (err) {
+      console.warn("❌ Failed to parse JSON block:", err);
+      return null;
     }
-
-    setShouldAutoScroll(true);
   };
+
+  const handleParsedData = useCallback(
+    (data: any) => {
+      if (!data || typeof data !== "object") return;
+
+      switch (currentPhase) {
+        case "ingredients":
+          if (Array.isArray(data.approvedIngredients)) {
+            useAppStore.getState().setStepThreeData({
+              approvedIngredients: data.approvedIngredients,
+            });
+          }
+          break;
+
+        case "meal_count":
+          if (typeof data.numberOfMeals === "number") {
+            useAppStore.getState().setStepThreeData({
+              numberOfMeals: data.numberOfMeals,
+            });
+          }
+          break;
+
+        case "meal_generation":
+          if (Array.isArray(data.meals)) {
+            useAppStore.getState().setStepThreeData({
+              meals: data.meals,
+            });
+          }
+          break;
+
+        case "weekly_assignment":
+          if (typeof data.weeklySchedule === "object") {
+            useAppStore.getState().setStepThreeData({
+              weeklySchedule: data.weeklySchedule,
+            });
+          }
+          break;
+
+        default:
+          break;
+      }
+    },
+    [currentPhase]
+  );
+
+  const sendMessage = async (content: string) => {
+    const userMessage: Message = {
+      id: crypto.randomUUID(),
+      role: "user",
+      content,
+    };
+
+    setMessages((prev) => [...prev, userMessage]);
+    setInput("");
+    setStreamingMessage("");
+    setIsLoading(true);
+    setShouldAutoScroll(true);
+
+    try {
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          phase: currentPhase,
+          messages: [...messages, userMessage],
+          stepOneData,
+          stepTwoData,
+          stepThreeData,
+        }),
+      });
+
+      if (!res.body) throw new Error("No response body");
+
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder("utf-8");
+
+      let done = false;
+      let assistantContent = "";
+
+      while (!done) {
+        const { value, done: readerDone } = await reader.read();
+        if (value) {
+          const chunk = decoder.decode(value, { stream: true });
+          assistantContent += chunk;
+          setStreamingMessage(assistantContent);
+        }
+        done = readerDone;
+      }
+
+      const assistantMessage: Message = {
+        id: crypto.randomUUID(),
+        role: "assistant",
+        content: assistantContent,
+      };
+
+      console.log("📩 Full assistant message:\n", assistantContent);
+
+      setMessages((prev) => [...prev, assistantMessage]);
+      setStreamingMessage("");
+
+      // 🧠 Try to extract and log JSON block
+      const match = assistantContent.match(/```json\s*([\s\S]+?)\s*```/);
+      if (match) {
+        try {
+          const parsed = JSON.parse(match[1]);
+          console.log("✅ Parsed JSON block:", parsed);
+
+          // Check and handle approvedIngredients inside parsed.data
+          if (
+            parsed.type === "approved_ingredients" &&
+            parsed.data?.approvedIngredients
+          ) {
+            console.log(
+              "🧠 Storing approvedIngredients:",
+              parsed.data.approvedIngredients
+            );
+
+            // Merge into existing stepThreeData, preserving other fields
+            const current = useAppStore.getState().stepThreeData;
+            useAppStore.getState().setStepThreeData({
+              ...current,
+              approvedIngredients: parsed.data.approvedIngredients,
+            });
+          }
+        } catch (err) {
+          console.warn("❌ Failed to parse JSON from GPT:", err);
+        }
+      } else {
+        console.log("ℹ️ No JSON block found in assistant message.");
+      }
+
+      extractPhaseFromMessage(assistantContent);
+
+      const parsed = extractJsonFromMessage(assistantContent);
+      if (parsed) {
+        handleParsedData(parsed);
+      }
+    } catch (err) {
+      console.error("Streaming error:", err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const extractPhaseFromMessage = (content: string) => {
+    console.log("🔍 Checking assistant content for phase tag:");
+    console.log(content);
+
+    const match = content.match(/<!--\s*phase:\s*(\w+)\s*-->/i);
+
+    if (match) {
+      const newPhase = match[1] as Phase;
+      console.log(`✅ Found phase tag: "${newPhase}"`);
+
+      if (newPhase !== currentPhase) {
+        console.log(
+          `🔄 Updating phase from "${currentPhase}" to "${newPhase}"`
+        );
+        setPhase(newPhase);
+      } else {
+        console.log("ℹ️ Phase tag matches current phase. No update needed.");
+      }
+    } else {
+      console.warn("⚠️ No phase tag found in assistant message.");
+    }
+  };
+
+  useEffect(() => {
+    if (messages.length === 0) {
+      setMessages([
+        {
+          id: "welcome",
+          role: "assistant",
+          content: `Welcome! Now that we have your daily calorie and protein targets, the last thing we need to do is make your meals.
+
+This is an open AI style conversation. We've included suggestions below, but feel free to type anything you want at any time.
+
+Are you ready to get started?`,
+        },
+      ]);
+    }
+  }, [messages.length]);
 
   useEffect(() => {
     const container = chatCanvasRef.current;
@@ -103,124 +260,18 @@ Are you ready to get started?`,
   }, []);
 
   useEffect(() => {
-    if (messages.length > 0) {
-      scrollToBottom(true);
-      setShouldAutoScroll(true);
-    }
-  }, [messages.length]);
-
-  useEffect(() => {
-    if (isLoading && shouldAutoScroll) {
-      const container = chatCanvasRef.current;
-      if (!container) return;
-
-      const observer = new MutationObserver(() => {
-        if (shouldAutoScroll) {
-          requestAnimationFrame(() => {
-            container.scrollTop = container.scrollHeight;
-          });
-        }
-      });
-
-      const messagesContainer = messagesContainerRef.current;
-      if (messagesContainer) {
-        observer.observe(messagesContainer, {
-          childList: true,
-          subtree: true,
-          characterData: true,
-        });
-      }
-
-      return () => observer.disconnect();
-    }
-  }, [isLoading, shouldAutoScroll]);
-
-  useEffect(() => {
-    if (!isLoading && lastMessage?.role === "assistant" && lastMessage?.id) {
-      const messageId = lastMessage.id;
-      if (!processedMessages.has(messageId)) {
-        const timer = setTimeout(() => {
-          setProcessedMessages((prev) => new Set([...prev, messageId]));
-          if (shouldAutoScroll) {
-            setTimeout(() => {
-              scrollToBottom(true);
-            }, 50);
-          }
-        }, 100);
-        return () => clearTimeout(timer);
-      }
-    }
-  }, [isLoading, lastMessage, processedMessages, shouldAutoScroll]);
-
-  useEffect(() => {
-    const container = chatCanvasRef.current;
-    const messagesContainer = messagesContainerRef.current;
-    if (!container || !messagesContainer) return;
-
-    if (processedMessages.size > 0 && shouldAutoScroll) {
-      const resizeObserver = new ResizeObserver(() => {
-        if (shouldAutoScroll) {
-          setTimeout(() => {
-            scrollToBottom(false);
-          }, 10);
-        }
-      });
-
-      resizeObserver.observe(messagesContainer);
-      return () => resizeObserver.disconnect();
-    }
-  }, [processedMessages.size, shouldAutoScroll]);
-
-  useEffect(() => {
-    if (messages.length === 0) {
-      append({
-        role: "assistant",
-        content: `Welcome! Now that we have your daily calorie and protein targets, the last thing we need to do is make your meals.
-
-This is an open AI style conversation. We've included suggestions below, but feel free to type anything you want at any time.
-
-Are you ready to get started?`,
-      });
-    }
-  }, [messages.length, append]);
-
-  useEffect(() => {
-    if (
-      lastMessage?.role === "assistant" &&
-      typeof lastMessage.content === "string"
-    ) {
-      console.log("🧠 Raw assistant message:", lastMessage.content); // 👈 logs full response
-
-      const match = lastMessage.content.match(/<!--\s*phase:\s*(\w+)\s*-->/i);
-      if (match) {
-        const newPhase = match[1] as Phase;
-        if (newPhase && newPhase !== currentPhase) {
-          console.log("🔄 Updating phase to:", newPhase);
-          setPhase(newPhase);
-        }
-      }
-    }
-  }, [lastMessage, currentPhase, setPhase]);
-
-  const shouldRenderAsMarkdown = (msg: Message) =>
-    msg.role === "assistant" &&
-    msg.id &&
-    processedMessages.has(msg.id) &&
-    !isLoading;
-
-  const isStreamingMessage = (msg: Message, idx: number) =>
-    msg.role === "assistant" && idx === messages.length - 1 && isLoading;
+    if (shouldAutoScroll) scrollToBottom(true);
+  }, [messages.length, streamingMessage]);
 
   const handleFormSubmit = (e?: React.FormEvent<HTMLFormElement>) => {
     e?.preventDefault();
     if (!input.trim() || isLoading) return;
-    setShouldAutoScroll(true);
-    if (textareaRef.current) textareaRef.current.style.height = "auto";
-    handleSubmit();
+    textareaRef.current?.style.setProperty("height", "auto");
+    sendMessage(input.trim());
   };
 
   const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    handleInputChange(e);
+    setInput(e.target.value);
     const el = e.target;
     el.style.height = "auto";
     el.style.height = `${el.scrollHeight}px`;
@@ -237,64 +288,51 @@ Are you ready to get started?`,
             ref={messagesContainerRef}
             className="w-full max-w-[95%] sm:max-w-[66%] mx-auto px-4 sm:px-8 space-y-4 pb-6"
           >
-            {messages.map((msg, idx) => {
-              const isLast = idx === messages.length - 1;
-              const renderAsMarkdown = shouldRenderAsMarkdown(msg);
-              const isCurrentlyStreaming = isStreamingMessage(msg, idx);
-
-              return (
-                <div
-                  key={msg.id || idx}
-                  className={`w-full flex ${
-                    msg.role === "user" ? "justify-end" : "justify-start"
+            {messages.map((msg, idx) => (
+              <div
+                key={msg.id || idx}
+                className={`w-full flex ${
+                  msg.role === "user" ? "justify-end" : "justify-start"
+                }`}
+              >
+                <MessageWrapper
+                  className={`text-sm sm:text-sm px-3 py-2 break-words rounded-lg ${
+                    msg.role === "user"
+                      ? "bg-indigo-500 text-white max-w-[80%] px-5 py-3 whitespace-pre-wrap rounded-2xl sm:rounded-3xl"
+                      : "text-white w-full font-mono"
                   }`}
+                  initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  transition={{ type: "spring", stiffness: 300, damping: 20 }}
                 >
-                  <MessageWrapper
-                    data-last-message={isLast ? "true" : undefined}
-                    className={`text-sm sm:text-sm px-3 py-2 break-words rounded-lg ${
-                      msg.role === "user"
-                        ? "bg-indigo-500 text-white max-w-[80%] px-5 py-3 break-words whitespace-pre-wrap rounded-2xl sm:rounded-3xl"
-                        : "text-white w-full font-mono"
-                    }`}
-                    initial={{ opacity: 0, scale: 0.95, y: 10 }}
-                    animate={{ opacity: 1, scale: 1, y: 0 }}
-                    transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                  >
-                    {msg.role === "assistant" ? (
-                      <div
-                        className={`transition-opacity duration-200 ${
-                          renderAsMarkdown
-                            ? "prose prose-invert prose-xs max-w-none [&_ul]:list-disc [&_ol]:list-decimal [&_ul]:pl-5 [&_ol]:pl-5 [&_ul]:my-4 [&_ol]:my-4 [&_table]:my-4 [&_li]:mb-1 [&_p]:mb-2 [&_p:last-child]:mb-0 [&_h1]:mb-3 [&_h2]:mb-2 [&_h3]:mb-2 [&_table]:w-full [&_table]:border [&_th]:border [&_td]:border [&_td]:px-2 [&_td]:py-1 [&_th]:px-2 [&_th]:py-1 [&_thead]:bg-zinc-800 [&_tbody_tr:nth-child(odd)]:bg-zinc-900 [&_tbody_tr:nth-child(even)]:bg-zinc-800"
-                            : ""
-                        }`}
+                  {msg.role === "assistant" ? (
+                    <div className="prose prose-invert text-sm">
+                      <ReactMarkdown
+                        remarkPlugins={[remarkGfm]}
+                        rehypePlugins={[rehypeHighlight]}
                       >
-                        {renderAsMarkdown ? (
-                          <ReactMarkdown
-                            remarkPlugins={[remarkGfm]}
-                            rehypePlugins={[rehypeHighlight]}
-                          >
-                            {msg.content}
-                          </ReactMarkdown>
-                        ) : (
-                          <div className="min-h-[1.25rem]">
-                            <span className="whitespace-pre-wrap">
-                              {msg.content}
-                              {isCurrentlyStreaming && (
-                                <span className="inline-block w-2 h-4 bg-blue-500 ml-1 animate-pulse" />
-                              )}
-                            </span>
-                          </div>
-                        )}
-                      </div>
-                    ) : (
-                      <span className="whitespace-pre-wrap">{msg.content}</span>
-                    )}
-                  </MessageWrapper>
-                </div>
-              );
-            })}
+                        {msg.content}
+                      </ReactMarkdown>
+                    </div>
+                  ) : (
+                    <span className="whitespace-pre-wrap">{msg.content}</span>
+                  )}
+                </MessageWrapper>
+              </div>
+            ))}
 
-            {isLoading && !hasAssistantResponse && (
+            {streamingMessage && (
+              <div className="w-full flex justify-start font-mono">
+                <div className="text-white w-full text-sm sm:text-sm font-mono">
+                  <span className="whitespace-pre-wrap">
+                    {streamingMessage}
+                  </span>
+                  <span className="inline-block w-2 h-4 bg-blue-500 ml-1 animate-pulse" />
+                </div>
+              </div>
+            )}
+
+            {isLoading && !streamingMessage && (
               <div className="font-mono text-xs text-gray-400 animate-pulse">
                 Thinking...
               </div>
@@ -351,11 +389,9 @@ Are you ready to get started?`,
                 <PhaseButtons
                   onSelect={(text, immediate) => {
                     if (immediate) {
-                      sendDirectMessage(text);
+                      sendMessage(text);
                     } else {
-                      handleInputChange({
-                        target: { value: text } as HTMLTextAreaElement,
-                      } as React.ChangeEvent<HTMLTextAreaElement>);
+                      setInput(text);
                     }
                   }}
                 />

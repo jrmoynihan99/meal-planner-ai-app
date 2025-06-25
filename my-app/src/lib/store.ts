@@ -5,13 +5,10 @@ import { persist } from "zustand/middleware";
 export type Phase =
   | "intro"
   | "ingredients"
-  | "ingredients_confirmation"
-  | "meal_tweaking"
-  | "meal_confirmation"
-  | "meal_number"
-  | "example_day"
-  | "day_tweaking"
-  | "day_number"
+  | "meal_preferences"
+  | "meal_count"
+  | "meal_generation"
+  | "daily_plan_generation"
   | "weekly_assignment"
   | "conclusion";
 
