@@ -1,10 +1,10 @@
 import { openai } from "@ai-sdk/openai";
 import { streamText } from "ai";
-import { systemInstructionsByPhase } from "@/lib/phaseGPTinstructions";
+import { unifiedPlannerInstructions } from "@/lib/GPTinstructions";
 
 export async function POST(req) {
   try {
-    const { messages, phase, stepOneData, stepTwoData, stepThreeData } =
+    const { messages, stepOneData, stepTwoData, stepThreeData } =
       await req.json();
 
     if (!messages || !Array.isArray(messages)) {
@@ -17,10 +17,8 @@ export async function POST(req) {
       );
     }
 
-    const baseInstructions = systemInstructionsByPhase?.[phase] || "";
-
     const systemPrompt = `
-${baseInstructions}
+${unifiedPlannerInstructions}
 
 Known user data:
 - Sex: ${stepOneData?.sex || "unknown"}
@@ -56,7 +54,6 @@ You may reference this information at any time during the conversation.
 `;
 
     console.log("📨 Incoming GPT request:");
-    console.log("🗂 Phase:", phase);
     console.log("🧾 System Prompt:", systemPrompt);
 
     const result = await streamText({

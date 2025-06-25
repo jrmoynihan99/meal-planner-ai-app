@@ -20,16 +20,7 @@ export const suggestionsByPhase: Record<Phase, string[]> = {
     "Start over",
   ],
 
-  meal_preferences: [
-    "3 meals a day, easy prep",
-    "2 meals a day, no cooking",
-    "4 meals, I like cooking",
-    "Yes, that’s right",
-    "Change meals per day",
-    "Update cooking preferences",
-  ],
-
-  meal_count: [
+  meal_number: [
     "3 meals total",
     "6 meals",
     "9 meals",
@@ -46,7 +37,16 @@ export const suggestionsByPhase: Record<Phase, string[]> = {
     "Redo meal list",
   ],
 
-  daily_plan_generation: [
+  meals_per_day: [
+    "3 meals a day, easy prep",
+    "2 meals a day, no cooking",
+    "4 meals, I like cooking",
+    "Yes, that’s right",
+    "Change meals per day",
+    "Update cooking preferences",
+  ],
+
+  plan_generation: [
     "Looks good!",
     "Add another day",
     "Remove a plan",
