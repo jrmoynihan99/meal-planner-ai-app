@@ -22,7 +22,7 @@ export function MessageList({
   isLoading,
 }: MessageListProps) {
   return (
-    <>
+    <div className="flex flex-col space-y-6">
       {messages.map((msg, idx) => (
         <div
           key={msg.id || idx}
@@ -75,6 +75,6 @@ export function MessageList({
           Thinking...
         </div>
       )}
-    </>
+    </div>
   );
 }

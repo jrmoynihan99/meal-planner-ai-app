@@ -16,7 +16,7 @@ export function MealCardList({
   onReplace,
 }: MealCardListProps) {
   return (
-    <div className="space-y-4 mt-6">
+    <div className="space-y-4 mt-6 max-w-full">
       {meals.map((meal, index) => (
         <div
           key={index}

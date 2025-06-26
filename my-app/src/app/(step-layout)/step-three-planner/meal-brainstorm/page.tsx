@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useMealBrainstormChat } from "./useMealBrainstormChat";
 import { MessageList } from "../MessageList";
 import { InputFooter } from "../InputFooter";
@@ -29,6 +29,8 @@ export default function MealBrainstormPage() {
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
+  const chatCanvasRef = useRef<HTMLDivElement | null>(null);
+
   const approveMeal = (meal: Meal) => {
     const alreadyApproved = approvedMeals.some(
       (m) => m.name.toLowerCase() === meal.name.toLowerCase()
@@ -41,11 +43,31 @@ export default function MealBrainstormPage() {
     }
   };
 
+  useEffect(() => {
+    if (generatedMeals.length > 0 && window.innerWidth < 1024) {
+      setIsSidebarOpen(true);
+    }
+  }, [generatedMeals]);
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 1024) {
+        setIsSidebarOpen(false); // Force reset when switching to desktop
+      }
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
   return (
-    <div className="flex min-h-screen w-full relative">
-      {/* Mobile sidebar tab (grab handle) */}
+    <div
+      className="flex h-full w-full relative bg-black text-white"
+      style={{ overflowX: "clip" }}
+    >
+      {/* Mobile Sidebar Grab Handle */}
       <div
-        className="lg:hidden fixed top-1/2 right-0 transform -translate-y-1/2 z-40"
+        className="lg:hidden fixed top-1/2 right-0 transform -translate-y-1/2 z-50"
         onClick={() => setIsSidebarOpen(true)}
       >
         <div className="bg-zinc-800 hover:bg-zinc-700 w-3 h-16 rounded-l-full cursor-pointer flex items-center justify-center">
@@ -53,24 +75,41 @@ export default function MealBrainstormPage() {
         </div>
       </div>
 
-      {/* Main content area */}
+      {/* Background fade for mobile sidebar */}
+      {isSidebarOpen && (
+        <motion.div
+          className="lg:hidden fixed inset-0 bg-black z-30 pointer-events-none"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.3 }}
+        />
+      )}
+
+      {/* Main content */}
       <motion.div
-        className="flex flex-col flex-1 min-w-0"
+        className="flex flex-col flex-1 min-w-0 z-30"
         animate={{
-          x: isSidebarOpen ? -240 : 0, // shift left when mobile sidebar opens
+          x: isSidebarOpen ? -240 : 0,
           scale: isSidebarOpen ? 0.95 : 1,
         }}
         transition={{ type: "spring", stiffness: 260, damping: 20 }}
-        style={{ originX: 1 }} // scale inward from right edge
+        style={{ originX: 1 }}
       >
-        <main className="flex-1 p-4 max-w-2xl mx-auto pb-36">
-          <MessageList
-            messages={messages}
-            streamingMessage={streamingMessage}
-            isLoading={isLoading}
-          />
-        </main>
+        {/* Scrollable Chat Canvas */}
+        <div
+          ref={chatCanvasRef}
+          className="flex-1 overflow-y-auto min-h-0 scroll-smooth"
+        >
+          <div className="p-4 max-w-2xl mx-auto pb-6">
+            <MessageList
+              messages={messages}
+              streamingMessage={streamingMessage}
+              isLoading={isLoading}
+            />
+          </div>
+        </div>
 
+        {/* Sticky Footer */}
         <InputFooter
           input={input}
           setInput={setInput}
@@ -82,33 +121,28 @@ export default function MealBrainstormPage() {
         />
       </motion.div>
 
-      {/* Desktop sidebar */}
-      <div className="hidden lg:flex w-[320px] flex-shrink-0 border-l border-gray-800 bg-[#111] flex-col">
+      {/* Desktop Sidebar */}
+      <div
+        className="hidden lg:flex flex-col border-l border-gray-800 bg-[#111] z-50 overflow-y-auto max-h-screen"
+        style={{ width: 412, flexShrink: 0 }}
+      >
         <MealSidebar
           meals={generatedMeals}
           onApprove={approveMeal}
-          onTweak={(index) => {}}
-          onReplace={(index) => {}}
-          isMobileVisible={true} // always visible on desktop
-          onCloseMobile={() => {}} // no-op on desktop
+          onTweak={() => {}}
+          onReplace={() => {}}
+          isMobileVisible={true}
+          onCloseMobile={() => {}}
         />
       </div>
 
-      {isSidebarOpen && (
-        <motion.div
-          className="lg:hidden fixed inset-0 bg-black z-30 pointer-events-none"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.3 }}
-        />
-      )}
-      {/* Mobile sidebar (slide-in) */}
-      <div className="lg:hidden">
+      {/* Mobile Sidebar */}
+      <div className="lg:hidden z-50">
         <MealSidebar
           meals={generatedMeals}
           onApprove={approveMeal}
-          onTweak={(index) => {}}
-          onReplace={(index) => {}}
+          onTweak={() => {}}
+          onReplace={() => {}}
           isMobileVisible={isSidebarOpen}
           onCloseMobile={() => setIsSidebarOpen(false)}
         />
