@@ -38,19 +38,48 @@ export interface StepTwoData {
   calorieDeltaText: string;
 }
 
-export interface StepThreePlannerData {
-  approvedIngredients: string[];
-  numberOfMeals: number;
-  meals: {
+export type DayOfWeek =
+  | "Monday"
+  | "Tuesday"
+  | "Wednesday"
+  | "Thursday"
+  | "Friday"
+  | "Saturday"
+  | "Sunday";
+
+export interface Meal {
+  id: string;
+  name: string;
+  description: string;
+  ingredients: {
     name: string;
-    description: string;
-    ingredients: {
-      name: string;
-      amount: string;
-    }[];
-    recipe: string;
+    amount: string;
+    protein?: number;
+    calories?: number;
   }[];
-  weeklySchedule: Record<string, string[]>;
+  recipe: string;
+}
+
+export interface StepThreePlannerData {
+  mealsPerDay: number;
+  approvedMeals: Meal[];
+  days: {
+    id: string;
+    meals: {
+      mealId: string;
+      ingredients: {
+        name: string;
+        amount: string;
+        protein: number;
+        calories: number;
+      }[];
+      totalProtein: number;
+      totalCalories: number;
+    }[];
+    dayProtein: number;
+    dayCalories: number;
+  }[];
+  weeklySchedule: Record<DayOfWeek, string | null>;
 }
 
 interface AppState {
@@ -84,10 +113,18 @@ interface AppState {
 }
 
 const defaultStepThreeData: StepThreePlannerData = {
-  approvedIngredients: [],
-  numberOfMeals: 0,
-  meals: [],
-  weeklySchedule: {},
+  mealsPerDay: 0,
+  approvedMeals: [],
+  days: [],
+  weeklySchedule: {
+    Monday: null,
+    Tuesday: null,
+    Wednesday: null,
+    Thursday: null,
+    Friday: null,
+    Saturday: null,
+    Sunday: null,
+  },
 };
 
 export const useAppStore = create<AppState>()(
@@ -123,16 +160,8 @@ export const useAppStore = create<AppState>()(
         });
       },
 
-      resetStepOneData: () =>
-        set({
-          stepOneData: null,
-        }),
-
-      resetStepTwoData: () =>
-        set({
-          stepTwoData: null,
-        }),
-
+      resetStepOneData: () => set({ stepOneData: null }),
+      resetStepTwoData: () => set({ stepTwoData: null }),
       resetStepThreeData: () =>
         set({
           stepThreeData: null,
@@ -167,12 +196,13 @@ export const useAppStore = create<AppState>()(
         const data = get().stepThreeData;
         return (
           !!data &&
-          Array.isArray(data.approvedIngredients) &&
-          data.approvedIngredients.length > 0 &&
-          data.numberOfMeals > 0 &&
-          Array.isArray(data.meals) &&
-          data.meals.length === data.numberOfMeals &&
-          Object.keys(data.weeklySchedule).length > 0
+          data.mealsPerDay > 0 &&
+          Array.isArray(data.approvedMeals) &&
+          data.approvedMeals.length > 0 &&
+          Array.isArray(data.days) &&
+          data.days.length > 0 &&
+          data.weeklySchedule &&
+          Object.values(data.weeklySchedule).every((id) => id !== null)
         );
       },
 

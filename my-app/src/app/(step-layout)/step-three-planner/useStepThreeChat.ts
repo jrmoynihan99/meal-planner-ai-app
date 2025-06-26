@@ -6,11 +6,28 @@ import type { Message } from "ai";
 import { handleParsedData } from "./handleParsedData";
 import { extractPhaseFromMessage } from "./extractPhase";
 
-export function useStepThreeChat() {
+// Define your structured Meal type
+export interface Meal {
+  name: string;
+  description: string;
+  ingredients: {
+    name: string;
+    amount: string;
+  }[];
+  recipe?: string;
+}
+
+export function useStepThreeChat(
+  starterMessage?: string,
+  systemPrompt?: string
+) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [streamingMessage, setStreamingMessage] = useState("");
+
+  const [approvedMeals, setApprovedMeals] = useState<Meal[]>([]);
+  const [generatedMeals, setGeneratedMeals] = useState<Meal[]>([]); // optional future use
 
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
 
@@ -37,6 +54,38 @@ export function useStepThreeChat() {
       .trim();
   };
 
+  const parseMealsFromMessage = (content: string): Meal[] => {
+    // This is placeholder logic. Later, you can define a consistent GPT format and extract from markdown or hidden blocks.
+    const meals: Meal[] = [];
+
+    // Example placeholder: look for bullet lists under headings
+    const mealMatches = content.split("Meal Name:");
+    for (let block of mealMatches.slice(1)) {
+      const lines = block.trim().split("\n");
+      const name = lines[0]?.trim();
+      const description = lines[1]?.trim();
+      const ingredients: Meal["ingredients"] = [];
+
+      for (let line of lines) {
+        if (line.includes("•") || line.includes("-")) {
+          const parts = line.replace(/[-•]\s*/, "").split(":");
+          if (parts.length === 2) {
+            ingredients.push({
+              name: parts[0].trim(),
+              amount: parts[1].trim(),
+            });
+          }
+        }
+      }
+
+      if (name && description) {
+        meals.push({ name, description, ingredients });
+      }
+    }
+
+    return meals;
+  };
+
   const sendMessage = async (content: string) => {
     const userMessage: Message = {
       id: crypto.randomUUID(),
@@ -58,6 +107,7 @@ export function useStepThreeChat() {
           stepOneData,
           stepTwoData,
           stepThreeData,
+          systemPrompt,
         }),
       });
 
@@ -76,12 +126,7 @@ export function useStepThreeChat() {
           const chunk = decoder.decode(value, { stream: true });
           rawContent += chunk;
 
-          // Update only the visible part for user
-          visibleContent = rawContent
-            .replace(/\[START_JSON\][\s\S]*?\[END_JSON\]/g, "")
-            .replace(/\[START_PHASE\][\s\S]*?\[END_PHASE\]/g, "")
-            .trim();
-
+          visibleContent = cleanMessageForDisplay(rawContent);
           setStreamingMessage(visibleContent);
         }
         done = readerDone;
@@ -89,14 +134,18 @@ export function useStepThreeChat() {
 
       console.log("📩 Full assistant message:\n", rawContent);
 
-      const parsed = extractJsonFromMessage(rawContent);
-      if (parsed) {
-        handleParsedData(parsed);
+      const parsedJson = extractJsonFromMessage(rawContent);
+      if (parsedJson) {
+        handleParsedData(parsedJson);
       }
 
       extractPhaseFromMessage(rawContent);
 
       const displayContent = cleanMessageForDisplay(rawContent);
+      const newMeals = parseMealsFromMessage(displayContent);
+      if (newMeals.length > 0) {
+        setGeneratedMeals(newMeals);
+      }
 
       const assistantMessage: Message = {
         id: crypto.randomUUID(),
@@ -127,21 +176,35 @@ export function useStepThreeChat() {
     el.style.height = `${el.scrollHeight}px`;
   };
 
+  const approveMeal = (meal: Meal) => {
+    setApprovedMeals((prev) => [...prev, meal]);
+  };
+
+  const regenerateMeal = (index: number) => {
+    const mealName = generatedMeals[index]?.name;
+    if (mealName) {
+      sendMessage(`Can you suggest a different meal instead of "${mealName}"?`);
+    }
+  };
+
+  const tweakMeal = (index: number, instruction: string) => {
+    const mealName = generatedMeals[index]?.name;
+    if (mealName) {
+      sendMessage(`Can you modify "${mealName}" to ${instruction}?`);
+    }
+  };
+
   useEffect(() => {
-    if (messages.length === 0) {
+    if (messages.length === 0 && starterMessage) {
       setMessages([
         {
-          id: "welcome",
+          id: "starter",
           role: "assistant",
-          content: `Welcome! Now that we have your daily calorie and protein targets, the last thing we need to do is make your meals.
-
-This is an open AI style conversation. We've included suggestions below, but feel free to type anything you want at any time.
-
-Are you ready to get started?`,
+          content: starterMessage,
         },
       ]);
     }
-  }, [messages.length]);
+  }, [messages.length, starterMessage]);
 
   return {
     messages,
@@ -153,5 +216,10 @@ Are you ready to get started?`,
     handleTextareaChange,
     sendMessage,
     textareaRef,
+    approvedMeals,
+    generatedMeals,
+    approveMeal,
+    regenerateMeal,
+    tweakMeal,
   };
 }

@@ -4,8 +4,13 @@ import { unifiedPlannerInstructions } from "@/lib/GPTinstructions";
 
 export async function POST(req) {
   try {
-    const { messages, stepOneData, stepTwoData, stepThreeData } =
-      await req.json();
+    const {
+      messages,
+      stepOneData,
+      stepTwoData,
+      stepThreeData,
+      systemPrompt, // ✅ dynamically passed prompt
+    } = await req.json();
 
     if (!messages || !Array.isArray(messages)) {
       return new Response(
@@ -17,51 +22,21 @@ export async function POST(req) {
       );
     }
 
-    const systemPrompt = `
-${unifiedPlannerInstructions}
-
-KNOWN USER DATA FOR YOUR REFERENCE:
-- Sex: ${stepOneData?.sex || "unknown"}
-- Age: ${stepOneData?.age || "unknown"}
-- Height: ${
-      stepOneData
-        ? `${stepOneData.heightFt}'${stepOneData.heightIn}"`
-        : "unknown"
-    }
-- Weight: ${stepOneData?.weight || "unknown"}
-- Activity Level: ${stepOneData?.activity?.label || "unknown"}
-- Maintenance Calories: ${stepOneData?.maintanenceCalories || "unknown"}
-
-Goal info:
-- Goal Type: ${stepTwoData?.selectedGoalTitle || "unknown"}
-- Goal Calories: ${stepTwoData?.goalCalories || "unknown"}
-- Goal Protein: ${stepTwoData?.goalProtein || "unknown"}
-- Calorie Delta: ${stepTwoData?.calorieDeltaText || "unknown"}
-
-Meal planning (in progress):
-- Meals per day: ${stepThreeData?.mealsPerDay || "unknown"}
-- Number of meals desired: ${stepThreeData?.numberOfMeals || "unknown"}
-- Approved ingredients: ${
-      stepThreeData?.approvedIngredients?.join(", ") || "none yet"
-    }
-- Approved meals: ${
-      stepThreeData?.meals?.length
-        ? stepThreeData.meals.map((m) => m.name).join(", ")
-        : "none yet"
-    }
-
-You may reference this information at any time during the conversation.
-`;
+    // ✅ Fallback to the unified prompt if one isn't provided
+    const promptToUse =
+      typeof systemPrompt === "string" && systemPrompt.trim().length > 0
+        ? systemPrompt.trim()
+        : unifiedPlannerInstructions;
 
     console.log("📨 Incoming GPT request:");
-    console.log("🧾 System Prompt:", systemPrompt);
+    console.log("🧾 Using system prompt:", promptToUse.slice(0, 200), "...");
 
     const result = await streamText({
       model: openai("gpt-4-turbo"),
       messages: [
         {
           role: "system",
-          content: systemPrompt,
+          content: promptToUse,
         },
         ...messages,
       ],
@@ -78,7 +53,7 @@ You may reference this information at any time during the conversation.
       },
     });
   } catch (err) {
-    console.error("Chat API error:", err);
+    console.error("❌ Chat API error:", err);
     return new Response(JSON.stringify({ error: "Internal Server Error" }), {
       status: 500,
       headers: { "Content-Type": "application/json" },
