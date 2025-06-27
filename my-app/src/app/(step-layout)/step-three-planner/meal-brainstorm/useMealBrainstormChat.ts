@@ -30,7 +30,7 @@ function parseMealsFromMessage(content: string): Meal[] {
   let currentMeal: Partial<Meal> = {};
   let state: "none" | "name" | "description" | "ingredients" = "none";
 
-  for (let line of lines) {
+  for (const line of lines) {
     if (line.startsWith("Meal Name:")) {
       if (currentMeal.name && currentMeal.ingredients?.length) {
         meals.push({

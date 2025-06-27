@@ -32,10 +32,7 @@ export default function MealBrainstormPage() {
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-  const { chatCanvasRef, shouldAutoScroll, scrollToBottom } = useScrollManager(
-    messages.length,
-    streamingMessage
-  );
+  const { chatCanvasRef } = useScrollManager(messages.length, streamingMessage);
 
   // Populate generatedMeals with approved meals (if needed) after hydration
   useEffect(() => {

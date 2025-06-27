@@ -4,13 +4,7 @@ import { unifiedPlannerInstructions } from "@/lib/GPTinstructions";
 
 export async function POST(req) {
   try {
-    const {
-      messages,
-      stepOneData,
-      stepTwoData,
-      stepThreeData,
-      systemPrompt, // ✅ dynamically passed prompt
-    } = await req.json();
+    const { messages, systemPrompt } = await req.json();
 
     if (!messages || !Array.isArray(messages)) {
       return new Response(
@@ -27,9 +21,6 @@ export async function POST(req) {
       typeof systemPrompt === "string" && systemPrompt.trim().length > 0
         ? systemPrompt.trim()
         : unifiedPlannerInstructions;
-
-    console.log("📨 Incoming GPT request:");
-    console.log("🧾 Using system prompt:", promptToUse.slice(0, 200), "...");
 
     const result = await streamText({
       model: openai("gpt-4-turbo"),

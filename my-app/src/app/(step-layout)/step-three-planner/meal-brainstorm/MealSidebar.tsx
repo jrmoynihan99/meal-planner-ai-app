@@ -35,10 +35,6 @@ export function MealSidebar({
     100
   );
 
-  const goToNextSubstep = () => {
-    console.log("Next step triggered");
-  };
-
   return (
     <aside
       className={`fixed sm:static top-0 right-0 h-full sm:h-auto bg-black w-[90%] sm:w-[400px] z-50 transition-transform duration-300 ease-in-out border-l border-zinc-700 shadow-xl ${

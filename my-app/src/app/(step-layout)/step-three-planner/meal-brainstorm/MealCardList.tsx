@@ -19,10 +19,6 @@ export function MealCardList({
   onUnapprove,
   onRemove,
 }: MealCardListProps) {
-  const approvedMeals = useAppStore(
-    (s) => s.stepThreeData?.approvedMeals ?? []
-  );
-
   return (
     <div className="space-y-4 mt-6 max-w-full">
       {meals.map((meal, index) => (
