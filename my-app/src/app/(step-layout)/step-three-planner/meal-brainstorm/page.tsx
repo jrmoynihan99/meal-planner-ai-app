@@ -45,9 +45,8 @@ export default function MealBrainstormPage() {
   });
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [isMounted, setIsMounted] = useState(false);
+  const [isMounted] = useState(false);
   const { chatCanvasRef } = useScrollManager(messages.length, streamingMessage);
-  const hydrationProcessedRef = useRef(false);
 
   /*
   // Mount effect - ensures we're on client
