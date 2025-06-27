@@ -49,14 +49,12 @@ export default function MealBrainstormPage() {
   const { chatCanvasRef } = useScrollManager(messages.length, streamingMessage);
   const hydrationProcessedRef = useRef(false);
 
-  /*
   // Mount effect - ensures we're on client
-  useEffect(() => {
+  /*useEffect(() => {
     setIsMounted(true);
-  }, []);
-  */
+  }, []);*/
 
-  // FIXED: Hydration effect - simplified dependencies
+  // CULPRIT! GO HERE!
   useEffect(() => {
     if (
       !isMounted ||
@@ -79,7 +77,6 @@ export default function MealBrainstormPage() {
     setGeneratedMeals,
   ]); // FIXED: Removed the circular dependencies
 
-  /*
   // FIXED: Sidebar effect - removed isSidebarOpen from dependencies
   useEffect(() => {
     if (!isMounted) return;
@@ -99,7 +96,6 @@ export default function MealBrainstormPage() {
       setIsSidebarOpen(true);
     }
   }, [isMounted, generatedMeals.length]); // FIXED: Only depend on meals length
-  */
 
   // FIXED: Memoized callback functions to prevent unnecessary re-renders
   const approveMeal = useCallback(
