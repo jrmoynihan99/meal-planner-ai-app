@@ -47,36 +47,39 @@ export default function MealBrainstormPage() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isMounted] = useState(false);
   const { chatCanvasRef } = useScrollManager(messages.length, streamingMessage);
+  const hydrationProcessedRef = useRef(false);
 
   /*
   // Mount effect - ensures we're on client
   useEffect(() => {
     setIsMounted(true);
   }, []);
+  */
 
   // FIXED: Hydration effect - simplified dependencies
   useEffect(() => {
-    if (!isMounted) return; // Only run on client
-
-    console.log("🔍 Hydration effect triggered:", {
-      hasHydrated,
-      hydrationProcessed: hydrationProcessedRef.current,
-      approvedMealsLength: approvedMeals.length,
-      generatedMealsLength: generatedMeals.length,
-    });
-
     if (
-      hasHydrated &&
-      !hydrationProcessedRef.current &&
-      approvedMeals.length > 0 &&
-      generatedMeals.length === 0
+      !isMounted ||
+      !hasHydrated ||
+      hydrationProcessedRef.current ||
+      approvedMeals.length === 0 ||
+      generatedMeals.length > 0
     ) {
-      console.log("✅ Running hydration logic");
-      setGeneratedMeals([...approvedMeals]);
-      hydrationProcessedRef.current = true;
+      return;
     }
-  }, [isMounted, hasHydrated]); // FIXED: Removed the circular dependencies
 
+    console.log("✅ Running hydration logic");
+    setGeneratedMeals([...approvedMeals]);
+    hydrationProcessedRef.current = true;
+  }, [
+    isMounted,
+    hasHydrated,
+    approvedMeals.length,
+    generatedMeals.length,
+    setGeneratedMeals,
+  ]); // FIXED: Removed the circular dependencies
+
+  /*
   // FIXED: Sidebar effect - removed isSidebarOpen from dependencies
   useEffect(() => {
     if (!isMounted) return;
