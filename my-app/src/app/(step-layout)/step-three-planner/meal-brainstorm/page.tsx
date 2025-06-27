@@ -49,6 +49,7 @@ export default function MealBrainstormPage() {
   const { chatCanvasRef } = useScrollManager(messages.length, streamingMessage);
   const hydrationProcessedRef = useRef(false);
 
+  /*
   // Mount effect - ensures we're on client
   useEffect(() => {
     setIsMounted(true);
@@ -96,6 +97,7 @@ export default function MealBrainstormPage() {
       setIsSidebarOpen(true);
     }
   }, [isMounted, generatedMeals.length]); // FIXED: Only depend on meals length
+  */
 
   // FIXED: Memoized callback functions to prevent unnecessary re-renders
   const approveMeal = useCallback(
