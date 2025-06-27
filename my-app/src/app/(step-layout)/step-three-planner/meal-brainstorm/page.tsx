@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useMealBrainstormChat } from "./useMealBrainstormChat";
 import { MessageList } from "../MessageList";
 import { InputFooter } from "../InputFooter";
@@ -28,30 +28,31 @@ export default function MealBrainstormPage() {
   const hasHydrated = useAppStore((s) => s.hasHydrated);
   const stepThreeData = useAppStore((s) => s.stepThreeData);
   const setStepThreeData = useAppStore((s) => s.setStepThreeData);
-  const approvedMeals = stepThreeData?.approvedMeals ?? [];
+
+  // Fix: Use useMemo or direct access to prevent new array creation
+  const approvedMeals = stepThreeData?.approvedMeals || [];
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-
   const { chatCanvasRef } = useScrollManager(messages.length, streamingMessage);
 
-  const [hydrationProcessed, setHydrationProcessed] = useState(false);
+  // Use ref to track hydration to prevent multiple runs
+  const hydrationProcessedRef = useRef(false);
 
-  // Populate generatedMeals with approved meals (if needed) after hydration
+  // FIXED: Populate generatedMeals with approved meals (if needed) after hydration
   useEffect(() => {
     if (
       hasHydrated &&
-      !hydrationProcessed &&
+      !hydrationProcessedRef.current &&
       approvedMeals.length > 0 &&
       generatedMeals.length === 0
     ) {
-      setGeneratedMeals(approvedMeals);
-      setHydrationProcessed(true);
+      setGeneratedMeals([...approvedMeals]); // Create a copy to avoid reference issues
+      hydrationProcessedRef.current = true;
     }
   }, [
     hasHydrated,
-    hydrationProcessed,
-    approvedMeals,
-    generatedMeals,
+    approvedMeals.length,
+    generatedMeals.length,
     setGeneratedMeals,
   ]);
 
@@ -94,11 +95,16 @@ export default function MealBrainstormPage() {
     });
   };
 
+  // FIXED: Only run when sidebar should actually open
   useEffect(() => {
-    if (generatedMeals.length > 0 && window.innerWidth < 1024) {
+    if (
+      generatedMeals.length > 0 &&
+      window.innerWidth < 1024 &&
+      !isSidebarOpen
+    ) {
       setIsSidebarOpen(true);
     }
-  }, [generatedMeals]);
+  }, [generatedMeals.length, isSidebarOpen]);
 
   useEffect(() => {
     const handleResize = () => {
