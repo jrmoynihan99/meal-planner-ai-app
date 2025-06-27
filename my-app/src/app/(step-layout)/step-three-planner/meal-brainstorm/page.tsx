@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useMealBrainstormChat } from "./useMealBrainstormChat";
 import { MessageList } from "../MessageList";
 import { InputFooter } from "../InputFooter";
@@ -45,11 +45,19 @@ export default function MealBrainstormPage() {
   });
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
   const { chatCanvasRef } = useScrollManager(messages.length, streamingMessage);
   const hydrationProcessedRef = useRef(false);
 
-  // DEBUG: Hydration effect
+  // Mount effect - ensures we're on client
   useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  // FIXED: Hydration effect - simplified dependencies
+  useEffect(() => {
+    if (!isMounted) return; // Only run on client
+
     console.log("🔍 Hydration effect triggered:", {
       hasHydrated,
       hydrationProcessed: hydrationProcessedRef.current,
@@ -67,88 +75,86 @@ export default function MealBrainstormPage() {
       setGeneratedMeals([...approvedMeals]);
       hydrationProcessedRef.current = true;
     }
-  }, [
-    hasHydrated,
-    approvedMeals.length,
-    generatedMeals.length,
-    setGeneratedMeals,
-  ]);
+  }, [isMounted, hasHydrated]); // FIXED: Removed the circular dependencies
 
-  // DEBUG: Sidebar effect
+  // FIXED: Sidebar effect - removed isSidebarOpen from dependencies
   useEffect(() => {
+    if (!isMounted) return;
+
     console.log("📱 Sidebar effect triggered:", {
       generatedMealsLength: generatedMeals.length,
-      windowWidth:
-        typeof window !== "undefined" ? window.innerWidth : "undefined",
+      windowWidth: window.innerWidth,
       isSidebarOpen,
     });
 
     if (
       generatedMeals.length > 0 &&
-      typeof window !== "undefined" &&
       window.innerWidth < 1024 &&
       !isSidebarOpen
     ) {
       console.log("📱 Opening sidebar");
       setIsSidebarOpen(true);
     }
-  }, [generatedMeals.length, isSidebarOpen]);
+  }, [isMounted, generatedMeals.length]); // FIXED: Only depend on meals length
 
-  // DEBUG: Track all useEffect dependencies
-  useEffect(() => {
-    console.log("🎯 Dependencies changed:", {
-      hasHydrated,
-      approvedMealsLength: approvedMeals.length,
-      generatedMealsLength: generatedMeals.length,
-      hydrationProcessed: hydrationProcessedRef.current,
-    });
-  }, [hasHydrated, approvedMeals.length, generatedMeals.length]);
-
-  const approveMeal = (meal: Meal) => {
-    console.log("👍 Approve meal:", meal.name);
-    const alreadyApproved = approvedMeals.some(
-      (m) => m.name.toLowerCase() === meal.name.toLowerCase()
-    );
-    if (!alreadyApproved) {
-      setStepThreeData({
-        approvedMeals: [...approvedMeals, meal],
-      });
-    }
-  };
-
-  const unapproveMeal = (meal: Meal) => {
-    console.log("👎 Unapprove meal:", meal.name);
-    const updated = approvedMeals.filter(
-      (m) => m.name.toLowerCase() !== meal.name.toLowerCase()
-    );
-    setStepThreeData({ approvedMeals: updated });
-  };
-
-  const removeMeal = (index: number) => {
-    console.log("🗑️ Remove meal at index:", index);
-    setGeneratedMeals((prev) => {
-      const mealToRemove = prev[index];
-      console.log("🗑️ Removing meal:", mealToRemove.name);
-
-      const stillApproved = approvedMeals.some(
-        (m) => m.name.toLowerCase() === mealToRemove.name.toLowerCase()
+  // FIXED: Memoized callback functions to prevent unnecessary re-renders
+  const approveMeal = useCallback(
+    (meal: Meal) => {
+      console.log("👍 Approve meal:", meal.name);
+      const alreadyApproved = approvedMeals.some(
+        (m) => m.name.toLowerCase() === meal.name.toLowerCase()
       );
-
-      if (stillApproved) {
-        console.log("🗑️ Also removing from approved meals");
-        const updatedApproved = approvedMeals.filter(
-          (m) => m.name.toLowerCase() !== mealToRemove.name.toLowerCase()
-        );
-        setStepThreeData({ approvedMeals: updatedApproved });
+      if (!alreadyApproved) {
+        setStepThreeData({
+          approvedMeals: [...approvedMeals, meal],
+        });
       }
+    },
+    [approvedMeals, setStepThreeData]
+  );
 
-      const copy = [...prev];
-      copy.splice(index, 1);
-      return copy;
-    });
-  };
+  const unapproveMeal = useCallback(
+    (meal: Meal) => {
+      console.log("👎 Unapprove meal:", meal.name);
+      const updated = approvedMeals.filter(
+        (m) => m.name.toLowerCase() !== meal.name.toLowerCase()
+      );
+      setStepThreeData({ approvedMeals: updated });
+    },
+    [approvedMeals, setStepThreeData]
+  );
 
+  const removeMeal = useCallback(
+    (index: number) => {
+      console.log("🗑️ Remove meal at index:", index);
+      setGeneratedMeals((prev) => {
+        const mealToRemove = prev[index];
+        console.log("🗑️ Removing meal:", mealToRemove.name);
+
+        const stillApproved = approvedMeals.some(
+          (m) => m.name.toLowerCase() === mealToRemove.name.toLowerCase()
+        );
+
+        if (stillApproved) {
+          console.log("🗑️ Also removing from approved meals");
+          const updatedApproved = approvedMeals.filter(
+            (m) => m.name.toLowerCase() !== mealToRemove.name.toLowerCase()
+          );
+          setStepThreeData({ approvedMeals: updatedApproved });
+        }
+
+        const copy = [...prev];
+        copy.splice(index, 1);
+        return copy;
+      });
+    },
+    [approvedMeals, setStepThreeData, setGeneratedMeals]
+  );
+
+  // Window resize effect
   useEffect(() => {
+    if (!isMounted) return;
+
     const handleResize = () => {
       if (window.innerWidth >= 1024) {
         setIsSidebarOpen(false);
@@ -157,10 +163,11 @@ export default function MealBrainstormPage() {
 
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
-  }, []);
+  }, [isMounted]);
 
-  if (!hasHydrated) {
-    console.log("⏳ Still waiting for hydration");
+  // FIXED: Wait for both hydration AND mounting
+  if (!hasHydrated || !isMounted) {
+    console.log("⏳ Still waiting for hydration or mounting");
     return (
       <div className="flex h-full w-full bg-black text-white justify-center items-center">
         <span className="text-gray-400 animate-pulse">
