@@ -11,6 +11,11 @@ import { Meal } from "./useMealBrainstormChat";
 import { useScrollManager } from "../useScrollManager";
 
 export default function MealBrainstormPage() {
+  // DEBUG: Track renders
+  const renderCount = useRef(0);
+  renderCount.current += 1;
+  console.log(`🔄 MealBrainstormPage render #${renderCount.current}`);
+
   const {
     messages,
     input,
@@ -28,25 +33,38 @@ export default function MealBrainstormPage() {
   const hasHydrated = useAppStore((s) => s.hasHydrated);
   const stepThreeData = useAppStore((s) => s.stepThreeData);
   const setStepThreeData = useAppStore((s) => s.setStepThreeData);
-
-  // Fix: Use useMemo or direct access to prevent new array creation
   const approvedMeals = stepThreeData?.approvedMeals || [];
+
+  // DEBUG: Track state changes
+  console.log("📊 State snapshot:", {
+    hasHydrated,
+    stepThreeDataExists: !!stepThreeData,
+    approvedMealsLength: approvedMeals.length,
+    generatedMealsLength: generatedMeals.length,
+    messagesLength: messages.length,
+  });
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const { chatCanvasRef } = useScrollManager(messages.length, streamingMessage);
-
-  // Use ref to track hydration to prevent multiple runs
   const hydrationProcessedRef = useRef(false);
 
-  // FIXED: Populate generatedMeals with approved meals (if needed) after hydration
+  // DEBUG: Hydration effect
   useEffect(() => {
+    console.log("🔍 Hydration effect triggered:", {
+      hasHydrated,
+      hydrationProcessed: hydrationProcessedRef.current,
+      approvedMealsLength: approvedMeals.length,
+      generatedMealsLength: generatedMeals.length,
+    });
+
     if (
       hasHydrated &&
       !hydrationProcessedRef.current &&
       approvedMeals.length > 0 &&
       generatedMeals.length === 0
     ) {
-      setGeneratedMeals([...approvedMeals]); // Create a copy to avoid reference issues
+      console.log("✅ Running hydration logic");
+      setGeneratedMeals([...approvedMeals]);
       hydrationProcessedRef.current = true;
     }
   }, [
@@ -56,7 +74,38 @@ export default function MealBrainstormPage() {
     setGeneratedMeals,
   ]);
 
+  // DEBUG: Sidebar effect
+  useEffect(() => {
+    console.log("📱 Sidebar effect triggered:", {
+      generatedMealsLength: generatedMeals.length,
+      windowWidth:
+        typeof window !== "undefined" ? window.innerWidth : "undefined",
+      isSidebarOpen,
+    });
+
+    if (
+      generatedMeals.length > 0 &&
+      typeof window !== "undefined" &&
+      window.innerWidth < 1024 &&
+      !isSidebarOpen
+    ) {
+      console.log("📱 Opening sidebar");
+      setIsSidebarOpen(true);
+    }
+  }, [generatedMeals.length, isSidebarOpen]);
+
+  // DEBUG: Track all useEffect dependencies
+  useEffect(() => {
+    console.log("🎯 Dependencies changed:", {
+      hasHydrated,
+      approvedMealsLength: approvedMeals.length,
+      generatedMealsLength: generatedMeals.length,
+      hydrationProcessed: hydrationProcessedRef.current,
+    });
+  }, [hasHydrated, approvedMeals.length, generatedMeals.length]);
+
   const approveMeal = (meal: Meal) => {
+    console.log("👍 Approve meal:", meal.name);
     const alreadyApproved = approvedMeals.some(
       (m) => m.name.toLowerCase() === meal.name.toLowerCase()
     );
@@ -68,6 +117,7 @@ export default function MealBrainstormPage() {
   };
 
   const unapproveMeal = (meal: Meal) => {
+    console.log("👎 Unapprove meal:", meal.name);
     const updated = approvedMeals.filter(
       (m) => m.name.toLowerCase() !== meal.name.toLowerCase()
     );
@@ -75,14 +125,17 @@ export default function MealBrainstormPage() {
   };
 
   const removeMeal = (index: number) => {
+    console.log("🗑️ Remove meal at index:", index);
     setGeneratedMeals((prev) => {
       const mealToRemove = prev[index];
+      console.log("🗑️ Removing meal:", mealToRemove.name);
 
       const stillApproved = approvedMeals.some(
         (m) => m.name.toLowerCase() === mealToRemove.name.toLowerCase()
       );
 
       if (stillApproved) {
+        console.log("🗑️ Also removing from approved meals");
         const updatedApproved = approvedMeals.filter(
           (m) => m.name.toLowerCase() !== mealToRemove.name.toLowerCase()
         );
@@ -94,17 +147,6 @@ export default function MealBrainstormPage() {
       return copy;
     });
   };
-
-  // FIXED: Only run when sidebar should actually open
-  useEffect(() => {
-    if (
-      generatedMeals.length > 0 &&
-      window.innerWidth < 1024 &&
-      !isSidebarOpen
-    ) {
-      setIsSidebarOpen(true);
-    }
-  }, [generatedMeals.length, isSidebarOpen]);
 
   useEffect(() => {
     const handleResize = () => {
@@ -118,6 +160,7 @@ export default function MealBrainstormPage() {
   }, []);
 
   if (!hasHydrated) {
+    console.log("⏳ Still waiting for hydration");
     return (
       <div className="flex h-full w-full bg-black text-white justify-center items-center">
         <span className="text-gray-400 animate-pulse">
@@ -126,6 +169,8 @@ export default function MealBrainstormPage() {
       </div>
     );
   }
+
+  console.log("🎨 Rendering main component");
 
   return (
     <div
