@@ -43,7 +43,7 @@ export default function MealBrainstormPage() {
     ) {
       setGeneratedMeals(approvedMeals);
     }
-  }, [hasHydrated]);
+  }, [hasHydrated, approvedMeals, generatedMeals, setGeneratedMeals]);
 
   const approveMeal = (meal: Meal) => {
     const alreadyApproved = approvedMeals.some(
