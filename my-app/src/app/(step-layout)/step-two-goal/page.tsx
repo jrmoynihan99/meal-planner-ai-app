@@ -3,6 +3,7 @@
 import { GoalTile } from "@/components/GoalTile";
 import { useAppStore } from "@/lib/store";
 import { GoalPaceBadge } from "@/components/GoalPaceBadge";
+import NextStepButton from "@/components/NextStepButton";
 
 const goals = [
   {
@@ -124,25 +125,7 @@ export default function StepTwoGoalPage() {
               </div>
             </div>
 
-            <button
-              onClick={() => (window.location.href = "/step-three-planner")}
-              className="flex items-center gap-2 px-4 py-2 rounded-lg border border-blue-500 text-blue-400 font-semibold transition-all shadow-md hover:bg-blue-500 hover:text-white mr-4 cursor-pointer"
-            >
-              <span>Next</span>
-              <svg
-                className="w-4 h-4"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth={2}
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M9 5l7 7-7 7"
-                />
-              </svg>
-            </button>
+            <NextStepButton href="/step-three-planner/meal-brainstorm" />
           </div>
         </div>
       )}

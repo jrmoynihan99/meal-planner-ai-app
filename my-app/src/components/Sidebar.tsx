@@ -26,7 +26,7 @@ const steps = [
     key: "step3",
     label: "STEP 3",
     title: "Make Your Meals",
-    path: "/step-three-planner",
+    path: "/step-three-planner/meal-brainstorm",
   },
   {
     key: "step4",

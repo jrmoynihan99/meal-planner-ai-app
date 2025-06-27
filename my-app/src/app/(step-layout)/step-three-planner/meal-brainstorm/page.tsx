@@ -1,13 +1,14 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useMealBrainstormChat } from "./useMealBrainstormChat";
 import { MessageList } from "../MessageList";
 import { InputFooter } from "../InputFooter";
 import { MealSidebar } from "./MealSidebar";
 import { useAppStore } from "@/lib/store";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Meal } from "./useMealBrainstormChat";
+import { useScrollManager } from "../useScrollManager";
 
 export default function MealBrainstormPage() {
   const {
@@ -21,26 +22,69 @@ export default function MealBrainstormPage() {
     textareaRef,
     sendMessage,
     setInput,
+    setGeneratedMeals,
   } = useMealBrainstormChat();
 
+  const hasHydrated = useAppStore((s) => s.hasHydrated);
   const stepThreeData = useAppStore((s) => s.stepThreeData);
   const setStepThreeData = useAppStore((s) => s.setStepThreeData);
   const approvedMeals = stepThreeData?.approvedMeals ?? [];
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-  const chatCanvasRef = useRef<HTMLDivElement | null>(null);
+  const { chatCanvasRef, shouldAutoScroll, scrollToBottom } = useScrollManager(
+    messages.length,
+    streamingMessage
+  );
+
+  // Populate generatedMeals with approved meals (if needed) after hydration
+  useEffect(() => {
+    if (
+      hasHydrated &&
+      approvedMeals.length > 0 &&
+      generatedMeals.length === 0
+    ) {
+      setGeneratedMeals(approvedMeals);
+    }
+  }, [hasHydrated]);
 
   const approveMeal = (meal: Meal) => {
     const alreadyApproved = approvedMeals.some(
       (m) => m.name.toLowerCase() === meal.name.toLowerCase()
     );
-
     if (!alreadyApproved) {
       setStepThreeData({
         approvedMeals: [...approvedMeals, meal],
       });
     }
+  };
+
+  const unapproveMeal = (meal: Meal) => {
+    const updated = approvedMeals.filter(
+      (m) => m.name.toLowerCase() !== meal.name.toLowerCase()
+    );
+    setStepThreeData({ approvedMeals: updated });
+  };
+
+  const removeMeal = (index: number) => {
+    setGeneratedMeals((prev) => {
+      const mealToRemove = prev[index];
+
+      const stillApproved = approvedMeals.some(
+        (m) => m.name.toLowerCase() === mealToRemove.name.toLowerCase()
+      );
+
+      if (stillApproved) {
+        const updatedApproved = approvedMeals.filter(
+          (m) => m.name.toLowerCase() !== mealToRemove.name.toLowerCase()
+        );
+        setStepThreeData({ approvedMeals: updatedApproved });
+      }
+
+      const copy = [...prev];
+      copy.splice(index, 1);
+      return copy;
+    });
   };
 
   useEffect(() => {
@@ -52,13 +96,23 @@ export default function MealBrainstormPage() {
   useEffect(() => {
     const handleResize = () => {
       if (window.innerWidth >= 1024) {
-        setIsSidebarOpen(false); // Force reset when switching to desktop
+        setIsSidebarOpen(false);
       }
     };
 
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
+
+  if (!hasHydrated) {
+    return (
+      <div className="flex h-full w-full bg-black text-white justify-center items-center">
+        <span className="text-gray-400 animate-pulse">
+          Loading your data...
+        </span>
+      </div>
+    );
+  }
 
   return (
     <div
@@ -76,14 +130,18 @@ export default function MealBrainstormPage() {
       </div>
 
       {/* Background fade for mobile sidebar */}
-      {isSidebarOpen && (
-        <motion.div
-          className="lg:hidden fixed inset-0 bg-black z-30 pointer-events-none"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.3 }}
-        />
-      )}
+      <AnimatePresence>
+        {isSidebarOpen && (
+          <motion.div
+            onClick={() => setIsSidebarOpen(false)}
+            className="lg:hidden fixed inset-0 bg-black z-40"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 0.5 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+          />
+        )}
+      </AnimatePresence>
 
       {/* Main content */}
       <motion.div
@@ -95,7 +153,6 @@ export default function MealBrainstormPage() {
         transition={{ type: "spring", stiffness: 260, damping: 20 }}
         style={{ originX: 1 }}
       >
-        {/* Scrollable Chat Canvas */}
         <div
           ref={chatCanvasRef}
           className="flex-1 overflow-y-auto min-h-0 scroll-smooth"
@@ -109,7 +166,6 @@ export default function MealBrainstormPage() {
           </div>
         </div>
 
-        {/* Sticky Footer */}
         <InputFooter
           input={input}
           setInput={setInput}
@@ -129,8 +185,8 @@ export default function MealBrainstormPage() {
         <MealSidebar
           meals={generatedMeals}
           onApprove={approveMeal}
-          onTweak={() => {}}
-          onReplace={() => {}}
+          onUnapprove={unapproveMeal}
+          onRemove={removeMeal}
           isMobileVisible={true}
           onCloseMobile={() => {}}
         />
@@ -141,8 +197,8 @@ export default function MealBrainstormPage() {
         <MealSidebar
           meals={generatedMeals}
           onApprove={approveMeal}
-          onTweak={() => {}}
-          onReplace={() => {}}
+          onUnapprove={unapproveMeal}
+          onRemove={removeMeal}
           isMobileVisible={isSidebarOpen}
           onCloseMobile={() => setIsSidebarOpen(false)}
         />

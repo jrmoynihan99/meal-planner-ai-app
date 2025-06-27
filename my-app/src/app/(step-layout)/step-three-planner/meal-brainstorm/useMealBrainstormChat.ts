@@ -33,7 +33,10 @@ function parseMealsFromMessage(content: string): Meal[] {
   for (let line of lines) {
     if (line.startsWith("Meal Name:")) {
       if (currentMeal.name && currentMeal.ingredients?.length) {
-        meals.push(currentMeal as Meal);
+        meals.push({
+          ...(currentMeal as Meal),
+          id: crypto.randomUUID(),
+        });
       }
       currentMeal = {
         name: line.replace("Meal Name:", "").trim(),
@@ -52,14 +55,17 @@ function parseMealsFromMessage(content: string): Meal[] {
     ) {
       const raw = line.replace(/^[-•]\s*/, "");
       const [name, amount] = raw.split(":").map((s) => s.trim());
-      if (name && amount && currentMeal.ingredients) {
-        currentMeal.ingredients.push({ name, amount });
+      if (name && currentMeal.ingredients) {
+        currentMeal.ingredients.push({ name, amount: amount || "" });
       }
     }
   }
 
   if (currentMeal.name && currentMeal.ingredients?.length) {
-    meals.push(currentMeal as Meal);
+    meals.push({
+      ...(currentMeal as Meal),
+      id: crypto.randomUUID(),
+    });
   }
 
   return meals;
@@ -141,8 +147,28 @@ export function useMealBrainstormChat() {
 
       const parsedMeals = parseMealsFromMessage(finalVisible);
       if (parsedMeals.length > 0) {
-        setGeneratedMeals(parsedMeals);
-        console.log("✅ Parsed meals:", parsedMeals);
+        setGeneratedMeals((prev) => {
+          const updated = [...prev];
+
+          for (const newMeal of parsedMeals) {
+            const index = updated.findIndex(
+              (m) => m.name.toLowerCase() === newMeal.name.toLowerCase()
+            );
+
+            if (index !== -1) {
+              // Replace meal, preserve ID
+              updated[index] = {
+                ...newMeal,
+                id: updated[index].id,
+              };
+            } else {
+              // New meal, already has ID from parser
+              updated.push(newMeal);
+            }
+          }
+
+          return updated;
+        });
       }
 
       setMessages((prev) => [...prev, assistantMessage]);
@@ -191,5 +217,6 @@ export function useMealBrainstormChat() {
     textareaRef,
     sendMessage,
     setInput,
+    setGeneratedMeals,
   };
 }

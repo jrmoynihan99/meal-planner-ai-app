@@ -6,11 +6,13 @@ Use this format for each meal:
 Meal Name: Grilled Chicken Bowl  
 Description: A high-protein meal with lean grilled chicken, rice, and avocado.  
 Ingredients:  
-• chicken breast: 200g  
-• white rice: 1 cup  
-• avocado: 1/4 fruit
+• chicken breast  
+• white rice  
+• avocado
 
-Respond with meals only, and use consistent formatting so the app can extract them reliably.
+Add two blank lines between meals. Do not combine meals into one paragraph.
+
+If the user asks you to edit a meal, do so WITHOUT changing the name. The name must remain the same. 
 `.trim();
 
 export const mealBrainstormStarter = `
