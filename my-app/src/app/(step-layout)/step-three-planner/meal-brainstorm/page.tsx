@@ -34,16 +34,26 @@ export default function MealBrainstormPage() {
 
   const { chatCanvasRef } = useScrollManager(messages.length, streamingMessage);
 
+  const [hydrationProcessed, setHydrationProcessed] = useState(false);
+
   // Populate generatedMeals with approved meals (if needed) after hydration
   useEffect(() => {
     if (
       hasHydrated &&
+      !hydrationProcessed &&
       approvedMeals.length > 0 &&
       generatedMeals.length === 0
     ) {
       setGeneratedMeals(approvedMeals);
+      setHydrationProcessed(true);
     }
-  }, [hasHydrated, approvedMeals, generatedMeals, setGeneratedMeals]);
+  }, [
+    hasHydrated,
+    hydrationProcessed,
+    approvedMeals,
+    generatedMeals,
+    setGeneratedMeals,
+  ]);
 
   const approveMeal = (meal: Meal) => {
     const alreadyApproved = approvedMeals.some(
