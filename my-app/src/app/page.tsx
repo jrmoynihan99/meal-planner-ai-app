@@ -1,16 +1,16 @@
 "use client";
 
 import { Typewriter } from "@/components/Typewriter";
-import { ArrowRight, ChevronDown, Loader2 } from "lucide-react";
+import { ArrowRight, ChevronDown } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
+import { GlowingButton } from "@/components/GlowingButton";
+import { useRouter } from "next/navigation";
 
 export default function HomePage() {
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleGetStartedClick = () => {
-    setIsLoading(true);
-  };
+  const router = useRouter();
 
   return (
     <main className="bg-zinc-900 text-white">
@@ -50,21 +50,14 @@ export default function HomePage() {
           </p>
 
           <div className="flex justify-center mt-6">
-            <Link href="/step-one-data" onClick={handleGetStartedClick}>
-              <div className="relative group inline-flex">
-                <div className="absolute -inset-[2px] bg-gradient-to-r from-[#44BCFF] via-[#FF44EC] to-[#FF675E] rounded-full blur-sm opacity-60 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
-                <button className="relative z-10 px-6 py-3 bg-zinc-900 text-white font-semibold text-sm uppercase tracking-wide rounded-full flex items-center justify-center space-x-2 border border-zinc-700 shadow-md hover:bg-zinc-800 transition cursor-pointer min-w-[140px]">
-                  {isLoading ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <>
-                      <span>Get Started</span>
-                      <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
-                    </>
-                  )}
-                </button>
-              </div>
-            </Link>
+            <GlowingButton
+              text="Get Started"
+              loading={isLoading}
+              onClick={() => {
+                setIsLoading(true);
+                router.push("/step-one-data");
+              }}
+            />
           </div>
         </div>
       </section>

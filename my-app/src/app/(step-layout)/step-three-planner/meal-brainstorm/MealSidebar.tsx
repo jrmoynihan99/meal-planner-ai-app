@@ -1,11 +1,13 @@
 "use client";
 
+import { useState } from "react";
 import { MealCardList } from "./MealCardList";
 import { CloseButton } from "@/components/CloseButton";
-import { CheckCircle, Circle } from "lucide-react";
+import { CheckCircle, Circle, Plus } from "lucide-react";
 import { useAppStore } from "@/lib/store";
 import { Meal } from "./useMealBrainstormChat";
 import NextStepButton from "@/components/NextStepButton";
+import clsx from "clsx";
 
 interface MealSidebarProps {
   meals: Meal[];
@@ -24,7 +26,12 @@ export function MealSidebar({
   isMobileVisible,
   onCloseMobile,
 }: MealSidebarProps) {
-  const targetMealCount = 5;
+  const [selectedFilter, setSelectedFilter] = useState<
+    "all" | "approved" | "unapproved"
+  >("all");
+
+  const targetMealCount =
+    useAppStore((s) => s.stepThreeData?.uniqueWeeklyMeals) || 5;
   const approvedMeals = useAppStore(
     (s) => s.stepThreeData?.approvedMeals ?? []
   );
@@ -35,36 +42,90 @@ export function MealSidebar({
     100
   );
 
+  const isMealApproved = (meal: Meal) =>
+    approvedMeals.some((m) => m.name.toLowerCase() === meal.name.toLowerCase());
+
+  const filteredMeals =
+    selectedFilter === "approved"
+      ? meals.filter(isMealApproved)
+      : selectedFilter === "unapproved"
+      ? [...meals].filter((m) => !isMealApproved(m)).reverse()
+      : [...meals].sort((a, b) => {
+          const aApproved = isMealApproved(a);
+          const bApproved = isMealApproved(b);
+
+          if (aApproved && !bApproved) return 1;
+          if (!aApproved && bApproved) return -1;
+          return 0;
+        });
+
+  const handleGetMoreClick = () => {
+    onCloseMobile(); // Close the sidebar on mobile
+    const inputEl = document.getElementById(
+      "chat-input"
+    ) as HTMLTextAreaElement | null;
+    if (inputEl) {
+      inputEl.focus();
+    }
+  };
+
   return (
     <aside
-      className={`fixed sm:static top-0 right-0 h-full sm:h-auto bg-black w-[90%] sm:w-[400px] z-50 transition-transform duration-300 ease-in-out border-l border-zinc-700 shadow-xl ${
-        isMobileVisible ? "translate-x-0" : "translate-x-full"
-      } sm:translate-x-0`}
+      className={clsx(
+        "fixed sm:static top-0 right-0 h-full bg-black w-[90%] sm:w-[400px] z-50 border-l border-zinc-700 shadow-xl transition-transform duration-300 ease-in-out",
+        isMobileVisible ? "translate-x-0" : "translate-x-full",
+        "sm:translate-x-0"
+      )}
     >
-      <div className="flex flex-col h-full sm:h-auto">
-        {/* Mobile header row */}
-        <div className="sm:hidden flex items-center justify-between px-4 pt-4 mb-2">
-          <h2 className="text-xl font-semibold text-white">Meal Approval</h2>
-          <CloseButton onClick={onCloseMobile} />
+      <div className="flex flex-col h-full">
+        {/* Header row */}
+        <div className="shrink-0 px-4 pt-4 pb-2 border-b border-zinc-800 bg-black z-10">
+          <div className="flex items-center justify-between">
+            <div className="flex gap-2 items-center flex-wrap">
+              {/* Get More button */}
+              <button
+                onClick={handleGetMoreClick}
+                className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-2 rounded-md font-semibold transition-colors cursor-pointer"
+              >
+                <Plus className="w-4 h-4" />
+                Get More
+              </button>
+
+              {/* Filter pills */}
+              {["all", "approved", "unapproved"].map((type) => (
+                <button
+                  key={type}
+                  onClick={() => setSelectedFilter(type as any)}
+                  className={clsx(
+                    "px-3 py-1 text-xs rounded-full border font-mono tracking-wide transition cursor-pointer",
+                    selectedFilter === type
+                      ? "border-blue-500 text-blue-400 bg-zinc-800"
+                      : "border-zinc-600 text-zinc-400 hover:text-white hover:border-zinc-400"
+                  )}
+                >
+                  {type[0].toUpperCase() + type.slice(1)}
+                </button>
+              ))}
+            </div>
+
+            <div className="sm:hidden">
+              <CloseButton onClick={onCloseMobile} />
+            </div>
+          </div>
         </div>
 
-        {/* Scrollable content */}
-        <div className="flex-1 min-h-0 p-4 overflow-y-auto sm:h-auto">
-          <h2 className="hidden sm:block text-xl font-semibold mb-4 text-white">
-            Meal Approval
-          </h2>
-
+        {/* Scrollable middle section */}
+        <div className="flex-1 overflow-y-auto p-4">
           <MealCardList
-            meals={meals}
+            meals={filteredMeals}
             onApprove={onApprove}
             onUnapprove={onUnapprove}
             onRemove={onRemove}
           />
         </div>
 
-        {/* Sticky footer */}
-        <div className="sticky bottom-0 bg-zinc-900 px-4 pt-3 pb-5 border-t border-zinc-700">
-          {/* Progress bar */}
+        {/* Footer - stays at bottom always */}
+        <div className="shrink-0 bg-zinc-900 px-4 pt-3 pb-5 border-t border-zinc-700">
           <div className="relative w-full h-2 bg-zinc-700 rounded-full overflow-hidden mb-3">
             <div
               className="absolute top-0 left-0 h-full bg-blue-500 transition-all duration-500 ease-in-out"
@@ -72,7 +133,6 @@ export function MealSidebar({
             />
           </div>
 
-          {/* Approval + Status */}
           <div className="flex flex-col items-center gap-1">
             <p className="text-white text-sm font-medium">
               {approvedCount} / {targetMealCount} Meals Approved
@@ -95,7 +155,7 @@ export function MealSidebar({
 
             {isComplete && (
               <div className="mt-3">
-                <NextStepButton href="/step-three-planner/meal-brainstorm" />
+                <NextStepButton href="/step-three-planner/create-days" />
               </div>
             )}
           </div>

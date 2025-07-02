@@ -11,11 +11,6 @@ import { Meal } from "./useMealBrainstormChat";
 import { useScrollManager } from "../useScrollManager";
 
 export default function MealBrainstormPage() {
-  // DEBUG: Track renders
-  const renderCount = useRef(0);
-  renderCount.current += 1;
-  console.log(`🔄 MealBrainstormPage render #${renderCount.current}`);
-
   const {
     messages,
     input,
@@ -34,15 +29,6 @@ export default function MealBrainstormPage() {
   const stepThreeData = useAppStore((s) => s.stepThreeData);
   const setStepThreeData = useAppStore((s) => s.setStepThreeData);
   const approvedMeals = stepThreeData?.approvedMeals || [];
-
-  // DEBUG: Track state changes
-  console.log("📊 State snapshot:", {
-    hasHydrated,
-    stepThreeDataExists: !!stepThreeData,
-    approvedMealsLength: approvedMeals.length,
-    generatedMealsLength: generatedMeals.length,
-    messagesLength: messages.length,
-  });
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
@@ -65,8 +51,6 @@ export default function MealBrainstormPage() {
     ) {
       return;
     }
-
-    console.log("✅ Running hydration logic");
     setGeneratedMeals([...approvedMeals]);
     hydrationProcessedRef.current = true;
   }, [
@@ -81,18 +65,11 @@ export default function MealBrainstormPage() {
   useEffect(() => {
     if (!isMounted) return;
 
-    console.log("📱 Sidebar effect triggered:", {
-      generatedMealsLength: generatedMeals.length,
-      windowWidth: window.innerWidth,
-      isSidebarOpen,
-    });
-
     if (
       generatedMeals.length > 0 &&
       window.innerWidth < 1024 &&
       !isSidebarOpen
     ) {
-      console.log("📱 Opening sidebar");
       setIsSidebarOpen(true);
     }
   }, [isMounted, generatedMeals.length]); // FIXED: Only depend on meals length
@@ -100,7 +77,6 @@ export default function MealBrainstormPage() {
   // FIXED: Memoized callback functions to prevent unnecessary re-renders
   const approveMeal = useCallback(
     (meal: Meal) => {
-      console.log("👍 Approve meal:", meal.name);
       const alreadyApproved = approvedMeals.some(
         (m) => m.name.toLowerCase() === meal.name.toLowerCase()
       );
@@ -115,7 +91,6 @@ export default function MealBrainstormPage() {
 
   const unapproveMeal = useCallback(
     (meal: Meal) => {
-      console.log("👎 Unapprove meal:", meal.name);
       const updated = approvedMeals.filter(
         (m) => m.name.toLowerCase() !== meal.name.toLowerCase()
       );
@@ -126,17 +101,14 @@ export default function MealBrainstormPage() {
 
   const removeMeal = useCallback(
     (index: number) => {
-      console.log("🗑️ Remove meal at index:", index);
       setGeneratedMeals((prev) => {
         const mealToRemove = prev[index];
-        console.log("🗑️ Removing meal:", mealToRemove.name);
 
         const stillApproved = approvedMeals.some(
           (m) => m.name.toLowerCase() === mealToRemove.name.toLowerCase()
         );
 
         if (stillApproved) {
-          console.log("🗑️ Also removing from approved meals");
           const updatedApproved = approvedMeals.filter(
             (m) => m.name.toLowerCase() !== mealToRemove.name.toLowerCase()
           );
@@ -165,9 +137,7 @@ export default function MealBrainstormPage() {
     return () => window.removeEventListener("resize", handleResize);
   }, [isMounted]);
 
-  // FIXED: Wait for both hydration AND mounting
   if (!hasHydrated || !isMounted) {
-    console.log("⏳ Still waiting for hydration or mounting");
     return (
       <div className="flex h-full w-full bg-black text-white justify-center items-center">
         <span className="text-gray-400 animate-pulse">
@@ -176,8 +146,6 @@ export default function MealBrainstormPage() {
       </div>
     );
   }
-
-  console.log("🎨 Rendering main component");
 
   return (
     <div

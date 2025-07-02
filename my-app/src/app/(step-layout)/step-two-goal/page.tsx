@@ -125,7 +125,7 @@ export default function StepTwoGoalPage() {
               </div>
             </div>
 
-            <NextStepButton href="/step-three-planner/meal-brainstorm" />
+            <NextStepButton href="/step-three-planner/meal-number" />
           </div>
         </div>
       )}

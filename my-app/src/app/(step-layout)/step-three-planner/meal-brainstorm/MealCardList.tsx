@@ -20,8 +20,8 @@ export function MealCardList({
   onRemove,
 }: MealCardListProps) {
   return (
-    <div className="space-y-4 mt-6 max-w-full">
-      {meals.map((meal, index) => (
+    <div className="space-y-4 max-w-full">
+      {[...meals].map((meal, index) => (
         <EditableMealCard
           key={meal.id}
           meal={meal}

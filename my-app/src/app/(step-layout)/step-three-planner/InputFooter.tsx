@@ -78,6 +78,7 @@ export function InputFooter({
           <div className="relative flex flex-col items-stretch justify-start bg-zinc-800 border border-zinc-700 rounded-4xl px-4 pt-0 shadow-md w-full min-h-[3.25rem]">
             <textarea
               ref={textareaRef}
+              id="chat-input"
               className="w-full text-base font-mono text-white bg-transparent focus:outline-none px-2 pr-10 placeholder-gray-400 resize-none overflow-hidden break-words whitespace-pre-wrap h-[3rem] leading-[3rem]"
               placeholder="Ask or share anything..."
               value={input}

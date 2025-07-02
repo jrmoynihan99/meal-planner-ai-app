@@ -5,11 +5,15 @@ import { useState } from "react";
 import { useAppStore } from "@/lib/store";
 import { GeneralInfoOverlay } from "@/components/GeneralInfoOverlay";
 import { Trash2 } from "lucide-react";
+import { OverlayPortal } from "@/components/OverlayPortal";
 
 const routeTitles: Record<string, string> = {
   "/step-one-data": "Input Your Data",
   "/step-two-goal": "Choose Your Goal",
-  "/step-three-planner": "Build Your Meals",
+  "/step-three-planner/meal-number": "Meal Number",
+  "/step-three-planner/brainstorm-meals": "Brainstorm Meals",
+  "/step-three-planner/sample-day": "Build a Sample Day",
+  "/step-three-planner/weekly-plan": "Assign Days to Week",
   "/step-four-results": "Your Plan",
 };
 
@@ -18,14 +22,50 @@ export function Header() {
   const title = routeTitles[pathname] || "Step";
   const [showOverlay, setShowOverlay] = useState(false);
 
-  const resetStepOneData = useAppStore((state) => state.setStepOneData);
-  const resetStepTwoData = useAppStore((state) => state.setStepTwoData);
-  const resetStepThreeData = useAppStore((state) => state.resetStepThreeData);
+  const resetStepOneData = useAppStore((s) => s.setStepOneData);
+  const resetStepTwoData = useAppStore((s) => s.setStepTwoData);
+  const setStepThreeData = useAppStore((s) => s.setStepThreeData);
 
   let handleReset = () => {};
-  if (pathname === "/step-one-data") handleReset = () => resetStepOneData(null);
-  if (pathname === "/step-two-goal") handleReset = () => resetStepTwoData(null);
-  if (pathname === "/step-three-planner") handleReset = resetStepThreeData;
+
+  // Step 1
+  if (pathname === "/step-one-data") {
+    handleReset = () => resetStepOneData(null);
+  }
+
+  // Step 2
+  if (pathname === "/step-two-goal") {
+    handleReset = () => resetStepTwoData(null);
+  }
+
+  // Step 3 – Substeps
+  if (pathname === "/step-three-planner/meal-number") {
+    handleReset = () =>
+      setStepThreeData({ mealsPerDay: 0, uniqueWeeklyMeals: 0 });
+  }
+
+  if (pathname === "/step-three-planner/meal-brainstorm") {
+    handleReset = () => setStepThreeData({ approvedMeals: [] });
+  }
+
+  if (pathname === "/step-three-planner/create-days") {
+    handleReset = () => setStepThreeData({ days: [] });
+  }
+
+  if (pathname === "/step-three-planner/weekly-plan") {
+    handleReset = () =>
+      setStepThreeData({
+        weeklySchedule: {
+          Monday: null,
+          Tuesday: null,
+          Wednesday: null,
+          Thursday: null,
+          Friday: null,
+          Saturday: null,
+          Sunday: null,
+        },
+      });
+  }
 
   return (
     <header className="sticky top-0 z-10 flex h-14 items-center justify-between bg-black px-4 sm:px-8">
@@ -42,18 +82,20 @@ export function Header() {
       </button>
 
       {showOverlay && (
-        <GeneralInfoOverlay
-          onClose={() => setShowOverlay(false)}
-          subheading="Danger Zone"
-          title="Reset Step Data"
-          description="You are about to reset all data for this step. This action cannot be undone."
-          buttonText="Proceed"
-          buttonColor="bg-red-600 hover:bg-red-700"
-          onButtonClick={() => {
-            handleReset();
-            setShowOverlay(false);
-          }}
-        />
+        <OverlayPortal>
+          <GeneralInfoOverlay
+            onClose={() => setShowOverlay(false)}
+            subheading="Danger Zone"
+            title="Reset Step Data"
+            description="You are about to reset all data for this step. This action cannot be undone."
+            buttonText="Proceed"
+            buttonColor="bg-red-600 hover:bg-red-700"
+            onButtonClick={() => {
+              handleReset();
+              setShowOverlay(false);
+            }}
+          />
+        </OverlayPortal>
       )}
     </header>
   );

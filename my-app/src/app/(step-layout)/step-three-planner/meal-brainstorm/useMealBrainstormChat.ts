@@ -150,24 +150,26 @@ export function useMealBrainstormChat() {
         setGeneratedMeals((prev) => {
           const updated = [...prev];
 
+          const newUniqueMeals: Meal[] = [];
+
           for (const newMeal of parsedMeals) {
             const index = updated.findIndex(
               (m) => m.name.toLowerCase() === newMeal.name.toLowerCase()
             );
 
             if (index !== -1) {
-              // Replace meal, preserve ID
+              // Replace meal in-place
               updated[index] = {
                 ...newMeal,
                 id: updated[index].id,
               };
             } else {
-              // New meal, already has ID from parser
-              updated.push(newMeal);
+              // Collect new meals to prepend
+              newUniqueMeals.push(newMeal);
             }
           }
 
-          return updated;
+          return [...newUniqueMeals, ...updated];
         });
       }
 

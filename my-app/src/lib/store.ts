@@ -60,25 +60,29 @@ export interface Meal {
   recipe: string;
 }
 
+export interface DayPlan {
+  id: string;
+  meals: {
+    mealId: string;
+    ingredients: {
+      name: string;
+      amount: string;
+      protein: number;
+      calories: number;
+    }[];
+    totalProtein: number;
+    totalCalories: number;
+  }[];
+  dayProtein: number;
+  dayCalories: number;
+}
+
 export interface StepThreePlannerData {
   mealsPerDay: number;
+  uniqueWeeklyMeals: number;
   approvedMeals: Meal[];
-  days: {
-    id: string;
-    meals: {
-      mealId: string;
-      ingredients: {
-        name: string;
-        amount: string;
-        protein: number;
-        calories: number;
-      }[];
-      totalProtein: number;
-      totalCalories: number;
-    }[];
-    dayProtein: number;
-    dayCalories: number;
-  }[];
+  days: DayPlan[];
+  dayGenerationState: "not_started" | "started" | "completed";
   weeklySchedule: Record<DayOfWeek, string | null>;
 }
 
@@ -114,8 +118,10 @@ interface AppState {
 
 const defaultStepThreeData: StepThreePlannerData = {
   mealsPerDay: 0,
+  uniqueWeeklyMeals: 0,
   approvedMeals: [],
   days: [],
+  dayGenerationState: "not_started",
   weeklySchedule: {
     Monday: null,
     Tuesday: null,
@@ -197,10 +203,12 @@ export const useAppStore = create<AppState>()(
         return (
           !!data &&
           data.mealsPerDay > 0 &&
+          data.uniqueWeeklyMeals > 0 &&
           Array.isArray(data.approvedMeals) &&
           data.approvedMeals.length > 0 &&
           Array.isArray(data.days) &&
           data.days.length > 0 &&
+          data.dayGenerationState === "completed" &&
           data.weeklySchedule &&
           Object.values(data.weeklySchedule).every((id) => id !== null)
         );
