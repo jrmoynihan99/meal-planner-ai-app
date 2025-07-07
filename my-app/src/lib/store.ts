@@ -81,7 +81,8 @@ export interface StepThreePlannerData {
   mealsPerDay: number;
   uniqueWeeklyMeals: number;
   approvedMeals: Meal[];
-  days: DayPlan[];
+  allGeneratedDays: DayPlan[];
+  approvedDays: DayPlan[];
   dayGenerationState: "not_started" | "started" | "completed";
   weeklySchedule: Record<DayOfWeek, string | null>;
 }
@@ -120,7 +121,8 @@ const defaultStepThreeData: StepThreePlannerData = {
   mealsPerDay: 0,
   uniqueWeeklyMeals: 0,
   approvedMeals: [],
-  days: [],
+  allGeneratedDays: [],
+  approvedDays: [],
   dayGenerationState: "not_started",
   weeklySchedule: {
     Monday: null,
@@ -206,8 +208,8 @@ export const useAppStore = create<AppState>()(
           data.uniqueWeeklyMeals > 0 &&
           Array.isArray(data.approvedMeals) &&
           data.approvedMeals.length > 0 &&
-          Array.isArray(data.days) &&
-          data.days.length > 0 &&
+          Array.isArray(data.approvedDays) &&
+          data.approvedDays.length > 0 &&
           data.dayGenerationState === "completed" &&
           data.weeklySchedule &&
           Object.values(data.weeklySchedule).every((id) => id !== null)

@@ -1,6 +1,6 @@
 import type { Meal } from "@/lib/store"; // or the correct relative path
 
-export const mealSelectionPrompt = ({
+/*export const mealSelectionPrompt = ({
   mealsPerDay,
   approvedMeals,
 }: {
@@ -27,7 +27,7 @@ Please select ${mealsPerDay} meals that make sense for a single day of eating:
 Return only JSON — an ordered array of meal names:
 ["Breakfast Meal", "Lunch Meal", "Dinner Meal"]
   `.trim();
-};
+};*/
 
 export const ingredientMacroPrompt = (meals: Meal[]) => {
   const mealDescriptions = meals
