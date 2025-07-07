@@ -1,14 +1,14 @@
 import { openai } from "@ai-sdk/openai";
 import { streamText } from "ai";
-import { unifiedPlannerInstructions } from "@/lib/GPTinstructions";
 
 export async function POST(req) {
   try {
-    const { messages, systemPrompt } = await req.json();
+    const data = await req.json();
+    const { messages, systemPrompt } = data;
 
-    if (!messages || !Array.isArray(messages)) {
+    if (!systemPrompt || typeof systemPrompt !== "string") {
       return new Response(
-        JSON.stringify({ error: "Missing or invalid 'messages' array" }),
+        JSON.stringify({ error: "Missing or invalid systemPrompt." }),
         {
           status: 400,
           headers: { "Content-Type": "application/json" },
@@ -16,27 +16,16 @@ export async function POST(req) {
       );
     }
 
-    // ✅ Fallback to the unified prompt if one isn't provided
-    const promptToUse =
-      typeof systemPrompt === "string" && systemPrompt.trim().length > 0
-        ? systemPrompt.trim()
-        : unifiedPlannerInstructions;
-
     const result = await streamText({
       model: openai("gpt-4-turbo"),
       messages: [
-        {
-          role: "system",
-          content: promptToUse,
-        },
-        ...messages,
+        { role: "system", content: systemPrompt },
+        ...(messages ?? []),
       ],
       temperature: 0.7,
     });
 
-    const { textStream } = result;
-
-    return new Response(textStream, {
+    return new Response(result.textStream, {
       status: 200,
       headers: {
         "Content-Type": "text/plain; charset=utf-8",
