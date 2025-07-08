@@ -5,7 +5,7 @@ import { MealCardList } from "./MealCardList";
 import { CloseButton } from "@/components/CloseButton";
 import { CheckCircle, Circle, Plus } from "lucide-react";
 import { useAppStore } from "@/lib/store";
-import { Meal } from "./useMealBrainstormChat";
+import type { Meal } from "@/lib/store";
 import NextStepButton from "@/components/NextStepButton";
 import clsx from "clsx";
 

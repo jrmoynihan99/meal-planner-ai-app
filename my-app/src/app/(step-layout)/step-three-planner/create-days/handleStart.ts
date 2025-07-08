@@ -10,6 +10,14 @@ export async function handleStart() {
   const { mealsPerDay, approvedMeals } = stepThreeData ?? {};
   const { goalCalories, goalProtein } = stepTwoData ?? {};
 
+  console.log("🚀 handleStart triggered");
+  console.log("📥 Inputs:", {
+    mealsPerDay,
+    approvedMeals,
+    goalCalories,
+    goalProtein,
+  });
+
   if (
     !mealsPerDay ||
     !approvedMeals ||
@@ -22,9 +30,21 @@ export async function handleStart() {
   }
 
   setStepThreeData({ dayGenerationState: "started" });
+  console.log("⏳ Day generation state set to 'started'");
 
   try {
+    console.log("🔍 Fetching ingredient macros...");
     const ingredientMacros = await fetchIngredientMacros(approvedMeals);
+    console.log("✅ Fetched ingredient macros:", ingredientMacros);
+
+    console.log("📡 Calling day solver with:", {
+      mealsPerDay,
+      targetCalories: goalCalories,
+      targetProtein: goalProtein,
+      meals: approvedMeals,
+      ingredientMacros,
+    });
+
     const optimizedData = await callDaySolver({
       mealsPerDay,
       targetCalories: goalCalories,
@@ -33,6 +53,9 @@ export async function handleStart() {
       ingredientMacros,
     });
 
+    console.log("📦 Solver returned:", optimizedData);
+
+    console.log("🧠 Structuring output...");
     const structuredDays = optimizedData.validDays.map(
       (day: any, i: number) => ({
         id: uuidv4(),
@@ -45,7 +68,7 @@ export async function handleStart() {
               const portion = day.ingredientPortions[mealName]?.[ing.name];
               return {
                 name: ing.name,
-                amount: portion?.amount ?? "0g",
+                grams: portion?.grams ?? 0, // Changed from 'amount' to 'grams'
                 protein: portion?.protein ?? 0,
                 calories: portion?.calories ?? 0,
               };
@@ -69,10 +92,14 @@ export async function handleStart() {
       })
     );
 
+    console.log("✅ Structured days:", structuredDays);
+
     setStepThreeData({
       allGeneratedDays: structuredDays,
       dayGenerationState: "completed",
     });
+
+    console.log("🏁 Day generation complete — state set to 'completed'");
   } catch (err) {
     console.error("❌ Error during day generation pipeline:", err);
   }

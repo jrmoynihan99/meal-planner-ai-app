@@ -84,7 +84,7 @@ export function Sidebar() {
       stepThreeData?.uniqueWeeklyMeals > 0 &&
       stepThreeData.approvedMeals.length === stepThreeData.uniqueWeeklyMeals,
 
-    day: Array.isArray(stepThreeData?.days) && stepThreeData.days.length > 0,
+    day: Array.isArray(stepThreeData?.approvedDays) && stepThreeData.approvedDays.length > 0,
     week: stepThreeData?.weeklySchedule
       ? Object.values(stepThreeData.weeklySchedule).every((id) => id !== null)
       : false,

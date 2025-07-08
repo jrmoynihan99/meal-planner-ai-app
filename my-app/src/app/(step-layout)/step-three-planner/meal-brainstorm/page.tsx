@@ -7,7 +7,7 @@ import { InputFooter } from "../InputFooter";
 import { MealSidebar } from "./MealSidebar";
 import { useAppStore } from "@/lib/store";
 import { motion, AnimatePresence } from "framer-motion";
-import { Meal } from "./useMealBrainstormChat";
+import type { Meal } from "@/lib/store";
 import { useScrollManager } from "../useScrollManager";
 
 export default function MealBrainstormPage() {
@@ -80,11 +80,17 @@ export default function MealBrainstormPage() {
       const alreadyApproved = approvedMeals.some(
         (m) => m.name.toLowerCase() === meal.name.toLowerCase()
       );
-      if (!alreadyApproved) {
-        setStepThreeData({
-          approvedMeals: [...approvedMeals, meal],
-        });
-      }
+
+      if (alreadyApproved) return;
+
+      const updatedMeals = [...approvedMeals, meal];
+      setStepThreeData({ approvedMeals: updatedMeals });
+
+      console.log("✅ Approved new meal:");
+      console.log(JSON.stringify(meal, null, 2));
+
+      console.log("📦 Updated Zustand approvedMeals:");
+      console.log(JSON.stringify(updatedMeals, null, 2));
     },
     [approvedMeals, setStepThreeData]
   );

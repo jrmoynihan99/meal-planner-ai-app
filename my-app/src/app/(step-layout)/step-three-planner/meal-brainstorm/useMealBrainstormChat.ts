@@ -7,20 +7,7 @@ import {
   mealBrainstormStarter,
 } from "@/lib/prompts/mealBrainstorm";
 import { useAppStore } from "@/lib/store";
-
-// --- Meal type ---
-export interface Meal {
-  id: string;
-  name: string;
-  description: string;
-  ingredients: {
-    name: string;
-    amount: string;
-    protein?: number;
-    calories?: number;
-  }[];
-  recipe: string;
-}
+import type { Meal } from "@/lib/store";
 
 // --- Parser function ---
 function parseMealsFromMessage(content: string): Meal[] {
@@ -33,10 +20,7 @@ function parseMealsFromMessage(content: string): Meal[] {
   for (const line of lines) {
     if (line.startsWith("Meal Name:")) {
       if (currentMeal.name && currentMeal.ingredients?.length) {
-        meals.push({
-          ...(currentMeal as Meal),
-          id: crypto.randomUUID(),
-        });
+        meals.push({ ...(currentMeal as Meal), id: crypto.randomUUID() });
       }
       currentMeal = {
         name: line.replace("Meal Name:", "").trim(),
@@ -54,18 +38,36 @@ function parseMealsFromMessage(content: string): Meal[] {
       state === "ingredients"
     ) {
       const raw = line.replace(/^[-•]\s*/, "");
-      const [name, amount] = raw.split(":").map((s) => s.trim());
+      const [namePart, rest] = raw.split(":");
+      const name = namePart?.trim();
+
+      const rawAmount = rest?.trim() || "";
+      const amount = rawAmount.replace(/\(.*?\)/, "").trim();
+
+      let grams: number | undefined;
+      let main: 0 | 1 | undefined;
+
+      const match = rawAmount.match(
+        /^(\d+(?:\.\d+)?)g\s*\((main|non-main)\)$/i
+      );
+      if (match) {
+        grams = parseFloat(match[1]);
+        main = match[2].toLowerCase() === "main" ? 1 : 0;
+      }
+
       if (name && currentMeal.ingredients) {
-        currentMeal.ingredients.push({ name, amount: amount || "" });
+        currentMeal.ingredients.push({
+          name,
+          amount,
+          grams,
+          main,
+        });
       }
     }
   }
 
   if (currentMeal.name && currentMeal.ingredients?.length) {
-    meals.push({
-      ...(currentMeal as Meal),
-      id: crypto.randomUUID(),
-    });
+    meals.push({ ...(currentMeal as Meal), id: crypto.randomUUID() });
   }
 
   return meals;
@@ -139,6 +141,8 @@ export function useMealBrainstormChat() {
         .replace(/\[START_PHASE\][\s\S]*?\[END_PHASE\]/g, "")
         .trim();
 
+      console.log("🧠 Raw GPT Response:\n", finalVisible);
+
       const assistantMessage: Message = {
         id: crypto.randomUUID(),
         role: "assistant",
@@ -146,10 +150,11 @@ export function useMealBrainstormChat() {
       };
 
       const parsedMeals = parseMealsFromMessage(finalVisible);
+      console.log("✅ Parsed Meals:", parsedMeals);
+
       if (parsedMeals.length > 0) {
         setGeneratedMeals((prev) => {
           const updated = [...prev];
-
           const newUniqueMeals: Meal[] = [];
 
           for (const newMeal of parsedMeals) {
@@ -158,25 +163,25 @@ export function useMealBrainstormChat() {
             );
 
             if (index !== -1) {
-              // Replace meal in-place
               updated[index] = {
                 ...newMeal,
                 id: updated[index].id,
               };
             } else {
-              // Collect new meals to prepend
               newUniqueMeals.push(newMeal);
             }
           }
 
-          return [...newUniqueMeals, ...updated];
+          const combined = [...newUniqueMeals, ...updated];
+          console.log("🧩 Final setGeneratedMeals (pre-approval):", combined);
+          return combined;
         });
       }
 
       setMessages((prev) => [...prev, assistantMessage]);
       setStreamingMessage("");
     } catch (err) {
-      console.error("Streaming error:", err);
+      console.error("❌ Streaming error:", err);
     } finally {
       setIsLoading(false);
     }

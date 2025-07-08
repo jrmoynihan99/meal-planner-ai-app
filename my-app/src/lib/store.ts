@@ -51,13 +51,17 @@ export interface Meal {
   id: string;
   name: string;
   description: string;
-  ingredients: {
-    name: string;
-    amount: string;
-    protein?: number;
-    calories?: number;
-  }[];
+  ingredients: MealIngredient[];
   recipe: string;
+}
+
+export interface MealIngredient {
+  name: string;
+  amount: string; // For user-friendly display (e.g., "1 tbsp")
+  grams?: number; // Required for portion scaling (used in solver)
+  main?: 0 | 1; // 1 = scalable, 0 = fixed
+  protein?: number; // Optional precomputed macros
+  calories?: number;
 }
 
 export interface DayPlan {
@@ -66,7 +70,7 @@ export interface DayPlan {
     mealId: string;
     ingredients: {
       name: string;
-      amount: string;
+      grams: number;
       protein: number;
       calories: number;
     }[];

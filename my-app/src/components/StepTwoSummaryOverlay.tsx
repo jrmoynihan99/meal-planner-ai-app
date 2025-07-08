@@ -3,6 +3,7 @@
 import { CloseButton } from "./CloseButton";
 import { Pencil } from "lucide-react";
 import { useAppStore } from "@/lib/store";
+import { GoalPaceBadge } from "@/components/GoalPaceBadge";
 
 interface StepTwoSummaryOverlayProps {
   onClose: () => void;
@@ -14,7 +15,6 @@ export function StepTwoSummaryOverlay({ onClose }: StepTwoSummaryOverlayProps) {
   const selectedGoalTitle = stepTwoData?.selectedGoalTitle ?? "—";
   const goalCalories = stepTwoData?.goalCalories ?? 0;
   const goalProtein = stepTwoData?.goalProtein ?? 0;
-  const calorieDelta = stepTwoData?.calorieDelta ?? 0;
 
   return (
     <div className="fixed inset-0 z-60 backdrop-blur-sm bg-black/30 flex items-center justify-center p-4">
@@ -38,6 +38,11 @@ export function StepTwoSummaryOverlay({ onClose }: StepTwoSummaryOverlayProps) {
             </div>
 
             <div className="flex justify-between items-center">
+              <span className="text-zinc-400">Weight Change:</span>
+              <GoalPaceBadge title={selectedGoalTitle} />
+            </div>
+
+            <div className="flex justify-between items-center">
               <span className="text-zinc-400">Daily Calorie Target:</span>
               <span className="bg-zinc-800 px-2 py-1 rounded-md text-blue-400 font-mono text-sm">
                 {goalCalories.toLocaleString()} kcal
@@ -48,13 +53,6 @@ export function StepTwoSummaryOverlay({ onClose }: StepTwoSummaryOverlayProps) {
               <span className="text-zinc-400">Daily Protein Target:</span>
               <span className="bg-zinc-800 px-2 py-1 rounded-md text-blue-400 font-mono text-sm">
                 {goalProtein} g
-              </span>
-            </div>
-
-            <div className="flex justify-between items-center">
-              <span className="text-zinc-400">Calorie Delta:</span>
-              <span className="bg-zinc-800 px-2 py-1 rounded-md text-blue-400 font-mono text-sm">
-                {calorieDelta >= 0 ? `+${calorieDelta}` : calorieDelta} kcal
               </span>
             </div>
           </div>

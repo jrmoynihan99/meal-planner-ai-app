@@ -73,8 +73,10 @@ export default function StepTwoGoalPage() {
 
   if (!hasHydrated || !stepOneData) {
     return (
-      <div className="flex justify-center items-center h-[60vh]">
-        <div className="animate-pulse text-white text-sm">Loading...</div>
+      <div className="flex h-full w-full bg-black text-white justify-center items-center">
+        <span className="text-gray-400 animate-pulse">
+          Loading your data...
+        </span>
       </div>
     );
   }
@@ -112,21 +114,24 @@ export default function StepTwoGoalPage() {
       </main>
 
       {/* Sticky Footer */}
+      {/* Sticky Footer */}
       {selectedGoal && (
-        <div className="sticky bottom-0 z-50 bg-zinc-900/95 border-t border-zinc-700 backdrop-blur-md">
-          <div className="max-w-4xl mx-auto px-4 md:px-8 py-4 text-white text-sm font-mono flex items-center justify-between">
-            <div className="flex flex-col items-start">
-              <div className="flex items-center gap-2 uppercase text-xs tracking-wider text-zinc-400 mb-1">
-                <span>Selected Goal:</span>
-              </div>
-              <div className="inline-flex items-center gap-2 text-blue-400 text-base">
-                <span>{selectedGoal}</span>
-                <GoalPaceBadge title={selectedGoal} />
-              </div>
+        <div className="sticky bottom-0 z-50 bg-zinc-900/95 border-t border-zinc-700 backdrop-blur-md px-4 md:px-8 py-4 text-white text-sm font-mono flex items-center justify-between">
+          <div className="flex flex-col items-start">
+            <div className="flex items-center gap-1 uppercase text-xs tracking-wider text-zinc-400 mb-1">
+              <span>Selected Goal:</span>
             </div>
 
-            <NextStepButton href="/step-three-planner/meal-number" />
+            {/* 🛠 Wrap goal + badge in flex to separate styling */}
+            <div className="flex items-center gap-2">
+              <span className="inline-block bg-zinc-800 px-3 py-1.5 rounded-md text-blue-400 text-base">
+                {selectedGoal}
+              </span>
+              <GoalPaceBadge title={selectedGoal} />
+            </div>
           </div>
+
+          <NextStepButton href="/step-three-planner/meal-number" />
         </div>
       )}
     </div>

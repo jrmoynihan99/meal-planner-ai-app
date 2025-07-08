@@ -11,8 +11,8 @@ const routeTitles: Record<string, string> = {
   "/step-one-data": "Input Your Data",
   "/step-two-goal": "Choose Your Goal",
   "/step-three-planner/meal-number": "Meal Number",
-  "/step-three-planner/brainstorm-meals": "Brainstorm Meals",
-  "/step-three-planner/sample-day": "Build a Sample Day",
+  "/step-three-planner/meal-brainstorm": "Choose Meals",
+  "/step-three-planner/create-days": "Approve Days",
   "/step-three-planner/weekly-plan": "Assign Days to Week",
   "/step-four-results": "Your Plan",
 };
@@ -49,7 +49,12 @@ export function Header() {
   }
 
   if (pathname === "/step-three-planner/create-days") {
-    handleReset = () => setStepThreeData({ days: [] });
+    handleReset = () =>
+      setStepThreeData({
+        allGeneratedDays: [],
+        approvedDays: [],
+        dayGenerationState: "not_started",
+      });
   }
 
   if (pathname === "/step-three-planner/weekly-plan") {

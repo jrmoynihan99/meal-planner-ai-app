@@ -1,11 +1,10 @@
 "use client";
 
 import React from "react";
-import clsx from "clsx";
 
 interface Ingredient {
   name: string;
-  amount: string;
+  grams: number;
   protein: number;
   calories: number;
 }
@@ -53,7 +52,7 @@ export default function DayCard({ day, index }: DayCardProps) {
             <ul className="text-sm text-zinc-400 space-y-1">
               {meal.ingredients.map((ing, i) => (
                 <li key={i}>
-                  <span className="text-white">{ing.name}</span>: {ing.amount} —{" "}
+                  <span className="text-white">{ing.name}</span>: {ing.grams}g —{" "}
                   {ing.protein}g protein, {ing.calories} cal
                 </li>
               ))}
