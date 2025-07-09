@@ -1,10 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { Meal } from "./useMealBrainstormChat";
+import { Meal } from "@/lib/store";
 import { Trash2, ChevronDown, ChevronUp } from "lucide-react";
 import { useAppStore } from "@/lib/store";
 import { motion, AnimatePresence } from "framer-motion";
+import { List, Utensils } from "lucide-react";
 
 interface MealCardListProps {
   meals: Meal[];
@@ -49,6 +50,8 @@ function EditableMealCard({
   onRemove: (index: number) => void;
 }) {
   const [showIngredients, setShowIngredients] = useState(false);
+  const [showRecipe, setShowRecipe] = useState(false);
+
   const approvedMeals = useAppStore(
     (s) => s.stepThreeData?.approvedMeals ?? []
   );
@@ -90,40 +93,88 @@ function EditableMealCard({
         <p className="text-gray-400 text-sm mt-1">{meal.description}</p>
       </div>
 
-      {/* Ingredients Accordion */}
-      <div
-        onClick={(e) => {
-          e.stopPropagation();
-          setShowIngredients((prev) => !prev);
-        }}
-        className="bg-zinc-900/80 border border-zinc-700 rounded-md text-sm text-blue-400 font-mono transition-all"
-      >
-        <div className="flex justify-between items-center px-4 py-2 cursor-pointer select-none">
-          <span className="text-sm font-semibold">Ingredients</span>
-          {showIngredients ? (
-            <ChevronUp className="w-4 h-4 text-blue-400" />
-          ) : (
-            <ChevronDown className="w-4 h-4 text-blue-400" />
-          )}
+      {/* Accordion Container */}
+      <div className="flex flex-col space-y-1">
+        {/* Ingredients Accordion */}
+        <div
+          onClick={(e) => {
+            e.stopPropagation();
+            setShowIngredients((prev) => !prev);
+          }}
+          className="bg-zinc-900/80 border border-zinc-700 rounded-md text-sm text-gray-100 font-mono transition-all"
+        >
+          <div className="flex justify-between items-center px-4 py-2 cursor-pointer select-none">
+            <span className="text-sm font-semibold text-gray-100 flex items-center gap-2">
+              <List className="w-4 h-4" />
+              Ingredients
+            </span>
+
+            {showIngredients ? (
+              <ChevronUp className="w-4 h-4 text-gray-100" />
+            ) : (
+              <ChevronDown className="w-4 h-4 text-gray-100" />
+            )}
+          </div>
+
+          <AnimatePresence initial={false}>
+            {showIngredients && (
+              <motion.ul
+                key="ingredients"
+                layout
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.3, ease: "easeInOut" }}
+                className="overflow-hidden px-6 pb-3 list-disc list-inside text-gray-100 space-y-1"
+              >
+                {meal.ingredients.map((ing, i) => (
+                  <li key={i}>{ing.name}</li>
+                ))}
+              </motion.ul>
+            )}
+          </AnimatePresence>
         </div>
 
-        <AnimatePresence initial={false}>
-          {showIngredients && (
-            <motion.ul
-              key="ingredients"
-              layout
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.3, ease: "easeInOut" }}
-              className="overflow-hidden px-6 pb-3 list-disc list-inside text-gray-100 space-y-1"
-            >
-              {meal.ingredients.map((ing, i) => (
-                <li key={i}>{ing.name}</li>
-              ))}
-            </motion.ul>
-          )}
-        </AnimatePresence>
+        {/* Recipe Accordion */}
+        {meal.recipe?.length > 0 && (
+          <div
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowRecipe((prev) => !prev);
+            }}
+            className="bg-zinc-900/80 border border-zinc-700 rounded-md text-sm text-gray-100 font-mono transition-all"
+          >
+            <div className="flex justify-between items-center px-4 py-2 cursor-pointer select-none">
+              <span className="text-sm font-semibold text-gray-100 flex items-center gap-2">
+                <Utensils className="w-4 h-4" />
+                Recipe
+              </span>
+              {showRecipe ? (
+                <ChevronUp className="w-4 h-4 text-gray-100" />
+              ) : (
+                <ChevronDown className="w-4 h-4 text-gray-100" />
+              )}
+            </div>
+
+            <AnimatePresence initial={false}>
+              {showRecipe && (
+                <motion.ol
+                  key="recipe"
+                  layout
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.3, ease: "easeInOut" }}
+                  className="overflow-hidden px-6 pb-3 list-decimal list-inside text-gray-100 space-y-1 font-sans"
+                >
+                  {meal.recipe.map((step, i) => (
+                    <li key={i}>{step}</li>
+                  ))}
+                </motion.ol>
+              )}
+            </AnimatePresence>
+          </div>
+        )}
       </div>
 
       {/* Approval status + toggle */}

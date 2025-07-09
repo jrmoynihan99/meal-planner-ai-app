@@ -31,7 +31,16 @@ export async function POST(req: NextRequest) {
       console.log("🐍 Raw solver output:", result);
 
       try {
-        const parsed = JSON.parse(result);
+        // Try to find the first valid JSON object in the result
+        const jsonStart = result.indexOf("{");
+        const jsonEnd = result.lastIndexOf("}");
+
+        if (jsonStart === -1 || jsonEnd === -1)
+          throw new Error("No JSON found in output");
+
+        const jsonString = result.slice(jsonStart, jsonEnd + 1);
+
+        const parsed = JSON.parse(jsonString);
         resolve(NextResponse.json(parsed));
       } catch (err) {
         console.error("❌ JSON parse error:", err);

@@ -10,6 +10,7 @@ import { StepOneSummaryOverlay } from "@/components/StepOneSummaryOverlay";
 import { StepTwoSummaryOverlay } from "@/components/StepTwoSummaryOverlay";
 import { SubstepOneSummaryOverlay } from "@/components/SubstepOneSummaryOverlay";
 import { SubstepTwoSummaryOverlay } from "@/components/SubstepTwoSummaryOverlay";
+import { SubstepThreeSummaryOverlay } from "@/components/SubstepThreeSummaryOverlay";
 
 const steps = [
   {
@@ -48,7 +49,7 @@ const steps = [
       {
         key: "week",
         title: "Finalize Week",
-        path: "/step-three-planner/weekly-plan",
+        path: "/step-three-planner/weekly-assignment",
       },
     ],
   },
@@ -84,7 +85,9 @@ export function Sidebar() {
       stepThreeData?.uniqueWeeklyMeals > 0 &&
       stepThreeData.approvedMeals.length === stepThreeData.uniqueWeeklyMeals,
 
-    day: Array.isArray(stepThreeData?.approvedDays) && stepThreeData.approvedDays.length > 0,
+    day:
+      Array.isArray(stepThreeData?.approvedDays) &&
+      stepThreeData.approvedDays.length > 0,
     week: stepThreeData?.weeklySchedule
       ? Object.values(stepThreeData.weeklySchedule).every((id) => id !== null)
       : false,
@@ -281,6 +284,11 @@ export function Sidebar() {
       <AnimatePresence>
         {activeEditStep === "brainstorm" && (
           <SubstepTwoSummaryOverlay onClose={() => setActiveEditStep(null)} />
+        )}
+      </AnimatePresence>
+      <AnimatePresence>
+        {activeEditStep === "day" && (
+          <SubstepThreeSummaryOverlay onClose={() => setActiveEditStep(null)} />
         )}
       </AnimatePresence>
     </>

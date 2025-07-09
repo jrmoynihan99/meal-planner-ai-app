@@ -95,7 +95,7 @@ export async function handleStart() {
     console.log("✅ Structured days:", structuredDays);
 
     setStepThreeData({
-      allGeneratedDays: structuredDays,
+      allDays: structuredDays,
       dayGenerationState: "completed",
     });
 

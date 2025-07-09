@@ -52,7 +52,7 @@ export interface Meal {
   name: string;
   description: string;
   ingredients: MealIngredient[];
-  recipe: string;
+  recipe: string[];
 }
 
 export interface MealIngredient {
@@ -85,10 +85,12 @@ export interface StepThreePlannerData {
   mealsPerDay: number;
   uniqueWeeklyMeals: number;
   approvedMeals: Meal[];
-  allGeneratedDays: DayPlan[];
+  allDays: DayPlan[]; // ← master list
   approvedDays: DayPlan[];
+  unapprovedDays: DayPlan[]; // ← renamed from allGeneratedDays
   dayGenerationState: "not_started" | "started" | "completed";
-  weeklySchedule: Record<DayOfWeek, string | null>;
+  weeklySchedule: Record<DayOfWeek, DayPlan | null>;
+  skippedDays: DayOfWeek[];
 }
 
 interface AppState {
@@ -125,8 +127,9 @@ const defaultStepThreeData: StepThreePlannerData = {
   mealsPerDay: 0,
   uniqueWeeklyMeals: 0,
   approvedMeals: [],
-  allGeneratedDays: [],
+  allDays: [],
   approvedDays: [],
+  unapprovedDays: [],
   dayGenerationState: "not_started",
   weeklySchedule: {
     Monday: null,
@@ -137,6 +140,7 @@ const defaultStepThreeData: StepThreePlannerData = {
     Saturday: null,
     Sunday: null,
   },
+  skippedDays: [], // ✅ Add this
 };
 
 export const useAppStore = create<AppState>()(

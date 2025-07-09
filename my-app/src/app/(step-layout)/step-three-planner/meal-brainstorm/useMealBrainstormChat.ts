@@ -15,17 +15,21 @@ function parseMealsFromMessage(content: string): Meal[] {
   const meals: Meal[] = [];
 
   let currentMeal: Partial<Meal> = {};
-  let state: "none" | "name" | "description" | "ingredients" = "none";
+  let state: "none" | "name" | "description" | "ingredients" | "recipe" =
+    "none";
 
   for (const line of lines) {
     if (line.startsWith("Meal Name:")) {
+      // Save the last meal if valid
       if (currentMeal.name && currentMeal.ingredients?.length) {
         meals.push({ ...(currentMeal as Meal), id: crypto.randomUUID() });
       }
+      // Start new meal
       currentMeal = {
         name: line.replace("Meal Name:", "").trim(),
         description: "",
         ingredients: [],
+        recipe: [],
       };
       state = "name";
     } else if (line.startsWith("Description:")) {
@@ -33,6 +37,8 @@ function parseMealsFromMessage(content: string): Meal[] {
       state = "description";
     } else if (line.startsWith("Ingredients:")) {
       state = "ingredients";
+    } else if (line.startsWith("Recipe:")) {
+      state = "recipe";
     } else if (
       (line.startsWith("•") || line.startsWith("-")) &&
       state === "ingredients"
@@ -40,7 +46,6 @@ function parseMealsFromMessage(content: string): Meal[] {
       const raw = line.replace(/^[-•]\s*/, "");
       const [namePart, rest] = raw.split(":");
       const name = namePart?.trim();
-
       const rawAmount = rest?.trim() || "";
       const amount = rawAmount.replace(/\(.*?\)/, "").trim();
 
@@ -56,16 +61,14 @@ function parseMealsFromMessage(content: string): Meal[] {
       }
 
       if (name && currentMeal.ingredients) {
-        currentMeal.ingredients.push({
-          name,
-          amount,
-          grams,
-          main,
-        });
+        currentMeal.ingredients.push({ name, amount, grams, main });
       }
+    } else if (state === "recipe" && /^\d+\.\s/.test(line)) {
+      currentMeal.recipe?.push(line.replace(/^\d+\.\s*/, "").trim());
     }
   }
 
+  // Final push
   if (currentMeal.name && currentMeal.ingredients?.length) {
     meals.push({ ...(currentMeal as Meal), id: crypto.randomUUID() });
   }

@@ -51,7 +51,8 @@ export function Header() {
   if (pathname === "/step-three-planner/create-days") {
     handleReset = () =>
       setStepThreeData({
-        allGeneratedDays: [],
+        allDays: [],
+        unapprovedDays: [],
         approvedDays: [],
         dayGenerationState: "not_started",
       });
