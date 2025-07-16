@@ -40,12 +40,14 @@ export const ingredientMacroPrompt = (meals: Meal[]) => {
   return `
 You are a nutrition assistant.
 
-For the ingredients listed below, return a JSON object with the following values:
+For the ingredients listed below, return a JSON object with the following fields:
 - calories_per_gram
 - protein_per_gram
-- default_grams (a reasonable serving size in grams for use in a meal optimizer)
+- default_grams: a typical portion size in grams (used by our optimizer)
+- recommended_unit: the most natural unit for displaying this ingredient to users (e.g., "tbsp", "cup", "oz", "slice")
+- grams_per_unit: how many grams are in one of that unit (e.g., 1 tbsp olive oil ≈ 13.5g)
 
-Only include ingredients mentioned. Use realistic serving sizes (e.g., 120g chicken breast, 10g olive oil).
+Only include ingredients mentioned below. Use realistic defaults based on common food databases. If unsure, fall back to "g" as the unit and 1g = 1 unit.
 
 Respond with ONLY JSON between [START_JSON] and [END_JSON].
 
@@ -56,10 +58,12 @@ ${mealDescriptions}
   "chicken breast": {
     "calories_per_gram": 1.65,
     "protein_per_gram": 0.31,
-    "default_grams": 120
+    "default_grams": 120,
+    "recommended_unit": "oz",
+    "grams_per_unit": 28
   },
   ...
 }
 [END_JSON]
-  `.trim();
+`.trim();
 };

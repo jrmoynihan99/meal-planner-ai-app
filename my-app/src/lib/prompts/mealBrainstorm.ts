@@ -15,8 +15,9 @@ Recipe:
   2. Step 2  
   3. etc  
 
-- Format each ingredient like: '• [name]: [grams]g (main/non-main)'
-- Use exact grams for each item (e.g., 150g, 5g, etc.)
+- Format each ingredient like: '• [name]: [grams]g (main/non-main)' even if it's something like taco shells (which is usually measured in units)
+- EACH listed ingredient MUST contain '(main)' or '(non-main)'
+- Use exact grams for each item (e.g., 150g, 5g, etc.). Make sure you use grams as the unit of measurement for each ingredient.
 - Use '(main)' if the ingredient is one of the major ingredients in the meal, and if it contributes largely to the calories.
 - Use '(non-main)' for ingredients that aren't one of the main ingredients.
 - Use realistic portion sizes for each ingredient based on a typical single meal.

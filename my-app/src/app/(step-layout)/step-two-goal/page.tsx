@@ -83,37 +83,39 @@ export default function StepTwoGoalPage() {
 
   return (
     <div className="flex flex-col h-full bg-black text-white">
-      <main className="px-4 py-8">
-        <div className="max-w-4xl mx-auto">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {goals.map((goal) => {
-              const delta = parseInt(goal.calorieDelta);
-              const calorieTarget = stepOneData.maintanenceCalories + delta;
-              const proteinTarget =
-                delta < 0
-                  ? Math.round(stepOneData.weight * 1.0)
-                  : Math.round(stepOneData.weight * 0.8);
+      {/* Scrollable content above footer */}
+      <div className="flex-1 overflow-y-auto">
+        <main className="px-4 py-8">
+          <div className="max-w-4xl mx-auto">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {goals.map((goal) => {
+                const delta = parseInt(goal.calorieDelta);
+                const calorieTarget = stepOneData.maintanenceCalories + delta;
+                const proteinTarget =
+                  delta < 0
+                    ? Math.round(stepOneData.weight * 1.0)
+                    : Math.round(stepOneData.weight * 0.8);
 
-              return (
-                <GoalTile
-                  key={goal.title}
-                  title={goal.title}
-                  description={goal.description}
-                  calorieDelta={goal.calorieDelta}
-                  isSelected={selectedGoal === goal.title}
-                  onSelect={() => handleSelect(goal)}
-                  weight={stepOneData.weight}
-                  maintanenceCalories={stepOneData.maintanenceCalories}
-                  calorieTarget={calorieTarget}
-                  proteinTarget={proteinTarget}
-                />
-              );
-            })}
+                return (
+                  <GoalTile
+                    key={goal.title}
+                    title={goal.title}
+                    description={goal.description}
+                    calorieDelta={goal.calorieDelta}
+                    isSelected={selectedGoal === goal.title}
+                    onSelect={() => handleSelect(goal)}
+                    weight={stepOneData.weight}
+                    maintanenceCalories={stepOneData.maintanenceCalories}
+                    calorieTarget={calorieTarget}
+                    proteinTarget={proteinTarget}
+                  />
+                );
+              })}
+            </div>
           </div>
-        </div>
-      </main>
+        </main>
+      </div>
 
-      {/* Sticky Footer */}
       {/* Sticky Footer */}
       {selectedGoal && (
         <div className="sticky bottom-0 z-50 bg-zinc-900/95 border-t border-zinc-700 backdrop-blur-md px-4 md:px-8 py-4 text-white text-sm font-mono flex items-center justify-between">
@@ -122,7 +124,6 @@ export default function StepTwoGoalPage() {
               <span>Selected Goal:</span>
             </div>
 
-            {/* 🛠 Wrap goal + badge in flex to separate styling */}
             <div className="flex items-center gap-2">
               <span className="inline-block bg-zinc-800 px-3 py-1.5 rounded-md text-blue-400 text-base">
                 {selectedGoal}

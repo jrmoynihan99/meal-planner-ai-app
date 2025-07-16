@@ -17,9 +17,6 @@ export function SubstepThreeSummaryOverlay({
     {}
   );
 
-  const stepThreeData = useAppStore((s) => s.stepThreeData);
-  const approvedMeals = stepThreeData?.approvedMeals ?? [];
-
   const toggleDropdown = (dayId: string) => {
     setOpenDropdowns((prev) => ({
       ...prev,
@@ -45,7 +42,7 @@ export function SubstepThreeSummaryOverlay({
           {/* Approved Days List */}
           <div className="space-y-3 text-sm mb-6 max-h-[300px] overflow-y-auto pr-1">
             {approvedDays.length > 0 ? (
-              approvedDays.map((day, index) => {
+              approvedDays.map((day) => {
                 const isOpen = openDropdowns[day.id];
                 return (
                   <div
@@ -53,7 +50,9 @@ export function SubstepThreeSummaryOverlay({
                     className="border-b border-zinc-800 pb-2 space-y-2"
                   >
                     <div className="flex justify-between items-center">
-                      <span className="text-zinc-400">Day {index + 1}</span>
+                      <span className="text-zinc-400">
+                        Day {day.planNumber}
+                      </span>
                       <button
                         onClick={() => toggleDropdown(day.id)}
                         className="flex items-center gap-1 text-xs text-blue-400 hover:text-white transition cursor-pointer"
@@ -69,18 +68,31 @@ export function SubstepThreeSummaryOverlay({
                     </div>
 
                     {isOpen && (
-                      <ul className="ml-2 mt-1 space-y-1 text-zinc-300 text-xs font-mono">
-                        {day.meals.map((meal, i) => {
-                          const name =
-                            approvedMeals.find((m) => m.id === meal.mealId)
-                              ?.name ?? "Unnamed Meal";
-                          return (
+                      <>
+                        <ul className="ml-2 mt-1 space-y-1 text-zinc-300 text-xs font-mono">
+                          {day.meals.map((meal, i) => (
                             <li key={meal.mealId} className="truncate">
-                              {i + 1}. {name}
+                              {i + 1}. {meal.mealName}
                             </li>
-                          );
-                        })}
-                      </ul>
+                          ))}
+                        </ul>
+
+                        {/* Calories and Protein Totals */}
+                        <div className="ml-2 mt-2 flex items-center gap-4 text-zinc-300 text-xs font-mono">
+                          <span>
+                            Calories:
+                            <code className="ml-1 bg-zinc-800 text-blue-400 px-2 py-0.5 rounded text-[11px]">
+                              {Math.round(day.dayCalories)}
+                            </code>
+                          </span>
+                          <span>
+                            Protein:
+                            <code className="ml-1 bg-zinc-800 text-blue-400 px-2 py-0.5 rounded text-[11px]">
+                              {Math.round(day.dayProtein)}g
+                            </code>
+                          </span>
+                        </div>
+                      </>
                     )}
                   </div>
                 );

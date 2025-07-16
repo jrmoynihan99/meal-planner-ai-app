@@ -17,29 +17,19 @@ export async function POST(req: NextRequest) {
     py.stderr.on("data", (data) => (error += data.toString()));
 
     py.on("close", () => {
-      if (error && !result.trim()) {
-        console.error("❌ Solver error:\n", error);
-        resolve(
-          NextResponse.json(
-            { error: "Solver error", details: error },
-            { status: 500 }
-          )
-        );
-        return;
+      if (error) {
+        console.error("🐍 Solver stderr:\n" + error);
       }
 
       console.log("🐍 Raw solver output:", result);
 
       try {
-        // Try to find the first valid JSON object in the result
         const jsonStart = result.indexOf("{");
         const jsonEnd = result.lastIndexOf("}");
-
         if (jsonStart === -1 || jsonEnd === -1)
           throw new Error("No JSON found in output");
 
         const jsonString = result.slice(jsonStart, jsonEnd + 1);
-
         const parsed = JSON.parse(jsonString);
         resolve(NextResponse.json(parsed));
       } catch (err) {

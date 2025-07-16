@@ -25,5 +25,13 @@ export async function fetchIngredientMacros(approvedMeals: Meal[]) {
   const match = text.match(/\[START_JSON\]([\s\S]*?)\[END_JSON\]/);
   if (!match) throw new Error("No [START_JSON] block found");
 
-  return JSON.parse(match[1]);
+  const parsed = JSON.parse(match[1]);
+
+  // Normalize keys to lowercase
+  const normalized: Record<string, (typeof parsed)[string]> = {};
+  for (const key in parsed) {
+    normalized[key.toLowerCase()] = parsed[key];
+  }
+
+  return normalized;
 }

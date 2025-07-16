@@ -1,0 +1,45 @@
+Solver command line: ['C:\\Users\\moyni\\miniconda3\\envs\\mealsolver\\Library\\bin\\glpsol.exe', '--write', 'C:\\Users\\moyni\\AppData\\Local\\Temp\\tmptbxas9p9.glpk.raw', '--wglp', 'C:\\Users\\moyni\\AppData\\Local\\Temp\\tmp6qujn8pg.glpk.glp', '--cpxlp', 'C:\\Users\\moyni\\AppData\\Local\\Temp\\tmpfrdgeqhx.pyomo.lp']
+
+GLPSOL--GLPK LP/MIP Solver 5.0
+Parameter(s) specified in the command line:
+ --write C:\Users\moyni\AppData\Local\Temp\tmptbxas9p9.glpk.raw --wglp C:\Users\moyni\AppData\Local\Temp\tmp6qujn8pg.glpk.glp
+ --cpxlp C:\Users\moyni\AppData\Local\Temp\tmpfrdgeqhx.pyomo.lp
+Reading problem data from 'C:\Users\moyni\AppData\Local\Temp\tmpfrdgeqhx.pyomo.lp'...
+C:\Users\moyni\AppData\Local\Temp\tmpfrdgeqhx.pyomo.lp:342: warning: lower bound of variable 'x2' redefined
+C:\Users\moyni\AppData\Local\Temp\tmpfrdgeqhx.pyomo.lp:342: warning: upper bound of variable 'x2' redefined
+50 rows, 31 columns, 150 non-zeros
+13 integer variables, all of which are binary
+355 lines were read
+Writing problem data to 'C:\Users\moyni\AppData\Local\Temp\tmp6qujn8pg.glpk.glp'...
+289 lines were written
+GLPK Integer Optimizer 5.0
+50 rows, 31 columns, 150 non-zeros
+13 integer variables, all of which are binary
+Preprocessing...
+2 constraint coefficient(s) were reduced
+37 rows, 20 columns, 133 non-zeros
+13 integer variables, all of which are binary
+Scaling...
+ A: min|aij| =  3.000e-03  max|aij| =  3.131e+03  ratio =  1.044e+06
+GM: min|aij| =  1.843e-01  max|aij| =  5.426e+00  ratio =  2.944e+01
+EQ: min|aij| =  3.439e-02  max|aij| =  1.000e+00  ratio =  2.908e+01
+2N: min|aij| =  2.578e-02  max|aij| =  1.502e+00  ratio =  5.826e+01
+Constructing initial basis...
+Size of triangular part is 37
+Solving LP relaxation...
+GLPK Simplex Optimizer 5.0
+37 rows, 20 columns, 133 non-zeros
+*     0: obj =  -0.000000000e+00 inf =   0.000e+00 (1)
+*    23: obj =   1.000000000e+00 inf =   7.865e-12 (0)
+OPTIMAL LP SOLUTION FOUND
+Integer optimization begins...
+Long-step dual simplex will be used
++    23: mip =     not found yet <=              +inf        (1; 0)
++    23: >>>>>   1.000000000e+00 <=   1.000000000e+00   0.0% (1; 0)
++    23: mip =   1.000000000e+00 <=     tree is empty   0.0% (0; 1)
+INTEGER OPTIMAL SOLUTION FOUND
+Time used:   0.0 secs
+Memory used: 0.1 Mb (111552 bytes)
+Writing MIP solution to 'C:\Users\moyni\AppData\Local\Temp\tmptbxas9p9.glpk.raw'...
+90 lines were written
+

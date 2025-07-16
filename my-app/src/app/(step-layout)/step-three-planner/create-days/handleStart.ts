@@ -3,6 +3,7 @@ import { fetchIngredientMacros } from "./fetchIngredientMacros";
 import { callDaySolver } from "./callDaySolver";
 import { useAppStore } from "@/lib/store";
 import { v4 as uuidv4 } from "uuid";
+import { convertGramsToAmount } from "./convertGramsToAmount";
 
 export async function handleStart() {
   const setStepThreeData = useAppStore.getState().setStepThreeData;
@@ -59,18 +60,33 @@ export async function handleStart() {
     const structuredDays = optimizedData.validDays.map(
       (day: any, i: number) => ({
         id: uuidv4(),
+        planNumber: i + 1,
         meals: day.meals.map((mealName: string) => {
           const meal = approvedMeals.find((m) => m.name === mealName);
           if (!meal) throw new Error(`Meal not found: ${mealName}`);
+
           return {
             mealId: meal.id,
+            mealName: meal.name,
+            mealDescription: meal.description, // ✅ NEW
+            recipe: meal.recipe, // ✅ NEW
             ingredients: meal.ingredients.map((ing) => {
               const portion = day.ingredientPortions[mealName]?.[ing.name];
+              const grams = portion?.grams ?? 0;
+              const protein = portion?.protein ?? 0;
+              const calories = portion?.calories ?? 0;
+
+              const macro = ingredientMacros[ing.name.toLowerCase()];
+              const unit = macro?.recommended_unit ?? "g";
+              const gramsPerUnit = macro?.grams_per_unit ?? 1;
+              const amount = convertGramsToAmount(grams, gramsPerUnit, unit);
+
               return {
                 name: ing.name,
-                grams: portion?.grams ?? 0, // Changed from 'amount' to 'grams'
-                protein: portion?.protein ?? 0,
-                calories: portion?.calories ?? 0,
+                grams,
+                protein,
+                calories,
+                amount,
               };
             }),
             totalProtein: meal.ingredients.reduce((sum, ing) => {

@@ -9,6 +9,7 @@ interface ScaledIngredient {
   grams: number;
   protein: number;
   calories: number;
+  amount?: string; // ✅ New
 }
 
 interface ScaledMeal {
@@ -21,6 +22,7 @@ interface MealDetailsModalProps {
   isOpen: boolean;
   initialTab: "ingredients" | "recipe";
   onClose: () => void;
+  onBack?: () => void; // ✅ Optional back button
 }
 
 export function MealDetailsModal({
@@ -29,6 +31,7 @@ export function MealDetailsModal({
   isOpen,
   initialTab,
   onClose,
+  onBack,
 }: MealDetailsModalProps) {
   const [isHovered, setIsHovered] = useState(false);
   const [activeTab, setActiveTab] = useState<"ingredients" | "recipe">(
@@ -72,8 +75,27 @@ export function MealDetailsModal({
           onMouseLeave={() => setIsHovered(false)}
           className="relative w-full bg-zinc-900 border border-zinc-800 rounded-xl shadow-xl p-6"
         >
-          <CloseButton onClick={onClose} className="absolute top-3 right-3" />
-          <h2 className="text-lg font-semibold text-white mb-4">
+          {/* Top Bar */}
+          <div className="flex justify-between items-start mb-2">
+            {onBack ? (
+              <button
+                onClick={onBack}
+                className="text-blue-400 hover:text-white text-sm font-mono cursor-pointer"
+              >
+                ← Back
+              </button>
+            ) : (
+              <div />
+            )}
+            <CloseButton onClick={onClose} />
+          </div>
+
+          {/* Title */}
+          <h2
+            className={`text-lg font-semibold text-white mb-4 ${
+              onBack ? "mt-2" : ""
+            }`}
+          >
             {mealMeta.name}
           </h2>
 
@@ -108,7 +130,7 @@ export function MealDetailsModal({
                 <thead>
                   <tr className="text-zinc-400 border-b border-zinc-700">
                     <th className="py-1 pr-2">Ingredient</th>
-                    <th className="py-1 pr-2">Grams</th>
+                    <th className="py-1 pr-2">Amount</th>
                     <th className="py-1 pr-2">Protein</th>
                     <th className="py-1">Calories</th>
                   </tr>
@@ -117,7 +139,9 @@ export function MealDetailsModal({
                   {scaledMeal.ingredients.map((ing, i) => (
                     <tr key={i} className="border-b border-zinc-800">
                       <td className="py-1 pr-2 text-white">{ing.name}</td>
-                      <td className="py-1 pr-2">{ing.grams}g</td>
+                      <td className="py-1 pr-2">
+                        {ing.amount ?? `${ing.grams}g`}
+                      </td>
                       <td className="py-1 pr-2">
                         {ing.protein?.toFixed(1) ?? "-"}
                       </td>

@@ -5,16 +5,16 @@ import { useAppStore, DayOfWeek, DayPlan } from "@/lib/store";
 import { useDndMonitor } from "@dnd-kit/core";
 
 const daysOfWeek: DayOfWeek[] = [
-  "Sunday",
   "Monday",
   "Tuesday",
   "Wednesday",
   "Thursday",
   "Friday",
   "Saturday",
+  "Sunday",
 ];
 
-const createBaseSchedule = (): Record<DayOfWeek, DayPlan | null> => ({
+export const createBaseSchedule = (): Record<DayOfWeek, DayPlan | null> => ({
   Sunday: null,
   Monday: null,
   Tuesday: null,
@@ -26,9 +26,13 @@ const createBaseSchedule = (): Record<DayOfWeek, DayPlan | null> => ({
 
 interface WeeklyGridProps {
   approvedDays: DayPlan[];
+  onShowDetails: (dayId: string) => void; // ✅ New prop
 }
 
-export default function WeeklyGrid({ approvedDays }: WeeklyGridProps) {
+export default function WeeklyGrid({
+  approvedDays,
+  onShowDetails,
+}: WeeklyGridProps) {
   const stepThreeData = useAppStore((s) => s.stepThreeData);
   const setStepThreeData = useAppStore((s) => s.setStepThreeData);
 
@@ -44,7 +48,7 @@ export default function WeeklyGrid({ approvedDays }: WeeklyGridProps) {
         const fullDay = approvedDays.find((d) => d.id === approvedDayId);
         if (!fullDay) return;
 
-        const updatedSchedule: Record<DayOfWeek, DayPlan | null> = {
+        const updatedSchedule = {
           ...createBaseSchedule(),
           ...weeklySchedule,
           [dayOfWeek]: fullDay,
@@ -56,19 +60,22 @@ export default function WeeklyGrid({ approvedDays }: WeeklyGridProps) {
   });
 
   return (
-    <div className="flex gap-4 pb-4 overflow-x-auto">
+    <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 pb-4">
       {daysOfWeek.map((day) => {
         const fullPlan = weeklySchedule[day];
         const isSkipped = skippedDays.includes(day);
+        const isCheatDay = fullPlan?.isCheatDay === true;
 
-        const assignedDay = fullPlan
-          ? {
-              id: fullPlan.id,
-              title: fullPlan.meals.map((m) => m.mealId).join(", "),
-              calories: fullPlan.dayCalories,
-              protein: fullPlan.dayProtein,
-            }
-          : null;
+        const assignedDay =
+          fullPlan && !isCheatDay
+            ? {
+                id: fullPlan.id,
+                planNumber: fullPlan.planNumber,
+                title: fullPlan.meals.map((m) => m.mealId).join(", "),
+                calories: fullPlan.dayCalories,
+                protein: fullPlan.dayProtein,
+              }
+            : null;
 
         return (
           <WeekdaySlot
@@ -82,27 +89,41 @@ export default function WeeklyGrid({ approvedDays }: WeeklyGridProps) {
                 : [...skippedDays, day];
               setStepThreeData({ skippedDays: updated });
             }}
+            isCheatDay={isCheatDay}
+            toggleCheatDay={() => {
+              const updated = { ...weeklySchedule };
+              updated[day] = isCheatDay
+                ? null
+                : {
+                    id: `cheat-${day}`,
+                    planNumber: -1,
+                    meals: [],
+                    dayCalories: 0,
+                    dayProtein: 0,
+                    isCheatDay: true,
+                  };
+              setStepThreeData({ weeklySchedule: updated });
+            }}
             onDrop={(approvedDayId) => {
               const fullDay = approvedDays.find((d) => d.id === approvedDayId);
               if (!fullDay) return;
 
-              const updatedSchedule: Record<DayOfWeek, DayPlan | null> = {
-                ...createBaseSchedule(),
+              const updated = {
                 ...weeklySchedule,
                 [day]: fullDay,
               };
 
-              setStepThreeData({ weeklySchedule: updatedSchedule });
+              setStepThreeData({ weeklySchedule: updated });
             }}
             onClear={() => {
-              const updatedSchedule: Record<DayOfWeek, DayPlan | null> = {
-                ...createBaseSchedule(),
+              const updated = {
                 ...weeklySchedule,
                 [day]: null,
               };
 
-              setStepThreeData({ weeklySchedule: updatedSchedule });
+              setStepThreeData({ weeklySchedule: updated });
             }}
+            onShowDetails={onShowDetails} // ✅ Pass it down
           />
         );
       })}

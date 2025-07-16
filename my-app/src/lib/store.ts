@@ -66,31 +66,48 @@ export interface MealIngredient {
 
 export interface DayPlan {
   id: string;
+  planNumber: number;
   meals: {
     mealId: string;
+    mealName: string;
+    mealDescription: string;
     ingredients: {
       name: string;
       grams: number;
       protein: number;
       calories: number;
+      amount: string;
     }[];
     totalProtein: number;
     totalCalories: number;
+    recipe: string[];
   }[];
   dayProtein: number;
   dayCalories: number;
+  isCheatDay?: boolean;
 }
 
 export interface StepThreePlannerData {
   mealsPerDay: number;
   uniqueWeeklyMeals: number;
   approvedMeals: Meal[];
+  generatedMeals: Meal[];
   allDays: DayPlan[]; // ← master list
   approvedDays: DayPlan[];
   unapprovedDays: DayPlan[]; // ← renamed from allGeneratedDays
+  mealBrainstormState: "not_started" | "loading" | "completed" | "editing";
+  ingredientPreferences: {
+    proteins: string[];
+    carbs: string[];
+    veggies: string[];
+    likesFruit: boolean;
+    cuisines: string[];
+    customInput: string;
+  };
   dayGenerationState: "not_started" | "started" | "completed";
   weeklySchedule: Record<DayOfWeek, DayPlan | null>;
   skippedDays: DayOfWeek[];
+  mealTimes: Record<string, string>;
 }
 
 interface AppState {
@@ -121,15 +138,32 @@ interface AppState {
 
   hasHydrated: boolean;
   setHasHydrated: (hydrated: boolean) => void;
+
+  setMealBrainstormState: (
+    state: "not_started" | "loading" | "completed" | "editing"
+  ) => void;
+  setIngredientPreferences: (
+    prefs: StepThreePlannerData["ingredientPreferences"]
+  ) => void;
 }
 
 const defaultStepThreeData: StepThreePlannerData = {
   mealsPerDay: 0,
   uniqueWeeklyMeals: 0,
   approvedMeals: [],
+  generatedMeals: [],
   allDays: [],
   approvedDays: [],
   unapprovedDays: [],
+  mealBrainstormState: "not_started",
+  ingredientPreferences: {
+    proteins: [],
+    carbs: [],
+    veggies: [],
+    likesFruit: true,
+    cuisines: [],
+    customInput: "",
+  },
   dayGenerationState: "not_started",
   weeklySchedule: {
     Monday: null,
@@ -140,7 +174,8 @@ const defaultStepThreeData: StepThreePlannerData = {
     Saturday: null,
     Sunday: null,
   },
-  skippedDays: [], // ✅ Add this
+  skippedDays: [],
+  mealTimes: {}, // ← Add this missing property
 };
 
 export const useAppStore = create<AppState>()(
@@ -175,6 +210,26 @@ export const useAppStore = create<AppState>()(
           },
         });
       },
+
+      setMealBrainstormState: (
+        state: "not_started" | "loading" | "completed" | "editing"
+      ) =>
+        set((s) => ({
+          stepThreeData: {
+            ...s.stepThreeData!,
+            mealBrainstormState: state,
+          },
+        })),
+
+      setIngredientPreferences: (
+        prefs: StepThreePlannerData["ingredientPreferences"]
+      ) =>
+        set((s) => ({
+          stepThreeData: {
+            ...s.stepThreeData!,
+            ingredientPreferences: prefs,
+          },
+        })),
 
       resetStepOneData: () => set({ stepOneData: null }),
       resetStepTwoData: () => set({ stepTwoData: null }),

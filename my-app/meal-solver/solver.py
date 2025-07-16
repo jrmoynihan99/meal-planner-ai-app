@@ -27,8 +27,8 @@ def generate_optimized_days(meals_input, ingredient_macros, meals_per_day, targe
     BIG_M = 10000
 
     avg_meal_calories = target_calories / meals_per_day
-    meal_min_pct = 0.7
-    meal_max_pct = 1.3
+    meal_min_pct = 0.6
+    meal_max_pct = 1.4
     meal_min_calories = avg_meal_calories * meal_min_pct
     meal_max_calories = avg_meal_calories * meal_max_pct
 
@@ -37,8 +37,8 @@ def generate_optimized_days(meals_input, ingredient_macros, meals_per_day, targe
     log(f"   - Meal min calories: {meal_min_calories}")
     log(f"   - Meal max calories: {meal_max_calories}")
 
-    meal_protein_min_pct = 0.15
-    meal_protein_max_pct = 0.35
+    meal_protein_min_pct = 0.10
+    meal_protein_max_pct = 0.45
     calories_per_gram_protein = 4
 
     meals = [meal["name"] for meal in meals_input]
@@ -64,14 +64,14 @@ def generate_optimized_days(meals_input, ingredient_macros, meals_per_day, targe
         
         for ing in meal["ingredients"]:
             ing_name = ing["name"]
-            log(f"     - Ingredient: {ing_name}, main: {ing['main']}, grams: {ing.get('grams', 'N/A')}")
+            log(f"     - Ingredient: {ing_name}, main: {ing.get('main', 'N/A')}, grams: {ing.get('grams', 'N/A')}")
             
             # Check if ingredient exists in macros
             if ing_name not in ingredient_macros:
                 log(f"❌ ERROR: Ingredient '{ing_name}' not found in ingredient_macros!")
                 raise ValueError(f"Ingredient '{ing_name}' not found in ingredient_macros")
             
-            if ing["main"] == 0:  # Fixed ingredient
+            if ing.get("main", 0) == 0: # Fixed ingredient
                 fixed_ingredients[meal_name].append(ing_name)
                 grams = ing["grams"]
                 calories = grams * ingredient_macros[ing_name]['calories_per_gram']
@@ -352,10 +352,10 @@ def generate_optimized_days(meals_input, ingredient_macros, meals_per_day, targe
     # Solve the model
     log("🚀 Starting solver...")
     try:
-        solver = SolverFactory('cbc')
-        log("   CBC solver factory created")
+        solver = SolverFactory('glpk')
+        log("   GLPK solver factory created")
         
-        result = solver.solve(model, tee=False)
+        result = solver.solve(model, tee=True, logfile="cbc.log")
         log(f"   Solver finished with status: {result.solver.termination_condition}")
         log(f"   Solver return code: {result.solver.return_code}")
         

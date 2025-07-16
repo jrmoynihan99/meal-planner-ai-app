@@ -16,6 +16,16 @@ export async function callDaySolver({
     { calories_per_gram: number; protein_per_gram: number }
   >;
 }) {
+  console.log("📦 Solver Input:");
+  console.log("🍽 mealsPerDay:", mealsPerDay);
+  console.log("🔥 targetCalories:", targetCalories);
+  console.log("💪 targetProtein:", targetProtein);
+  console.log("🥗 meals:", JSON.stringify(meals, null, 2));
+  console.log(
+    "🧮 ingredientMacros:",
+    JSON.stringify(ingredientMacros, null, 2)
+  );
+
   const res = await fetch("/api/optimize-days", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -33,5 +43,7 @@ export async function callDaySolver({
     throw new Error("Solver returned error:\n" + error);
   }
 
-  return await res.json();
+  const result = await res.json();
+  console.log("✅ Solver returned success. Output:", result);
+  return result;
 }

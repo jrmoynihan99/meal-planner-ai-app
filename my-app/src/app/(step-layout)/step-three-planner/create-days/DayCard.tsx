@@ -25,7 +25,6 @@ import {
 
 interface DayCardProps {
   day: DayPlan;
-  index: number;
   isApproved: boolean;
   onToggleApproval: () => void;
   onReorderMeals: (dayId: string, newOrder: string[]) => void;
@@ -33,7 +32,6 @@ interface DayCardProps {
 
 export default function DayCard({
   day,
-  index,
   isApproved,
   onToggleApproval,
   onReorderMeals,
@@ -120,7 +118,7 @@ export default function DayCard({
     >
       {/* Header and macros row - all left aligned */}
       <div className="flex flex-wrap items-center gap-4 mb-4 text-sm text-zinc-300">
-        <h3 className="text-white text-lg font-bold">Day {index + 1}</h3>
+        <h3 className="text-white text-lg font-bold">Day {day.planNumber}</h3>
         <span className="flex items-center gap-2">
           Calories
           <code className="bg-zinc-900 text-green-400 font-mono px-2 py-0.5 rounded-md border border-zinc-700 text-sm">

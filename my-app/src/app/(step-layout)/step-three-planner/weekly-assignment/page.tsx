@@ -1,43 +1,98 @@
 "use client";
 
+import { useState } from "react";
 import AutoAssignButton from "./AutoAssignButton";
 import ApprovedDaysPanel from "./ApprovedDaysPanel";
 import WeeklyGrid from "./WeeklyGrid";
+import ApprovedDayCard from "./ApprovedDayCard";
 import { useAppStore } from "@/lib/store";
-import { DndContext } from "@dnd-kit/core";
+import { DndContext, DragOverlay } from "@dnd-kit/core";
+import ClearAllButton from "./ClearAllButton";
+import CompletePlanButton from "@/components/CompletePlanButton";
+import { MealPlanOverlayWrapper } from "./MealPlanOverlayWrapper"; // ✅ NEW
 
 export default function WeeklyAssignmentPage() {
   const stepThreeData = useAppStore((s) => s.stepThreeData);
   const approvedDays = stepThreeData?.approvedDays || [];
+  const weeklySchedule = stepThreeData?.weeklySchedule || {};
+  const allDays = stepThreeData?.allDays || [];
+  const approvedMeals = stepThreeData?.approvedMeals || [];
+
+  const [draggingId, setDraggingId] = useState<string | null>(null);
+  const draggedDay = approvedDays.find((d) => d.id === draggingId) || null;
+
+  // ✅ Overlay state
+  const [selectedDayId, setSelectedDayId] = useState<string | null>(null);
+  const selectedDay = allDays.find((d) => d.id === selectedDayId) || null;
+
+  // ✅ All 7 days must be filled (normal or cheat)
+  const allDaysFilled = Object.values(weeklySchedule).every(
+    (plan) => plan !== null
+  );
 
   return (
-    <div className="flex flex-col min-h-screen bg-zinc-900 text-white">
-      <div className="p-4 md:p-8">
-        <h1 className="text-2xl md:text-3xl font-bold mb-2">
-          Assign Your Days
-        </h1>
-        <p className="text-zinc-400 mb-6">
-          Drag your approved meal days onto the week, or use auto assign.
-        </p>
+    <DndContext
+      onDragStart={(event) => setDraggingId(event.active.id as string)}
+      onDragEnd={() => setDraggingId(null)}
+      onDragCancel={() => setDraggingId(null)}
+    >
+      <div className="flex flex-col h-full bg-black text-white relative">
+        {/* Scrollable area */}
+        <div className="flex-1 overflow-y-auto">
+          <div className="p-4 md:p-8">
+            <div className="flex items-center gap-4 mb-6">
+              <AutoAssignButton approvedDays={approvedDays} />
+              <ClearAllButton />
+            </div>
 
-        <AutoAssignButton approvedDays={approvedDays} />
-
-        {/* ✅ DndContext must wrap WeeklyGrid + ApprovedDaysPanel */}
-        <DndContext>
-          <div className="overflow-x-auto">
-            <WeeklyGrid approvedDays={approvedDays} />
+            <WeeklyGrid
+              approvedDays={approvedDays}
+              onShowDetails={(id) => setSelectedDayId(id)} // ✅ Pass handler
+            />
           </div>
+        </div>
 
-          <ApprovedDaysPanel
-            approvedDays={approvedDays.map((day) => ({
-              id: day.id,
-              title: day.meals.map((m) => m.mealId).join(", "),
-              calories: day.dayCalories,
-              protein: day.dayProtein,
-            }))}
-          />
-        </DndContext>
+        {/* ✅ Sticky CompletePlanButton above ApprovedDaysPanel */}
+        <div className="relative">
+          {allDaysFilled && (
+            <div className="absolute bottom-[20px] right-3 z-50">
+              <CompletePlanButton href="/your-plan" />
+            </div>
+          )}
+        </div>
+
+        {/* Sticky footer with scrollable day cards */}
+        <ApprovedDaysPanel
+          approvedDays={approvedDays}
+          onShowDetails={(id) => setSelectedDayId(id)} // ✅ Pass handler here too
+        />
       </div>
-    </div>
+
+      {/* DragOverlay ensures visibility while dragging */}
+      <DragOverlay dropAnimation={null}>
+        {draggedDay && (
+          <div style={{ pointerEvents: "none" }}>
+            <ApprovedDayCard
+              id={draggedDay.id}
+              planNumber={draggedDay.planNumber}
+              meals={draggedDay.meals}
+              calories={draggedDay.dayCalories}
+              protein={draggedDay.dayProtein}
+              isOverlay
+              isDragging
+            />
+          </div>
+        )}
+      </DragOverlay>
+
+      {/* ✅ Meal Overlay */}
+      {selectedDay && (
+        <MealPlanOverlayWrapper
+          dayPlan={selectedDay}
+          approvedMeals={approvedMeals}
+          onClose={() => setSelectedDayId(null)}
+        />
+      )}
+    </DndContext>
   );
 }

@@ -1,4 +1,3 @@
-// components/NextStepButton.tsx
 "use client";
 
 interface NextStepButtonProps {
@@ -9,11 +8,11 @@ export default function NextStepButton({ href }: NextStepButtonProps) {
   return (
     <button
       onClick={() => (window.location.href = href)}
-      className="flex items-center gap-2 px-4 py-2 rounded-lg border border-blue-500 text-blue-400 font-semibold transition-all shadow-md hover:bg-blue-500 hover:text-white mr-4 cursor-pointer"
+      className="flex items-center gap-2 px-5 py-2.5 rounded-xl border border-blue-500 text-white font-semibold bg-blue-600 shadow-lg shadow-blue-500/30 transition-all duration-200 hover:bg-blue-700 hover:shadow-blue-500/50 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-400"
     >
-      <span>Next</span>
+      <span className="text-lg">Next</span>
       <svg
-        className="w-4 h-4"
+        className="w-5 h-5"
         fill="none"
         stroke="currentColor"
         strokeWidth={2}

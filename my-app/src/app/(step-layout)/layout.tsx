@@ -42,7 +42,7 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
         style={{ originX: 0 }}
       >
         <Header />
-        <main className="flex-1 overflow-y-auto">{children}</main>
+        <main className="flex-1 h-full overflow-hidden">{children}</main>
       </motion.div>
     </div>
   );

@@ -2,6 +2,7 @@
 
 import { useAppStore } from "@/lib/store";
 import { DayPlan, DayOfWeek } from "@/lib/store";
+import { createBaseSchedule } from "./WeeklyGrid";
 
 const daysOfWeek: DayOfWeek[] = [
   "Sunday",
@@ -28,30 +29,30 @@ export default function AutoAssignButton({
   const handleAutoAssign = () => {
     if (approvedDays.length === 0) return;
 
-    const schedule: Record<DayOfWeek, DayPlan | null> = {
-      Sunday: null,
-      Monday: null,
-      Tuesday: null,
-      Wednesday: null,
-      Thursday: null,
-      Friday: null,
-      Saturday: null,
+    const currentSchedule: Record<DayOfWeek, DayPlan | null> = {
+      ...createBaseSchedule(),
+      ...stepThreeData?.weeklySchedule,
     };
 
     let index = 0;
+
     for (const day of daysOfWeek) {
-      if (skippedDays.includes(day)) continue;
-      schedule[day] = approvedDays[index % approvedDays.length];
+      const isSkipped = skippedDays.includes(day);
+      const isAlreadyAssigned = currentSchedule[day] !== null;
+
+      if (isSkipped || isAlreadyAssigned) continue;
+
+      currentSchedule[day] = approvedDays[index % approvedDays.length];
       index++;
     }
 
-    setStepThreeData({ weeklySchedule: schedule });
+    setStepThreeData({ weeklySchedule: currentSchedule });
   };
 
   return (
     <button
       onClick={handleAutoAssign}
-      className="mb-6 px-5 py-2 rounded bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold shadow transition"
+      className="px-5 py-2 rounded bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold shadow transition cursor-pointer"
     >
       Auto Assign Week
     </button>

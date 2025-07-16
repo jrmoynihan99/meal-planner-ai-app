@@ -11,6 +11,7 @@ import { StepTwoSummaryOverlay } from "@/components/StepTwoSummaryOverlay";
 import { SubstepOneSummaryOverlay } from "@/components/SubstepOneSummaryOverlay";
 import { SubstepTwoSummaryOverlay } from "@/components/SubstepTwoSummaryOverlay";
 import { SubstepThreeSummaryOverlay } from "@/components/SubstepThreeSummaryOverlay";
+import { SubstepFourSummaryOverlay } from "@/components/SubstepFourSummaryOverlay";
 
 const steps = [
   {
@@ -52,12 +53,6 @@ const steps = [
         path: "/step-three-planner/weekly-assignment",
       },
     ],
-  },
-  {
-    key: "step4",
-    label: "STEP 4",
-    title: "Results",
-    path: "/step-four-results",
   },
 ];
 
@@ -262,6 +257,37 @@ export function Sidebar() {
               </div>
             );
           })}
+          {/* Final Plan Button */}
+          <div className="pt-2">
+            <button
+              disabled={
+                !stepCompletion.step1 ||
+                !stepCompletion.step2 ||
+                !stepCompletion.step3
+              }
+              onClick={() => {
+                if (
+                  stepCompletion.step1 &&
+                  stepCompletion.step2 &&
+                  stepCompletion.step3
+                ) {
+                  window.location.href = "/your-plan";
+                  close();
+                }
+              }}
+              className={`w-full px-4 py-3 rounded-lg text-sm font-semibold transition-all shadow-md
+                ${
+                  stepCompletion.step1 &&
+                  stepCompletion.step2 &&
+                  stepCompletion.step3
+                    ? "bg-blue-600 text-white hover:bg-blue-700 cursor-pointer"
+                    : "bg-zinc-800 text-zinc-500 cursor-not-allowed"
+                }
+              `}
+            >
+              Your Plan
+            </button>
+          </div>
         </nav>
       </aside>
 
@@ -289,6 +315,11 @@ export function Sidebar() {
       <AnimatePresence>
         {activeEditStep === "day" && (
           <SubstepThreeSummaryOverlay onClose={() => setActiveEditStep(null)} />
+        )}
+      </AnimatePresence>
+      <AnimatePresence>
+        {activeEditStep === "week" && (
+          <SubstepFourSummaryOverlay onClose={() => setActiveEditStep(null)} />
         )}
       </AnimatePresence>
     </>
