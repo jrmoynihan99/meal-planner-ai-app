@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useAppStore } from "@/lib/store";
 import CollapsibleSection from "./CollapsibleSection";
 import {
@@ -11,112 +11,128 @@ import {
 } from "./questionOptions";
 import FruitToggle from "./FruitToggle";
 import CustomInput from "./CustomInput";
+import MealsPerDaySelector from "./MealsPerDaySelector";
+import { GlowingButtonTwo } from "@/components/GlowingButtonTwo";
+import type { StepThreePlannerData } from "@/lib/store";
 
-interface QuestionnaireViewProps {
-  containerRef: React.RefObject<HTMLDivElement | null>;
-}
-
-export default function QuestionnaireView({
-  containerRef,
-}: QuestionnaireViewProps) {
+export default function QuestionnaireView() {
+  const hasHydrated = useAppStore((s) => s.hasHydrated);
   const stepThreeData = useAppStore((s) => s.stepThreeData);
+  const setStepThreeData = useAppStore((s) => s.setStepThreeData);
+  const ingredientPrefs = stepThreeData?.ingredientPreferences;
   const setIngredientPreferences = useAppStore(
     (s) => s.setIngredientPreferences
   );
   const setMealBrainstormState = useAppStore((s) => s.setMealBrainstormState);
+  const addCustomFoodItem = useAppStore((s) => s.addCustomFoodItem);
 
   const [openSectionIndex, setOpenSectionIndex] = useState(0);
+  const scrollContainerRef = useRef<HTMLDivElement | null>(null);
 
-  const [localPrefs, setLocalPrefs] = useState(
-    stepThreeData?.ingredientPreferences || {
-      proteins: [],
-      carbs: [],
-      veggies: [],
-      likesFruit: true,
-      cuisines: [],
-      customInput: "",
-    }
-  );
+  if (!hasHydrated || !ingredientPrefs || !stepThreeData) {
+    return (
+      <div className="flex h-full w-full bg-black text-white justify-center items-center">
+        <span className="text-gray-400 animate-pulse">
+          Loading your data...
+        </span>
+      </div>
+    );
+  }
 
   const sections = [
-    {
-      key: "proteins",
-      title: "Choose Proteins",
-      options: proteinOptions,
-    },
-    {
-      key: "carbs",
-      title: "Choose Carbs",
-      options: carbOptions,
-    },
-    {
-      key: "veggies",
-      title: "Choose Veggies",
-      options: veggieOptions,
-    },
-    {
-      key: "cuisines",
-      title: "Cuisine Preference",
-      options: cuisineOptions,
-    },
+    { key: "proteins", title: "Choose Proteins", options: proteinOptions },
+    { key: "carbs", title: "Choose Carbs", options: carbOptions },
+    { key: "veggies", title: "Choose Veggies", options: veggieOptions },
+    { key: "cuisines", title: "Cuisine Preference", options: cuisineOptions },
   ] as const;
 
-  function updateField(field: keyof typeof localPrefs, values: string[]) {
-    setLocalPrefs((prev) => ({
-      ...prev,
+  function updateField(field: keyof typeof ingredientPrefs, values: string[]) {
+    setIngredientPreferences({
+      ...(ingredientPrefs as StepThreePlannerData["ingredientPreferences"]),
       [field]: values,
-    }));
+    });
   }
 
   function handleGenerate() {
-    setIngredientPreferences(localPrefs);
     setMealBrainstormState("loading");
   }
 
   return (
-    <div className="min-h-screen px-4 pt-4 pb-20 w-full max-w-screen-xl mx-auto">
-      {sections.map((section, i) => (
-        <CollapsibleSection
-          key={section.key}
-          index={i}
-          total={sections.length}
-          title={section.title}
-          field={section.key}
-          options={section.options}
-          values={localPrefs[section.key]}
-          onUpdate={updateField}
-          containerRef={containerRef}
-          isOpen={openSectionIndex === i}
-          setOpenSectionIndex={setOpenSectionIndex}
-        />
-      ))}
+    <div className="flex flex-col h-full bg-black text-white">
+      {/* ✅ True scroll container now lives here */}
+      <div ref={scrollContainerRef} className="flex-1 overflow-y-auto">
+        <div className="px-4 pt-4 pb-6 w-full max-w-screen-xl mx-auto">
+          <MealsPerDaySelector
+            value={stepThreeData.mealsPerDay}
+            onChange={(val) => setStepThreeData({ mealsPerDay: val })}
+          />
 
-      <div className="sm:mt-12 sm:mb-12">
-        <FruitToggle
-          value={localPrefs.likesFruit}
-          onChange={(val) =>
-            setLocalPrefs((prev) => ({
-              ...prev,
-              likesFruit: val,
-            }))
-          }
-        />
+          {sections.map((section, i) => (
+            <CollapsibleSection
+              key={section.key}
+              index={i}
+              total={sections.length}
+              title={section.title}
+              field={section.key}
+              options={section.options}
+              customOptions={
+                ingredientPrefs.customFoods?.[
+                  section.key as keyof typeof ingredientPrefs.customFoods
+                ] ?? []
+              }
+              values={ingredientPrefs[section.key]}
+              onUpdate={(vals) => {
+                updateField(section.key, vals);
+                setOpenSectionIndex((prev) =>
+                  i < sections.length - 1 ? i + 1 : prev
+                );
+              }}
+              onAddCustom={(item) => addCustomFoodItem(section.key, item)}
+              containerRef={scrollContainerRef}
+              isOpen={openSectionIndex === i}
+              setOpenSectionIndex={setOpenSectionIndex}
+            />
+          ))}
+
+          <div className="sm:p-4">
+            <FruitToggle
+              value={ingredientPrefs.likesFruit}
+              onChange={(val) =>
+                setIngredientPreferences({
+                  ...ingredientPrefs,
+                  likesFruit: val,
+                })
+              }
+            />
+          </div>
+
+          <div className="sm:mt-6 sm:p-4">
+            <CustomInput
+              value={ingredientPrefs.customInput}
+              onChange={(val) =>
+                setIngredientPreferences({
+                  ...ingredientPrefs,
+                  customInput: val,
+                })
+              }
+            />
+          </div>
+        </div>
       </div>
 
-      {/* Final Step: Custom input */}
-      <CustomInput
-        value={localPrefs.customInput}
-        onChange={(val) =>
-          setLocalPrefs((prev) => ({ ...prev, customInput: val }))
-        }
-      />
-
-      <button
-        onClick={handleGenerate}
-        className="mt-10 w-full bg-blue-600 text-white font-semibold py-3 rounded text-lg"
-      >
-        Generate Meals
-      </button>
+      {/* Sticky footer with blurred background */}
+      <div className="sticky bottom-0 z-50 bg-zinc-900/30 backdrop-blur-md border-t border-zinc-700 px-4 py-4 text-white">
+        <div className="w-full max-w-screen-xl mx-auto flex justify-center pointer-events-none">
+          <div className="pointer-events-auto w-full sm:max-w-md md:max-w-lg lg:max-w-xl">
+            <GlowingButtonTwo
+              onClick={handleGenerate}
+              text="Generate Meals"
+              animatedBorder
+              fullWidth
+            />
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

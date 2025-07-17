@@ -12,11 +12,10 @@ interface CollapsibleSectionProps {
   title: string;
   field: keyof StepThreePlannerData["ingredientPreferences"];
   options: string[];
+  customOptions: string[];
   values: string[];
-  onUpdate: (
-    field: keyof StepThreePlannerData["ingredientPreferences"],
-    values: string[]
-  ) => void;
+  onUpdate: (values: string[]) => void;
+  onAddCustom: (item: string) => void;
   containerRef: React.RefObject<HTMLDivElement | null>;
   isOpen: boolean;
   setOpenSectionIndex: (i: number) => void;
@@ -28,8 +27,10 @@ export default function CollapsibleSection({
   title,
   field,
   options,
+  customOptions,
   values,
   onUpdate,
+  onAddCustom,
   containerRef,
   isOpen,
   setOpenSectionIndex,
@@ -79,56 +80,63 @@ export default function CollapsibleSection({
   return (
     <div
       id={`section-${index}`}
-      className="w-full sm:mb-14 mb-6 sm:bg-transparent sm:rounded-none bg-zinc-900 rounded-2xl p-4"
+      className="w-full block sm:mb-14 mb-6 sm:bg-transparent sm:rounded-none bg-zinc-900 rounded-2xl p-4"
     >
-      {/* Header */}
-      <div className="flex justify-between items-center w-full px-1 sm:px-2 py-2">
-        {/* Clickable toggle area */}
-        <button
-          type="button"
-          onClick={() => setOpenSectionIndex(isOpen ? -1 : index)}
-          className="flex items-center gap-5 sm:gap-4 flex-1 text-left"
-          role="button"
-          aria-expanded={isOpen}
-        >
-          {/* Number */}
-          <div className="text-blue-500 font-bold text-4xl sm:text-5xl leading-none">
-            {index + 1}
-          </div>
-
-          {/* Title + Chevron */}
-          <div className="flex flex-col">
-            <h2 className="text-white font-[var(--font-inter)] font-semibold text-base sm:text-xl">
-              {title}
-            </h2>
-            <p className="text-sm text-zinc-400 mt-1">
-              Select all that apply. Leave blank to let us decide.
-            </p>
-          </div>
-
-          {isMobile && (
-            <div className="text-white">
-              {isOpen ? (
-                <ChevronUp className="w-5 h-5" />
-              ) : (
-                <ChevronDown className="w-5 h-5" />
-              )}
+      {/* Header + Pills area (clickable) */}
+      <div
+        className="px-1 sm:px-2 py-2 cursor-pointer select-none"
+        onClick={() => setOpenSectionIndex(isOpen ? -1 : index)}
+      >
+        <div className="flex justify-between items-start w-full">
+          {/* Left: number + title */}
+          <div className="flex items-center gap-5 sm:gap-4">
+            <div className="text-blue-500 font-bold text-4xl sm:text-5xl leading-none">
+              {index + 2}
             </div>
-          )}
-        </button>
+            <div className="flex flex-col">
+              <h2 className="text-white font-[var(--font-inter)] font-semibold text-base sm:text-xl">
+                {title}
+              </h2>
+              <p className="text-sm text-zinc-400 mt-1">
+                Select all that apply. Leave blank to let us decide.
+              </p>
+            </div>
+          </div>
 
-        {/* Desktop-only Clear All */}
-        {!isMobile && (
-          <button
-            onClick={() => {
-              onUpdate(field, []);
-              setJustCleared(true);
-              setTimeout(() => setJustCleared(false), 1000);
-            }}
-            className="hidden sm:inline-block text-sm font-semibold px-5 py-2 border border-red-500 text-red-500 rounded-lg bg-black hover:bg-red-600/30 transition duration-150 min-w-[100px] text-center cursor-pointer"
-          >
-            {justCleared ? "Cleared" : "Clear All"}
-          </button>
+          {/* Right: chevron (mobile) or clear button (desktop) */}
+          <div className="flex-shrink-0 ml-2">
+            {isMobile ? (
+              isOpen ? (
+                <ChevronUp className="w-5 h-5 text-white" />
+              ) : (
+                <ChevronDown className="w-5 h-5 text-white" />
+              )
+            ) : (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleClear();
+                }}
+                className="text-sm font-semibold px-5 py-2 border border-red-500 text-red-500 rounded-lg bg-black hover:bg-red-600/30 transition duration-150 min-w-[100px] text-center cursor-pointer"
+              >
+                {justCleared ? "Cleared" : "Clear All"}
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Pills preview */}
+        {!isOpen && isMobile && values.length > 0 && (
+          <div className="flex flex-wrap gap-2 mt-3">
+            {values.map((val) => (
+              <span
+                key={val}
+                className="border border-blue-600 text-blue-500 text-xs font-medium px-3 py-1 rounded-full bg-black"
+              >
+                {val}
+              </span>
+            ))}
+          </div>
         )}
       </div>
 
@@ -145,8 +153,10 @@ export default function CollapsibleSection({
           >
             <FoodToggleGrid
               options={options}
+              customOptions={customOptions}
               selected={values}
-              onChange={(newVals: string[]) => onUpdate(field, newVals)}
+              onChange={onUpdate}
+              onAddCustom={onAddCustom}
             />
 
             {isMobile && (

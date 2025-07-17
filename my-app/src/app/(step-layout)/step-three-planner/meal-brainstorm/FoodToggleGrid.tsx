@@ -1,13 +1,14 @@
 "use client";
 
-import { useState } from "react";
 import FoodToggleCard from "./FoodToggleCard";
-import FoodAddCard from "./FoodAddCard"; // NEW
+import FoodAddCard from "./FoodAddCard";
 
 interface FoodToggleGridProps {
   options: string[];
+  customOptions: string[];
   selected: string[];
   onChange: (newSelected: string[]) => void;
+  onAddCustom: (item: string) => void;
 }
 
 const foodIcons: Record<string, string> = {
@@ -45,10 +46,20 @@ function getIcon(name: string): string {
 
 export default function FoodToggleGrid({
   options,
+  customOptions,
   selected,
   onChange,
+  onAddCustom,
 }: FoodToggleGridProps) {
-  const [customItems, setCustomItems] = useState<string[]>([]);
+  const allItems = Array.from(
+    new Set([
+      ...options,
+      ...customOptions,
+      ...selected.filter(
+        (s) => !options.includes(s) && !customOptions.includes(s)
+      ),
+    ])
+  );
 
   const toggle = (item: string) => {
     const isSelected = selected.includes(item);
@@ -61,12 +72,15 @@ export default function FoodToggleGrid({
   const handleAddCustom = (value: string) => {
     const trimmed = value.trim();
     if (!trimmed) return;
-    if (options.includes(trimmed) || customItems.includes(trimmed)) return;
-    setCustomItems([...customItems, trimmed]);
+
+    // Don't allow duplicates across default or custom
+    const all = [...options, ...customOptions].map((s) => s.toLowerCase());
+    if (all.includes(trimmed.toLowerCase())) return;
+
+    // Select it and persist it
+    onAddCustom(trimmed);
     onChange([...selected, trimmed]);
   };
-
-  const allItems = [...options, ...customItems];
 
   return (
     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 sm:gap-6 p-1">

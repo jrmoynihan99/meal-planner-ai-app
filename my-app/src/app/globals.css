@@ -252,3 +252,53 @@ body {
 .animate-textCycle {
   animation: textCycle 3s ease-in-out forwards;
 }
+
+.animated-border {
+  background: linear-gradient(120deg, #44bcff, #ff44ec, #ff675e, #44bcff);
+  background-size: 300% 300%;
+  border: 2px solid transparent;
+  border-radius: 9999px; /* same as rounded-full */
+  background-clip: padding-box;
+  position: relative;
+  z-index: 0;
+}
+
+.animated-border::before {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  z-index: -1;
+  background: inherit;
+  background-size: 300% 300%;
+  animation: moveBorder 3s linear infinite;
+  border-radius: inherit;
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  -webkit-mask-composite: destination-out;
+  padding: 2px;
+}
+
+.glow-ring::before {
+  content: "";
+  position: absolute;
+  inset: -3px; /* ← increase from -2px to -3px */
+  z-index: -1;
+  border-radius: inherit;
+  background: linear-gradient(120deg, #44bcff, #ff44ec, #ff675e, #44bcff);
+  background-size: 300% 300%;
+  animation: moveBorder 3s linear infinite;
+
+  padding: 3px; /* ← match inset thickness */
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  -webkit-mask-composite: destination-out;
+}
+
+@keyframes moveBorder {
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 300% 50%;
+  }
+}

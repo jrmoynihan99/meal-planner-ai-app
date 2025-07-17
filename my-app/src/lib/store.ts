@@ -103,7 +103,14 @@ export interface StepThreePlannerData {
     likesFruit: boolean;
     cuisines: string[];
     customInput: string;
+    customFoods: {
+      proteins: string[];
+      carbs: string[];
+      veggies: string[];
+      cuisines: string[];
+    };
   };
+
   dayGenerationState: "not_started" | "started" | "completed";
   weeklySchedule: Record<DayOfWeek, DayPlan | null>;
   skippedDays: DayOfWeek[];
@@ -145,6 +152,10 @@ interface AppState {
   setIngredientPreferences: (
     prefs: StepThreePlannerData["ingredientPreferences"]
   ) => void;
+  addCustomFoodItem: (
+    field: keyof StepThreePlannerData["ingredientPreferences"]["customFoods"],
+    item: string
+  ) => void;
 }
 
 const defaultStepThreeData: StepThreePlannerData = {
@@ -163,6 +174,12 @@ const defaultStepThreeData: StepThreePlannerData = {
     likesFruit: true,
     cuisines: [],
     customInput: "",
+    customFoods: {
+      proteins: [],
+      carbs: [],
+      veggies: [],
+      cuisines: [],
+    },
   },
   dayGenerationState: "not_started",
   weeklySchedule: {
@@ -200,7 +217,7 @@ export const useAppStore = create<AppState>()(
       stepTwoData: null,
       setStepTwoData: (data) => set({ stepTwoData: data }),
 
-      stepThreeData: null,
+      stepThreeData: defaultStepThreeData,
       setStepThreeData: (partialData) => {
         const prev = get().stepThreeData || defaultStepThreeData;
         set({
@@ -230,6 +247,28 @@ export const useAppStore = create<AppState>()(
             ingredientPreferences: prefs,
           },
         })),
+
+      addCustomFoodItem: (field, item) =>
+        set((s) => {
+          const prev = s.stepThreeData!;
+          const currentCustoms =
+            prev.ingredientPreferences.customFoods[field] || [];
+
+          const updatedList = Array.from(new Set([...currentCustoms, item])); // remove dupes
+
+          return {
+            stepThreeData: {
+              ...prev,
+              ingredientPreferences: {
+                ...prev.ingredientPreferences,
+                customFoods: {
+                  ...prev.ingredientPreferences.customFoods,
+                  [field]: updatedList,
+                },
+              },
+            },
+          };
+        }),
 
       resetStepOneData: () => set({ stepOneData: null }),
       resetStepTwoData: () => set({ stepTwoData: null }),

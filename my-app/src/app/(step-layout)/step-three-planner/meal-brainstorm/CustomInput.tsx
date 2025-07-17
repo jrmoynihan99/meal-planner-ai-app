@@ -24,7 +24,7 @@ export default function CustomInput({ value, onChange }: CustomInputProps) {
       <div className="flex items-start gap-4 w-full px-1 sm:px-2 py-2">
         {/* Number icon */}
         <div className="text-blue-500 font-bold text-4xl sm:text-5xl leading-none pt-1">
-          6
+          7
         </div>
 
         <div className="flex-1">

@@ -1,14 +1,19 @@
 "use client";
 
-import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
+import { motion } from "framer-motion";
 
-interface FruitToggleProps {
-  value: boolean;
-  onChange: (val: boolean) => void;
+interface MealsPerDaySelectorProps {
+  value: number;
+  onChange: (val: number) => void;
 }
 
-export default function FruitToggle({ value, onChange }: FruitToggleProps) {
+const options = [1, 2, 3, 4];
+
+export default function MealsPerDaySelector({
+  value,
+  onChange,
+}: MealsPerDaySelectorProps) {
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
@@ -25,47 +30,40 @@ export default function FruitToggle({ value, onChange }: FruitToggleProps) {
       <div className="flex items-center gap-4 w-full px-1 sm:px-2 py-2">
         {/* Number */}
         <div className="text-blue-500 font-bold text-4xl sm:text-5xl leading-none">
-          6
+          1
         </div>
 
         {/* Label and toggle */}
         <div className="flex-1 flex justify-between items-center">
           <div>
             <h2 className="text-white font-[var(--font-inter)] font-semibold text-base sm:text-xl">
-              Do You Like Fruit?
+              Meals Per Day
             </h2>
             <p className="text-sm text-zinc-400 mt-1">
-              This helps us tailor your meal plan.
+              We’ll use this to structure your meal plan.
             </p>
           </div>
 
-          <div className="relative w-32 h-10 bg-zinc-800 rounded-full flex border border-zinc-600 overflow-hidden ml-4 shrink-0">
+          {/* Toggle Group */}
+          <div className="relative w-40 h-10 bg-zinc-800 rounded-full flex border border-zinc-600 overflow-hidden ml-4 shrink-0">
             {/* Sliding background */}
             <motion.div
-              className="absolute top-0 h-full w-1/2 rounded-full bg-blue-600 z-0"
-              animate={{ left: value ? "0%" : "50%" }}
+              className="absolute top-0 h-full w-1/4 rounded-full bg-blue-600 z-0"
+              animate={{ left: `${(value - 1) * 25}%` }}
               transition={{ type: "spring", stiffness: 300, damping: 20 }}
             />
 
-            {/* Yes */}
-            <button
-              className={`w-1/2 font-mono z-10 rounded-full transition-colors duration-150 ${
-                value ? "text-white" : "text-zinc-400"
-              }`}
-              onClick={() => onChange(true)}
-            >
-              Yes
-            </button>
-
-            {/* No */}
-            <button
-              className={`w-1/2 font-mono z-10 rounded-full transition-colors duration-150 ${
-                !value ? "text-white" : "text-zinc-400"
-              }`}
-              onClick={() => onChange(false)}
-            >
-              No
-            </button>
+            {options.map((opt) => (
+              <button
+                key={opt}
+                className={`w-1/4 z-10 font-mono text-sm transition-colors duration-150 ${
+                  value === opt ? "text-white" : "text-zinc-400"
+                }`}
+                onClick={() => onChange(opt)}
+              >
+                {opt}
+              </button>
+            ))}
           </div>
         </div>
       </div>
