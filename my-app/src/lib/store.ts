@@ -91,6 +91,7 @@ export interface StepThreePlannerData {
   mealsPerDay: number;
   uniqueWeeklyMeals: number;
   approvedMeals: Meal[];
+  savedMeals: Meal[];
   generatedMeals: Meal[];
   allDays: DayPlan[]; // ← master list
   approvedDays: DayPlan[];
@@ -156,12 +157,17 @@ interface AppState {
     field: keyof StepThreePlannerData["ingredientPreferences"]["customFoods"],
     item: string
   ) => void;
+
+  setGeneratedMeals: (meals: Meal[]) => void;
+  setApprovedMeals: (meals: Meal[]) => void;
+  setSavedMeals: (meals: Meal[]) => void;
 }
 
 const defaultStepThreeData: StepThreePlannerData = {
   mealsPerDay: 0,
   uniqueWeeklyMeals: 0,
   approvedMeals: [],
+  savedMeals: [],
   generatedMeals: [],
   allDays: [],
   approvedDays: [],
@@ -269,6 +275,30 @@ export const useAppStore = create<AppState>()(
             },
           };
         }),
+
+      setApprovedMeals: (meals: Meal[]) =>
+        set((s) => ({
+          stepThreeData: {
+            ...s.stepThreeData!,
+            approvedMeals: meals,
+          },
+        })),
+
+      setSavedMeals: (meals: Meal[]) =>
+        set((s) => ({
+          stepThreeData: {
+            ...s.stepThreeData!,
+            savedMeals: meals,
+          },
+        })),
+
+      setGeneratedMeals: (meals: Meal[]) =>
+        set((s) => ({
+          stepThreeData: {
+            ...s.stepThreeData!,
+            generatedMeals: meals,
+          },
+        })),
 
       resetStepOneData: () => set({ stepOneData: null }),
       resetStepTwoData: () => set({ stepTwoData: null }),

@@ -31,9 +31,7 @@ export default function CustomInput({ value, onChange }: CustomInputProps) {
           <h2 className="text-white font-[var(--font-inter)] font-semibold text-base sm:text-xl">
             Anything Else We Should Know?
           </h2>
-          <p className="text-sm text-zinc-400 mt-1">
-            (e.g. low lactose, low sodium, no fish…)
-          </p>
+          <p className="text-sm text-zinc-400 mt-1">(e.g. I'm allergic to)</p>
 
           <textarea
             value={value}

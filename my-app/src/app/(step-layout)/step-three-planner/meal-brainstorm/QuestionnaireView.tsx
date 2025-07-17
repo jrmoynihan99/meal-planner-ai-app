@@ -15,6 +15,9 @@ import MealsPerDaySelector from "./MealsPerDaySelector";
 import { GlowingButtonTwo } from "@/components/GlowingButtonTwo";
 import type { StepThreePlannerData } from "@/lib/store";
 
+// ✅ Explicitly list only keys that are valid for sections
+type ValidSectionKey = "proteins" | "carbs" | "veggies" | "cuisines";
+
 export default function QuestionnaireView() {
   const hasHydrated = useAppStore((s) => s.hasHydrated);
   const stepThreeData = useAppStore((s) => s.stepThreeData);
@@ -39,14 +42,34 @@ export default function QuestionnaireView() {
     );
   }
 
-  const sections = [
-    { key: "proteins", title: "Choose Proteins", options: proteinOptions },
-    { key: "carbs", title: "Choose Carbs", options: carbOptions },
-    { key: "veggies", title: "Choose Veggies", options: veggieOptions },
-    { key: "cuisines", title: "Cuisine Preference", options: cuisineOptions },
-  ] as const;
+  const sections: {
+    key: ValidSectionKey;
+    title: string;
+    options: string[];
+  }[] = [
+    {
+      key: "proteins",
+      title: "Choose Proteins",
+      options: proteinOptions,
+    },
+    {
+      key: "carbs",
+      title: "Choose Carbs",
+      options: carbOptions,
+    },
+    {
+      key: "veggies",
+      title: "Choose Veggies",
+      options: veggieOptions,
+    },
+    {
+      key: "cuisines",
+      title: "Cuisine Preference",
+      options: cuisineOptions,
+    },
+  ];
 
-  function updateField(field: keyof typeof ingredientPrefs, values: string[]) {
+  function updateField(field: ValidSectionKey, values: string[]) {
     setIngredientPreferences({
       ...(ingredientPrefs as StepThreePlannerData["ingredientPreferences"]),
       [field]: values,
@@ -59,13 +82,14 @@ export default function QuestionnaireView() {
 
   return (
     <div className="flex flex-col h-full bg-black text-white">
-      {/* ✅ True scroll container now lives here */}
       <div ref={scrollContainerRef} className="flex-1 overflow-y-auto">
         <div className="px-4 pt-4 pb-6 w-full max-w-screen-xl mx-auto">
-          <MealsPerDaySelector
-            value={stepThreeData.mealsPerDay}
-            onChange={(val) => setStepThreeData({ mealsPerDay: val })}
-          />
+          <div className="sm:p-4">
+            <MealsPerDaySelector
+              value={stepThreeData.mealsPerDay}
+              onChange={(val) => setStepThreeData({ mealsPerDay: val })}
+            />
+          </div>
 
           {sections.map((section, i) => (
             <CollapsibleSection
@@ -75,18 +99,9 @@ export default function QuestionnaireView() {
               title={section.title}
               field={section.key}
               options={section.options}
-              customOptions={
-                ingredientPrefs.customFoods?.[
-                  section.key as keyof typeof ingredientPrefs.customFoods
-                ] ?? []
-              }
-              values={ingredientPrefs[section.key]}
-              onUpdate={(vals) => {
-                updateField(section.key, vals);
-                setOpenSectionIndex((prev) =>
-                  i < sections.length - 1 ? i + 1 : prev
-                );
-              }}
+              customOptions={ingredientPrefs.customFoods?.[section.key] ?? []}
+              values={ingredientPrefs[section.key] as string[]}
+              onUpdate={(vals) => updateField(section.key, vals)}
               onAddCustom={(item) => addCustomFoodItem(section.key, item)}
               containerRef={scrollContainerRef}
               isOpen={openSectionIndex === i}

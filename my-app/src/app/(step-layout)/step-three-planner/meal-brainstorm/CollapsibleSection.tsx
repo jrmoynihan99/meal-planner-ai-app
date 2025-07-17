@@ -72,7 +72,7 @@ export default function CollapsibleSection({
   };
 
   const handleClear = () => {
-    onUpdate(field, []);
+    onUpdate([]); // ✅ Fix: Only pass the array
     setJustCleared(true);
     setTimeout(() => setJustCleared(false), 1000);
   };

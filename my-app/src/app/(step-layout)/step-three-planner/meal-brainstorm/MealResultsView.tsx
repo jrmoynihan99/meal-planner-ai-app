@@ -1,127 +1,160 @@
 "use client";
 
+import { useState, useRef } from "react";
 import { useAppStore } from "@/lib/store";
-import { useState } from "react";
 import { MealCardList } from "./MealCardList";
-import type { Meal } from "@/lib/store";
+import { InputFooter } from "../InputFooter";
+import clsx from "clsx";
+
+const FILTERS = ["all", "approved", "unapproved", "saved"] as const;
+type FilterType = (typeof FILTERS)[number];
 
 export default function MealResultsView() {
-  const generatedMeals = useAppStore(
-    (s) => s.stepThreeData?.generatedMeals || []
-  );
-  const approvedMeals = useAppStore(
-    (s) => s.stepThreeData?.approvedMeals || []
-  );
-  const setMealBrainstormState = useAppStore((s) => s.setMealBrainstormState);
-  const ingredientPreferences = useAppStore(
-    (s) => s.stepThreeData?.ingredientPreferences
-  );
-  const stepTwoData = useAppStore((s) => s.stepTwoData);
-  const setStepThreeData = useAppStore((s) => s.setStepThreeData);
+  const [selectedFilter, setSelectedFilter] = useState<FilterType>("all");
+  const inputRef = useRef("");
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+  const scrollContainerRef = useRef<HTMLDivElement | null>(null);
 
-  const [refinementPrompt, setRefinementPrompt] = useState("");
+  const stepThreeData = useAppStore((s) => s.stepThreeData);
+  const setApprovedMeals = useAppStore((s) => s.setApprovedMeals);
+  const setSavedMeals = useAppStore((s) => s.setSavedMeals);
+  const setGeneratedMeals = useAppStore((s) => s.setGeneratedMeals);
 
-  async function handleRefine() {
-    if (!refinementPrompt.trim()) return;
-    setMealBrainstormState("loading");
+  const allMeals = stepThreeData.generatedMeals ?? [];
+  const approvedMeals = stepThreeData.approvedMeals ?? [];
+  const savedMeals = stepThreeData.savedMeals ?? [];
 
-    const res = await fetch("/api/generate-meals", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        preferences: ingredientPreferences,
-        calories: stepTwoData?.goalCalories,
-        protein: stepTwoData?.goalProtein,
-        prompt: refinementPrompt,
-      }),
-    });
+  const isMealApproved = (meal: any) =>
+    approvedMeals.some((m) => m.id === meal.id);
 
-    const data = await res.json();
-    const newMeals = data.meals;
+  const isMealSaved = (meal: any) => savedMeals.some((m) => m.id === meal.id);
 
-    // Keep any previously approved meals if their names match
-    const reapproved = newMeals.filter((meal: Meal) =>
-      approvedMeals.some(
-        (a) => a.name.toLowerCase() === meal.name.toLowerCase()
-      )
+  const handleApprove = (meal: any) => {
+    const updatedApproved = [...approvedMeals, meal];
+    const updatedSaved = isMealSaved(meal) ? savedMeals : [...savedMeals, meal];
+
+    const dedupedSaved = Array.from(
+      new Map(updatedSaved.map((m) => [m.id, m])).values()
     );
 
-    setStepThreeData({
-      generatedMeals: newMeals,
-      approvedMeals: reapproved,
-    });
+    setApprovedMeals(updatedApproved);
+    setSavedMeals(dedupedSaved);
+  };
 
-    setRefinementPrompt("");
-    setMealBrainstormState("completed");
-  }
+  const handleUnapprove = (meal: any) => {
+    setApprovedMeals(approvedMeals.filter((m) => m.id !== meal.id));
+  };
 
-  function handleEditPreferences() {
-    setMealBrainstormState("editing");
-  }
+  const handleRemove = (index: number) => {
+    // Optional: implement meal removal from generatedMeals if needed
+  };
 
-  function handleRegenerate() {
-    setMealBrainstormState("loading");
-  }
+  const filteredMeals =
+    selectedFilter === "approved"
+      ? allMeals.filter(isMealApproved)
+      : selectedFilter === "unapproved"
+      ? allMeals.filter((m) => !isMealApproved(m))
+      : selectedFilter === "saved"
+      ? savedMeals
+      : [...allMeals].sort((a, b) => {
+          const aApproved = isMealApproved(a);
+          const bApproved = isMealApproved(b);
+          if (aApproved && !bApproved) return 1;
+          if (!aApproved && bApproved) return -1;
+          return 0;
+        });
+
+  const handleSubmit = () => {
+    const fakeMeals = [
+      {
+        id: crypto.randomUUID(),
+        name: "Greek Chicken Bowl",
+        description: "Chicken with quinoa, cucumbers, and tzatziki.",
+        ingredients: [],
+        recipe: [],
+      },
+      {
+        id: crypto.randomUUID(),
+        name: "Egg White Scramble",
+        description: "Egg whites with spinach and peppers.",
+        ingredients: [],
+        recipe: [],
+      },
+    ];
+
+    setGeneratedMeals([...allMeals, ...fakeMeals]);
+    inputRef.current = "";
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    inputRef.current = e.target.value;
+  };
+
+  const handleSelectPhasePrompt = (text: string, immediate: boolean) => {
+    if (immediate) {
+      // Future: Send to GPT immediately
+    } else {
+      inputRef.current = text;
+    }
+  };
 
   return (
-    <div className="p-4 max-w-3xl mx-auto flex flex-col gap-8">
-      <h1 className="text-2xl font-bold text-center">Your Meals</h1>
+    <div className="flex flex-col h-full">
+      {/* Filters + Edit Preferences */}
+      <div className="flex flex-wrap justify-between items-center px-4 py-3 border-b border-zinc-700 bg-black">
+        <div className="flex gap-2 flex-wrap">
+          {FILTERS.map((type) => (
+            <button
+              key={type}
+              onClick={() => setSelectedFilter(type)}
+              className={clsx(
+                "px-3 py-1 text-xs rounded-full border font-mono tracking-wide transition cursor-pointer",
+                selectedFilter === type
+                  ? "border-blue-500 text-blue-400 bg-zinc-800"
+                  : "border-zinc-600 text-zinc-400 hover:text-white hover:border-zinc-400"
+              )}
+            >
+              {type[0].toUpperCase() + type.slice(1)}
+            </button>
+          ))}
+        </div>
 
-      <MealCardList
-        meals={generatedMeals}
-        onApprove={(meal) => {
-          const updated = [...approvedMeals, meal];
-          setStepThreeData({ approvedMeals: updated });
-        }}
-        onUnapprove={(meal) => {
-          const updated = approvedMeals.filter((m) => m.id !== meal.id);
-          setStepThreeData({ approvedMeals: updated });
-        }}
-        onRemove={(index) => {
-          const updated = [...generatedMeals];
-          const removed = updated.splice(index, 1)[0];
-
-          // Also remove from approvedMeals if it was approved
-          const remainingApproved = approvedMeals.filter(
-            (m) => m.id !== removed.id
-          );
-
-          setStepThreeData({
-            generatedMeals: updated,
-            approvedMeals: remainingApproved,
-          });
-        }}
-      />
-
-      <div className="flex flex-col sm:flex-row gap-4">
-        <input
-          value={refinementPrompt}
-          onChange={(e) => setRefinementPrompt(e.target.value)}
-          placeholder="Want something different? Try: 'Make it more plant-based'"
-          className="flex-1 border px-4 py-2 rounded"
-        />
         <button
-          onClick={handleRefine}
-          className="bg-blue-600 text-white font-semibold px-4 py-2 rounded"
-        >
-          Regenerate with Prompt
-        </button>
-      </div>
-
-      <div className="flex justify-between mt-6 gap-4">
-        <button
-          onClick={handleEditPreferences}
-          className="w-full border border-white text-white py-2 rounded"
+          className="text-sm font-medium text-blue-400 hover:text-blue-300 transition"
+          onClick={() => {
+            window.location.href = "/step-three-planner";
+          }}
         >
           Edit Preferences
         </button>
-        <button
-          onClick={handleRegenerate}
-          className="w-full bg-blue-700 text-white py-2 rounded"
-        >
-          Regenerate Meals
-        </button>
       </div>
+
+      {/* Meal Cards */}
+      <div
+        className="flex-1 overflow-y-auto p-4 space-y-4"
+        ref={scrollContainerRef}
+      >
+        <MealCardList
+          meals={filteredMeals}
+          onApprove={handleApprove}
+          onUnapprove={handleUnapprove}
+          onRemove={handleRemove}
+        />
+      </div>
+
+      {/* Sticky Footer */}
+      <InputFooter
+        input={inputRef.current}
+        setInput={(val) => (inputRef.current = val)}
+        handleFormSubmit={(e) => {
+          e?.preventDefault();
+          handleSubmit();
+        }}
+        handleTextareaChange={handleChange}
+        isLoading={false}
+        textareaRef={textareaRef}
+        sendMessage={handleSelectPhasePrompt}
+      />
     </div>
   );
 }
