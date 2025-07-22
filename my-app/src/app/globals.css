@@ -173,7 +173,7 @@ body {
     #44bcff
   );
   filter: blur(12px);
-  opacity: 0.5;
+  opacity: 1;
 }
 
 .glow-focus {
@@ -301,4 +301,14 @@ body {
   100% {
     background-position: 300% 50%;
   }
+}
+
+/* hide scrollbar but preserve scroll functionality */
+.scrollbar-hide {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* Internet Explorer 10+ */
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none; /* Chrome, Safari */
 }

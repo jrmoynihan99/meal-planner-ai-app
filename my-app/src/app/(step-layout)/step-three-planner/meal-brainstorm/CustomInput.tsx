@@ -18,9 +18,7 @@ export default function CustomInput({ value, onChange }: CustomInputProps) {
   }, []);
 
   return (
-    <div
-      className={`w-full ${isMobile ? "bg-zinc-900 rounded-2xl p-4 mb-6" : ""}`}
-    >
+    <div className="w-full bg-zinc-900 rounded-2xl p-4 mb-6">
       <div className="flex items-start gap-4 w-full px-1 sm:px-2 py-2">
         {/* Number icon */}
         <div className="text-blue-500 font-bold text-4xl sm:text-5xl leading-none pt-1">
@@ -31,7 +29,9 @@ export default function CustomInput({ value, onChange }: CustomInputProps) {
           <h2 className="text-white font-[var(--font-inter)] font-semibold text-base sm:text-xl">
             Anything Else We Should Know?
           </h2>
-          <p className="text-sm text-zinc-400 mt-1">(e.g. I'm allergic to)</p>
+          <p className="text-sm text-zinc-400 mt-1">
+            (Tell our AI anything... for power users)
+          </p>
 
           <textarea
             value={value}

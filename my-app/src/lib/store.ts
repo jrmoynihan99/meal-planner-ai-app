@@ -53,6 +53,8 @@ export interface Meal {
   description: string;
   ingredients: MealIngredient[];
   recipe: string[];
+  bestFor?: "breakfast" | "lunch" | "dinner" | "versatile";
+  imageUrl?: string;
 }
 
 export interface MealIngredient {
@@ -111,7 +113,6 @@ export interface StepThreePlannerData {
       cuisines: string[];
     };
   };
-
   dayGenerationState: "not_started" | "started" | "completed";
   weeklySchedule: Record<DayOfWeek, DayPlan | null>;
   skippedDays: DayOfWeek[];
@@ -143,6 +144,9 @@ interface AppState {
   isStepOneComplete: () => boolean;
   isStepTwoComplete: () => boolean;
   isStepThreeComplete: () => boolean;
+
+  hiddenOverlays: Record<string, boolean>;
+  setOverlayHidden: (key: string, hidden: boolean) => void;
 
   hasHydrated: boolean;
   setHasHydrated: (hydrated: boolean) => void;
@@ -233,6 +237,18 @@ export const useAppStore = create<AppState>()(
           },
         });
       },
+
+      hiddenOverlays: {},
+      setOverlayHidden: (key, hidden) =>
+        set((state) => {
+          const newHiddenOverlays = { ...state.hiddenOverlays };
+          if (hidden) {
+            newHiddenOverlays[key] = true;
+          } else {
+            delete newHiddenOverlays[key];
+          }
+          return { hiddenOverlays: newHiddenOverlays };
+        }),
 
       setMealBrainstormState: (
         state: "not_started" | "loading" | "completed" | "editing"

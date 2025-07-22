@@ -19,9 +19,7 @@ export default function FruitToggle({ value, onChange }: FruitToggleProps) {
   }, []);
 
   return (
-    <div
-      className={`w-full ${isMobile ? "bg-zinc-900 rounded-2xl p-4 mb-6" : ""}`}
-    >
+    <div className="w-full bg-zinc-900 rounded-2xl p-4 mb-6">
       <div className="flex items-center gap-4 w-full px-1 sm:px-2 py-2">
         {/* Number */}
         <div className="text-blue-500 font-bold text-4xl sm:text-5xl leading-none">

@@ -10,6 +10,7 @@ import clsx from "clsx";
 import { GeneralInfoOverlay } from "@/components/GeneralInfoOverlay";
 import { useAppStore } from "@/lib/store";
 import NextStepButton from "@/components/NextStepButton";
+import StepOneInfoOverlay from "@/components/StepOneInfoOverlay";
 
 const activityOptions = [
   {
@@ -62,6 +63,10 @@ export default function StepOneSetupPage() {
   const stepOneData = useAppStore((s) => s.stepOneData);
   const setStepOneData = useAppStore((s) => s.setStepOneData);
   const hasHydrated = useAppStore((s) => s.hasHydrated);
+  const stepKey = "step-one-info";
+  const hiddenOverlays = useAppStore((s) => s.hiddenOverlays);
+  const setOverlayHidden = useAppStore((s) => s.setOverlayHidden);
+  const [showOverlay, setShowOverlay] = useState(false);
 
   console.log("✅ Hydrated:", hasHydrated);
   console.log("📦 Zustand stepOneData:", stepOneData);
@@ -131,6 +136,15 @@ export default function StepOneSetupPage() {
     });
   }, [sex, age, heightFt, heightIn, weight, activity, hasHydrated]);
 
+  useEffect(() => {
+    if (hasHydrated && !hiddenOverlays?.[stepKey]) {
+      const timeout = setTimeout(() => {
+        setShowOverlay(true);
+      }, 800);
+      return () => clearTimeout(timeout);
+    }
+  }, [hasHydrated, hiddenOverlays]);
+
   if (!hasHydrated) return null; // Don't render until Zustand is ready
 
   const heightInches = heightFt * 12 + heightIn;
@@ -146,6 +160,9 @@ export default function StepOneSetupPage() {
 
   return (
     <div className="flex flex-col h-full bg-black text-white">
+      {showOverlay && (
+        <StepOneInfoOverlay onClose={() => setShowOverlay(false)} />
+      )}
       <main className="h-full bg-black text-white px-4 py-8">
         <div className="max-w-xl mx-auto">
           <Box className="text-white pt-0 pr-6 pb-6 pl-6 space-y-6">

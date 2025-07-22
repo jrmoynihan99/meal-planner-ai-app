@@ -4,16 +4,26 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useAppStore } from "@/lib/store";
 import { GeneralInfoOverlay } from "@/components/GeneralInfoOverlay";
-import { RotateCcw, LayoutList, LayoutGrid, ShoppingCart } from "lucide-react";
+import {
+  Info,
+  RotateCcw,
+  LayoutList,
+  LayoutGrid,
+  ShoppingCart,
+} from "lucide-react";
 import { OverlayPortal } from "@/components/OverlayPortal";
 import { useGroceryCart } from "@/app/(plan-layout)/your-plan/GroceryCartContext";
-import { useViewMode } from "@/app/(plan-layout)/your-plan/ViewModeContext"; // ✅ NEW
+import { useViewMode } from "@/app/(plan-layout)/your-plan/ViewModeContext";
+import QuestionnaireViewInfoOverlay from "@/components/QuestionnaireViewInfoOverlay";
+import MealResultsInfoOverlay from "@/components/MealResultsInfoOverlay";
+import StepOneInfoOverlay from "@/components/StepOneInfoOverlay";
+import StepTwoInfoOverlay from "@/components/StepTwoInfoOverlay";
+import clsx from "clsx";
 
 const routeTitles: Record<string, string> = {
   "/step-one-data": "Input Your Data",
   "/step-two-goal": "Choose Your Goal",
-  "/step-three-planner/meal-number": "Meal Number",
-  "/step-three-planner/meal-brainstorm": "Choose Meals",
+  "/step-three-planner/meal-brainstorm": "Brainstorm Meals",
   "/step-three-planner/create-days": "Approve Days",
   "/step-three-planner/weekly-assignment": "Weekly Assignment",
   "/your-plan": "Your Plan",
@@ -23,18 +33,20 @@ export function Header() {
   const pathname = usePathname();
   const title = routeTitles[pathname] || "Step";
   const [showOverlay, setShowOverlay] = useState(false);
+  const [showInfoOverlay, setShowInfoOverlay] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
 
   const isYourPlan = pathname === "/your-plan";
 
-  // ✅ Only use hooks when safe
   const groceryCart = isYourPlan ? useGroceryCart() : null;
   const viewMode = isYourPlan ? useViewMode() : null;
 
-  // Zustand step reset handlers
   const resetStepOneData = useAppStore((s) => s.setStepOneData);
   const resetStepTwoData = useAppStore((s) => s.setStepTwoData);
   const setStepThreeData = useAppStore((s) => s.setStepThreeData);
+  const mealBrainstormState = useAppStore(
+    (s) => s.stepThreeData?.mealBrainstormState
+  );
 
   let handleReset = () => {};
   if (pathname === "/step-one-data") {
@@ -45,7 +57,28 @@ export function Header() {
     handleReset = () =>
       setStepThreeData({ mealsPerDay: 0, uniqueWeeklyMeals: 0 });
   } else if (pathname === "/step-three-planner/meal-brainstorm") {
-    handleReset = () => setStepThreeData({ approvedMeals: [] });
+    handleReset = () =>
+      setStepThreeData({
+        mealBrainstormState: "not_started",
+        mealsPerDay: 0,
+        approvedMeals: [],
+        savedMeals: [],
+        generatedMeals: [],
+        ingredientPreferences: {
+          proteins: [],
+          carbs: [],
+          veggies: [],
+          likesFruit: true,
+          cuisines: [],
+          customInput: "",
+          customFoods: {
+            proteins: [],
+            carbs: [],
+            veggies: [],
+            cuisines: [],
+          },
+        },
+      });
   } else if (pathname === "/step-three-planner/create-days") {
     handleReset = () =>
       setStepThreeData({
@@ -77,6 +110,41 @@ export function Header() {
     return () => window.removeEventListener("resize", check);
   }, []);
 
+  const renderInfoOverlay = () => {
+    if (pathname === "/step-one-data")
+      return (
+        <StepOneInfoOverlay
+          onClose={() => setShowInfoOverlay(false)}
+          manuallyOpened={true}
+        />
+      );
+    if (pathname === "/step-two-goal")
+      return (
+        <StepTwoInfoOverlay
+          onClose={() => setShowInfoOverlay(false)}
+          manuallyOpened={true}
+        />
+      );
+    if (pathname === "/step-three-planner/meal-brainstorm") {
+      if (mealBrainstormState === "completed") {
+        return (
+          <MealResultsInfoOverlay
+            onClose={() => setShowInfoOverlay(false)}
+            manuallyOpened={true}
+          />
+        );
+      } else {
+        return (
+          <QuestionnaireViewInfoOverlay
+            onClose={() => setShowInfoOverlay(false)}
+            manuallyOpened={true}
+          />
+        );
+      }
+    }
+    return null;
+  };
+
   return (
     <header className="sticky top-0 z-10 flex h-14 items-center justify-between bg-black px-4 sm:px-8">
       <div className="text-base sm:text-lg font-semibold text-white text-center flex-1">
@@ -84,13 +152,13 @@ export function Header() {
       </div>
 
       <div
-        className={`absolute right-4 top-[10px] flex items-center gap-4 ${
-          isMobile ? "flex-row-reverse" : ""
-        }`}
+        className={clsx(
+          "absolute right-4 inset-y-0 my-auto flex items-center gap-4",
+          isMobile && isYourPlan ? "flex-row-reverse" : ""
+        )}
       >
         {isYourPlan ? (
           <>
-            {/* Shopping Cart */}
             <button
               onClick={groceryCart?.open}
               className="p-1 text-white hover:text-green-400 transition cursor-pointer"
@@ -98,8 +166,6 @@ export function Header() {
             >
               <ShoppingCart className="w-5 h-5" />
             </button>
-
-            {/* Layout Toggle (mobile only) */}
             {isMobile && (
               <button
                 onClick={viewMode?.toggleVerticalView}
@@ -115,14 +181,22 @@ export function Header() {
             )}
           </>
         ) : (
-          // Reset icon
-          <button
-            onClick={() => setShowOverlay(true)}
-            className="p-1 text-white hover:text-red-400 transition cursor-pointer"
-            title="Reset This Step"
-          >
-            <RotateCcw className="w-5 h-5" />
-          </button>
+          <>
+            <button
+              onClick={() => setShowInfoOverlay(true)}
+              className="p-1 text-white hover:text-blue-400 transition cursor-pointer"
+              title="Step Info"
+            >
+              <Info className="w-5 h-5" />
+            </button>
+            <button
+              onClick={() => setShowOverlay(true)}
+              className="p-1 text-white hover:text-red-400 transition cursor-pointer"
+              title="Reset This Step"
+            >
+              <RotateCcw className="w-5 h-5" />
+            </button>
+          </>
         )}
       </div>
 
@@ -142,6 +216,8 @@ export function Header() {
           />
         </OverlayPortal>
       )}
+
+      {showInfoOverlay && <OverlayPortal>{renderInfoOverlay()}</OverlayPortal>}
     </header>
   );
 }

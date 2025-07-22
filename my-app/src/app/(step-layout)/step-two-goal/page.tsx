@@ -4,6 +4,8 @@ import { GoalTile } from "@/components/GoalTile";
 import { useAppStore } from "@/lib/store";
 import { GoalPaceBadge } from "@/components/GoalPaceBadge";
 import NextStepButton from "@/components/NextStepButton";
+import StepTwoInfoOverlay from "@/components/StepTwoInfoOverlay";
+import { useState, useEffect } from "react";
 
 const goals = [
   {
@@ -44,6 +46,10 @@ export default function StepTwoGoalPage() {
   const stepOneData = useAppStore((s) => s.stepOneData);
   const stepTwoData = useAppStore((s) => s.stepTwoData);
   const setStepTwoData = useAppStore((s) => s.setStepTwoData);
+  const stepKey = "step-two-goal";
+  const hiddenOverlays = useAppStore((s) => s.hiddenOverlays);
+  const setOverlayHidden = useAppStore((s) => s.setOverlayHidden);
+  const [showOverlay, setShowOverlay] = useState(false);
 
   const selectedGoal = stepTwoData?.selectedGoalTitle ?? null;
 
@@ -71,6 +77,15 @@ export default function StepTwoGoalPage() {
     });
   };
 
+  useEffect(() => {
+    if (hasHydrated && !hiddenOverlays?.[stepKey]) {
+      const timeout = setTimeout(() => {
+        setShowOverlay(true);
+      }, 800);
+      return () => clearTimeout(timeout);
+    }
+  }, [hasHydrated, hiddenOverlays]);
+
   if (!hasHydrated || !stepOneData) {
     return (
       <div className="flex h-full w-full bg-black text-white justify-center items-center">
@@ -83,9 +98,12 @@ export default function StepTwoGoalPage() {
 
   return (
     <div className="flex flex-col h-full bg-black text-white">
+      {showOverlay && (
+        <StepTwoInfoOverlay onClose={() => setShowOverlay(false)} />
+      )}
       {/* Scrollable content above footer */}
       <div className="flex-1 overflow-y-auto">
-        <main className="px-4 py-8">
+        <main className="px-4 pt-2 py-8">
           <div className="max-w-4xl mx-auto">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {goals.map((goal) => {
@@ -132,7 +150,7 @@ export default function StepTwoGoalPage() {
             </div>
           </div>
 
-          <NextStepButton href="/step-three-planner/meal-number" />
+          <NextStepButton href="/step-three-planner/meal-brainstorm" />
         </div>
       )}
     </div>

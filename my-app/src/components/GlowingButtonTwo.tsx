@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowRight, Loader2 } from "lucide-react";
+import { Sparkles, Loader2 } from "lucide-react";
 import clsx from "clsx";
 
 interface GlowingButtonTwoProps {
@@ -37,7 +37,7 @@ export function GlowingButtonTwo({
       ) : (
         <>
           <span>{text}</span>
-          <ArrowRight className="h-4 w-4 ml-2" />
+          <Sparkles className="h-4 w-4 ml-2" />
         </>
       )}
     </button>

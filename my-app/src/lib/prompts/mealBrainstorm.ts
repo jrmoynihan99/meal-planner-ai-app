@@ -1,40 +1,100 @@
-export const mealBrainstormPrompt = `
-You are a helpful meal planning assistant. When the user tells you about foods or ingredients they enjoy, respond with 2-3 realistic meals.
+// /lib/mealBrainstorm.ts
 
-Use this exact format for each meal. At the end of each meal, include a simple recipe with cooking instructions (but no portion sizes in the recipe).
+export function buildMealBrainstormPrompt(
+  preferences: any,
+  mealsPerDay: number,
+  previouslyApprovedMeals: any[] = [],
+  previouslyGeneratedMeals: any[] = []
+) {
+  const approvedNames = previouslyApprovedMeals.map((m) => m.name).join(", ");
+  const generatedNames = previouslyGeneratedMeals.map((m) => m.name).join(", ");
 
-Meal Name: Grilled Chicken Bowl  
-Description: A high-protein meal with lean grilled chicken, rice, and avocado.  
-Ingredients:  
-  • chicken breast: 150g (main)  
-  • white rice: 120g (main)  
-  • avocado: 50g (non-main)  
-  • olive oil: 5g (non-main)  
-Recipe:  
-  1. Step 1  
-  2. Step 2  
-  3. etc  
+  return `
+You are a meal planner assistant.
 
-- Format each ingredient like: '• [name]: [grams]g (main/non-main)' even if it's something like taco shells (which is usually measured in units)
-- EACH listed ingredient MUST contain '(main)' or '(non-main)'
-- Use exact grams for each item (e.g., 150g, 5g, etc.). Make sure you use grams as the unit of measurement for each ingredient.
-- Use '(main)' if the ingredient is one of the major ingredients in the meal, and if it contributes largely to the calories.
-- Use '(non-main)' for ingredients that aren't one of the main ingredients.
-- Use realistic portion sizes for each ingredient based on a typical single meal.
-- Be specific with all ingredients. For example, do not say “chicken” — say “chicken breast”.  Do not say “beef” — say “ribeye steak” or “90% lean ground beef”.
-- If there are types of an ingredient, always choose and name one specific type.
-- Never use vague or grouped ingredients like “mixed vegetables” — list each vegetable as an individual ingredient on it's own bullet point.
-- Only include whole foods.
-- For cooking oils, use butter, tallow, olive oil, or avocado oil — never seed oils.
-- Include any ingredient that adds calories (oils, sauces, toppings, etc.)
-- Use two blank lines between meals.
-- If the user asks to edit a meal, do so without changing the name. The meal name must remain exactly the same. 
-`.trim();
+The user has already generated the following meals:
+${generatedNames || "None"}
 
-export const mealBrainstormStarter = `
-Let’s start brainstorming your meals!
+They have already approved these meals:
+${approvedNames || "None"}
 
-You can tell me about meals you like, ingredients you enjoy, or any preferences (like vegetarian, high-protein, dairy-free, etc).
+Generate ${
+    mealsPerDay * 2
+  } new, **unique** meals that are **not duplicates** or too similar to any of the meals listed above.
 
-I'll help you turn that into real meals to approve.
-`.trim();
+Use these preferences:
+
+• Proteins: ${preferences.proteins.join(", ") || "none"}
+• Carbs: ${preferences.carbs.join(", ") || "none"}
+• Veggies: ${preferences.veggies.join(", ") || "none"}
+• Cuisines: ${preferences.cuisines.join(", ") || "none"}
+• Likes fruit: ${preferences.likesFruit ? "Yes" : "No"}
+• Custom input: ${preferences.customInput || "None"}
+
+Each meal should:
+- Be simple and realistic.
+- Focus on ingredients the user prefers.
+- Be different from the previously generated meals.
+- Be labeled as best for one of the following: "breakfast", "lunch", "dinner", or "versatile" using a \`bestFor\` field.
+
+Return the result as a JSON array of meals in this format:
+
+\`\`\`json
+[
+  {
+    "name": "Grilled Chicken Bowl",
+    "description": "Grilled chicken served with white rice, broccoli, and tzatziki.",
+    "bestFor": "lunch",
+    "ingredients": [
+      {
+        "name": "chicken breast",
+        "amount": "6 oz",
+        "grams": 170,
+        "main": 1,
+        "protein": 38,
+        "calories": 280
+      },
+      {
+        "name": "white rice",
+        "amount": "3/4 cup",
+        "grams": 130,
+        "main": 1,
+        "protein": 8,
+        "calories": 222
+      },
+      {
+        "name": "broccoli",
+        "amount": "1 cup",
+        "grams": 90,
+        "main": 0,
+        "protein": 2.5,
+        "calories": 30
+      },
+      {
+        "name": "tzatziki sauce",
+        "amount": "2 tbsp",
+        "grams": 30,
+        "main": 0,
+        "protein": 1,
+        "calories": 50
+      }
+    ],
+    "recipe": [
+      "Grill the chicken until fully cooked.",
+      "Cook the white rice in rice cooker or on a pan.",
+      "Steam the broccoli.",
+      "Serve everything in a bowl with tzatziki sauce."
+    ]
+  }
+]
+\`\`\`
+
+Important:
+- 'main' should be 1 for the key protein/carb items, 0 for veggies, sauces, oils, spices, etc.
+- Every ingredient must have the 'main' field filled out.
+- Ingredients must be individual food items. Never include food groups or non-specific ingredients (e.g. never return 'mixed vegetables', list the individual vegetables)
+- Be detailed with the type of ingredient. For example, things like 'ground beef' should be specified on the type: '90% lean ground beef", etc.
+- Every ingredient must include a realistic 'grams' value and 'amount'.
+- Return only the JSON array. Do not include commentary or explanation.
+`;
+}

@@ -64,7 +64,7 @@ export default function CollapsibleSection({
 
       if (scrollParent && nextEl) {
         scrollParent.scrollTo({
-          top: nextEl.offsetTop - 440,
+          top: nextEl.offsetTop - 410,
           behavior: "smooth",
         });
       }
@@ -80,7 +80,7 @@ export default function CollapsibleSection({
   return (
     <div
       id={`section-${index}`}
-      className="w-full block sm:mb-14 mb-6 sm:bg-transparent sm:rounded-none bg-zinc-900 rounded-2xl p-4"
+      className="w-full block mb-6 bg-zinc-900 rounded-2xl p-4"
     >
       {/* Header + Pills area (clickable) */}
       <div

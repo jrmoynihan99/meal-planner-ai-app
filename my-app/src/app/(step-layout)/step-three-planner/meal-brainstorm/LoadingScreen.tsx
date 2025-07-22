@@ -3,8 +3,6 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import { AnimatePresence, motion } from "framer-motion";
-import { useAppStore } from "@/lib/store";
-import type { Meal } from "@/lib/store";
 
 const loadingTexts = [
   "Cooking up your meals...",
@@ -16,15 +14,6 @@ const loadingTexts = [
 
 export default function LoadingScreen() {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const setStepThreeData = useAppStore((s) => s.setStepThreeData);
-  const setMealBrainstormState = useAppStore((s) => s.setMealBrainstormState);
-  const ingredientPreferences = useAppStore(
-    (s) => s.stepThreeData?.ingredientPreferences
-  );
-  const previousApprovedMeals = useAppStore(
-    (s) => s.stepThreeData?.approvedMeals || []
-  );
-  const stepTwoData = useAppStore((s) => s.stepTwoData);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -32,44 +21,6 @@ export default function LoadingScreen() {
     }, 2500);
     return () => clearInterval(interval);
   }, []);
-
-  useEffect(() => {
-    async function generateMeals() {
-      try {
-        const res = await fetch("/api/generate-meals", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            preferences: ingredientPreferences,
-            calories: stepTwoData?.goalCalories,
-            protein: stepTwoData?.goalProtein,
-          }),
-        });
-
-        const data = await res.json();
-        const newMeals = data.meals;
-
-        // Automatically re-approve any meals that match prior approvals by name
-        const reapproved = newMeals.filter((meal: Meal) =>
-          previousApprovedMeals.some(
-            (a) => a.name.toLowerCase() === meal.name.toLowerCase()
-          )
-        );
-
-        setStepThreeData({
-          generatedMeals: newMeals,
-          approvedMeals: reapproved,
-        });
-
-        setMealBrainstormState("completed");
-      } catch (err) {
-        console.error("Meal generation failed:", err);
-        setMealBrainstormState("not_started");
-      }
-    }
-
-    generateMeals();
-  }, [ingredientPreferences, stepTwoData]);
 
   return (
     <div className="flex flex-col items-center justify-center h-[70vh] text-center">

@@ -12,6 +12,7 @@ export default function MealBrainstormPage() {
 
   if (mealBrainstormState === "loading") return <LoadingScreen />;
   if (mealBrainstormState === "completed") return <MealResultsView />;
+  if (mealBrainstormState === "editing") return <QuestionnaireView />;
 
   return (
     <div className="flex flex-col h-full">
