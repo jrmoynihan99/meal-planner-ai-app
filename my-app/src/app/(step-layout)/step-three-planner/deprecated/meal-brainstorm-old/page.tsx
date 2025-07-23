@@ -2,13 +2,13 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useMealBrainstormChat } from "./useMealBrainstormChat";
-import { MessageList } from "../../MessageList";
-import { InputFooter } from "../../meal-brainstorm/InputFooter";
+import { MessageList } from "../MessageList";
+import { InputFooter } from "../../meal-brainstorm/MealResultsView/InputFooter";
 import { MealSidebar } from "./MealSidebar";
 import { useAppStore } from "@/lib/store";
 import { motion, AnimatePresence } from "framer-motion";
 import type { Meal } from "@/lib/store";
-import { useScrollManager } from "../../useScrollManager";
+import { useScrollManager } from "../useScrollManager";
 
 export default function MealBrainstormPage() {
   const {

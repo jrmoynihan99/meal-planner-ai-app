@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { ChevronDown, ChevronUp } from "lucide-react";
-import FoodToggleGrid from "./FoodToggleGrid";
+import FoodToggleGrid from "../MealResultsView/FoodToggleGrid";
 import { StepThreePlannerData } from "@/lib/store";
 import { AnimatePresence, motion } from "framer-motion";
 

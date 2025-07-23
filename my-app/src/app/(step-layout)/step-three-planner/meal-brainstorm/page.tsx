@@ -1,9 +1,9 @@
 "use client";
 
 import { useAppStore } from "@/lib/store";
-import QuestionnaireView from "./QuestionnaireView";
+import QuestionnaireView from "./QuestionnaireView/QuestionnaireView";
 import LoadingScreen from "./LoadingScreen";
-import MealResultsView from "./MealResultsView";
+import MealResultsView from "./MealResultsView/MealResultsView";
 
 export default function MealBrainstormPage() {
   const mealBrainstormState = useAppStore(

@@ -2,7 +2,7 @@
 
 import { Meal } from "@/lib/store";
 import { StepThreePlannerData } from "@/lib/store";
-import { generateImagesForMealsInBackground } from "./generateImagesForMealsInBackground";
+import { generateImagesForMealsInBackground } from "../MealResultsView/generateImagesForMealsInBackground";
 
 interface GenerateMealsOptions {
   stepThreeData: StepThreePlannerData;

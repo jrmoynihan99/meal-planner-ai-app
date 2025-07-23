@@ -9,7 +9,7 @@ import { Meal } from "@/lib/store";
 import { FilePen, Plus } from "lucide-react";
 import MealResultsInfoOverlay from "@/components/MealResultsInfoOverlay";
 import { GlowingButtonTwo } from "@/components/GlowingButtonTwo";
-import { generateMeals } from "./mealGeneration";
+import { generateMeals } from "../QuestionnaireView/mealGeneration";
 import GenerateMoreMealsOverlay from "./GenerateMoreMealsOverlay";
 
 const FILTERS = ["all", "approved", "unapproved", "saved"] as const;
