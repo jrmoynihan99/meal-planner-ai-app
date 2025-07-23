@@ -67,11 +67,10 @@ export function EditableMealCard({
       {/* Shine background layers */}
       <div className="absolute inset-0 z-0 bg-gradient-to-r from-[#d7d2cc] to-[#304352] opacity-10 pointer-events-none" />
       <div className="absolute inset-0 z-0 bg-[linear-gradient(135deg,_rgba(255,255,255,0.12)_0%,_transparent_60%)] pointer-events-none" />
-
       {/* Foreground content */}
       <div className="relative z-10 flex flex-col justify-between h-full">
         {/* Save + Remove Icons */}
-        <div className="absolute top-2 right-2 flex gap-2">
+        <div className="absolute top-0 right-0 flex gap-2 z-20">
           <button
             onClick={(e) => {
               e.stopPropagation();

@@ -8,8 +8,9 @@ import clsx from "clsx";
 import { Meal } from "@/lib/store";
 import { FilePen, Plus } from "lucide-react";
 import MealResultsInfoOverlay from "@/components/MealResultsInfoOverlay";
-import FloatingPlanProgressButton from "@/components/FloatingPlanProgressButton";
+import { GlowingButtonTwo } from "@/components/GlowingButtonTwo";
 import { generateMeals } from "./mealGeneration";
+import GenerateMoreMealsOverlay from "./GenerateMoreMealsOverlay";
 
 const FILTERS = ["all", "approved", "unapproved", "saved"] as const;
 type FilterType = (typeof FILTERS)[number];
@@ -27,6 +28,7 @@ export default function MealResultsView() {
   const [isMobile, setIsMobile] = useState(false);
 
   const [showOverlay, setShowOverlay] = useState(false);
+  const [showGenerateOverlay, setShowGenerateOverlay] = useState(false);
 
   const allMeals = stepThreeData?.generatedMeals ?? [];
   const approvedMeals = stepThreeData?.approvedMeals ?? [];
@@ -136,7 +138,7 @@ export default function MealResultsView() {
         <MealResultsInfoOverlay onClose={() => setShowOverlay(false)} />
       )}
       {/* Filters + Buttons */}
-      <div className="flex items-center justify-between gap-0 sm:gap-1 px-4 pt-0 pb-2 border-b border-zinc-700 bg-black">
+      <div className="flex items-center justify-between gap-0 sm:gap-1 px-4 pt-0 sm:pt-2 pb-2 border-b border-zinc-700 bg-black">
         {/* Left: Fixed buttons */}
         <div
           className={clsx(
@@ -157,18 +159,21 @@ export default function MealResultsView() {
             {!isMobile && <span>Edit Preferences</span>}
           </button>
 
-          <button
-            onClick={handleGenerateMore}
-            className={clsx(
-              "transition cursor-pointer flex items-center justify-center",
-              isMobile
-                ? "p-2 text-blue-500 hover:text-blue-400"
-                : "px-3 py-2 gap-2 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-500 rounded-xl"
-            )}
-          >
-            <Plus className="w-6 h-6" />
-            {!isMobile && <span>Generate More Meals</span>}
-          </button>
+          {isMobile ? (
+            <button
+              onClick={() => setShowGenerateOverlay(true)}
+              className="p-2 transition cursor-pointer flex items-center justify-center"
+            >
+              <Plus className="w-6 h-6 animate-multicolor-glow" />
+            </button>
+          ) : (
+            <GlowingButtonTwo
+              onClick={() => setShowGenerateOverlay(true)}
+              text="Generate More Meals"
+              animatedBorder
+              className="bg-zinc-800/90 backdrop-blur-md border-zinc-700/70 shadow-xl h-8 px-6 text-sm font-semibold"
+            />
+          )}
         </div>
 
         {/* Right: Scrollable filter pills */}
@@ -230,6 +235,12 @@ export default function MealResultsView() {
 
       {/* Floating Footer */}
       <MealEditFooter />
+      {showGenerateOverlay && (
+        <GenerateMoreMealsOverlay
+          onClose={() => setShowGenerateOverlay(false)}
+          onGenerate={handleGenerateMore}
+        />
+      )}
     </div>
   );
 }

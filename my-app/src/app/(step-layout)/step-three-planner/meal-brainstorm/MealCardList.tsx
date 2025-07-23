@@ -22,7 +22,7 @@ export function MealCardList({
   onRemove,
 }: MealCardListProps) {
   return (
-    <div className="grid gap-4 max-w-full grid-cols-1 sm:grid-cols-1 xl:grid-cols-3 2xl:grid-cols-4">
+    <div className="grid p-0 md:p-6 gap-6 max-w-full grid-cols-1 sm:grid-cols-1 xl:grid-cols-3 2xl:grid-cols-4">
       <AnimatePresence mode="popLayout">
         {[...meals].map((meal) => (
           <motion.div

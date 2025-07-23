@@ -91,10 +91,10 @@ Return the result as a JSON array of meals in this format:
 
 Important:
 - 'main' should be 1 for the key protein/carb items, 0 for veggies, sauces, oils, spices, etc.
-- Every ingredient must have the 'main' field filled out.
 - Ingredients must be individual food items. Never include food groups or non-specific ingredients (e.g. never return 'mixed vegetables', list the individual vegetables)
-- Be detailed with the type of ingredient. For example, things like 'ground beef' should be specified on the type: '90% lean ground beef", etc.
+- Be detailed with the type of ingredient, like meat leanness, chicken type, etc.
 - Every ingredient must include a realistic 'grams' value and 'amount'.
+- Use the same name for the same ingredients across all meals. 
 - Return only the JSON array. Do not include commentary or explanation.
 `;
 }

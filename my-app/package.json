@@ -24,6 +24,7 @@
     "ai": "^4.3.16",
     "clsx": "^2.1.1",
     "framer-motion": "^12.18.1",
+    "glpk.js": "^4.0.2",
     "javascript-lp-solver": "^0.4.24",
     "lucide-react": "^0.517.0",
     "next": "15.3.3",

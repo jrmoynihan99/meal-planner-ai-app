@@ -76,6 +76,11 @@ body {
   }
 }
 
+.animate-shimmer {
+  animation: shimmer 1.5s infinite linear;
+  background-size: 200% 100%;
+}
+
 .animate-gradient {
   background-size: 400% 100%;
   animation: shimmer 4s linear infinite;
@@ -311,4 +316,31 @@ body {
 
 .scrollbar-hide::-webkit-scrollbar {
   display: none; /* Chrome, Safari */
+}
+
+@keyframes multicolor-glow {
+  0% {
+    text-shadow: 0 0 4px #44bcff, 0 0 8px #44bcff;
+    color: #44bcff;
+  }
+  25% {
+    text-shadow: 0 0 4px #ff44ec, 0 0 8px #ff44ec;
+    color: #ff44ec;
+  }
+  50% {
+    text-shadow: 0 0 4px #ff675e, 0 0 8px #ff675e;
+    color: #ff675e;
+  }
+  75% {
+    text-shadow: 0 0 4px #44bcff, 0 0 8px #44bcff;
+    color: #44bcff;
+  }
+  100% {
+    text-shadow: 0 0 4px #44bcff, 0 0 8px #44bcff;
+    color: #44bcff;
+  }
+}
+
+.animate-multicolor-glow {
+  animation: multicolor-glow 3s ease-in-out infinite;
 }

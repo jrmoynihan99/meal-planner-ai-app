@@ -2,31 +2,25 @@
 
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence, useAnimationControls } from "framer-motion";
-import { CloseButton } from "@/components/CloseButton";
 import { GlowingButtonTwo } from "@/components/GlowingButtonTwo";
-import { useAppStore } from "@/lib/store";
-import FloatingPlanProgressButton from "./FloatingPlanProgressButton";
+import { CloseButton } from "@/components/CloseButton";
 
-interface PlanProgressInfoOverlayProps {
+import { useAppStore } from "@/lib/store";
+
+interface Props {
   onClose: () => void;
-  isComplete: boolean;
+  onGenerate: () => void;
 }
 
-export default function PlanProgressInfoOverlay({
+export default function GenerateMoreMealsOverlay({
   onClose,
-  isComplete,
-}: PlanProgressInfoOverlayProps) {
+  onGenerate,
+}: Props) {
   const [isMobile, setIsMobile] = useState<boolean | null>(null);
   const [isExiting, setIsExiting] = useState(false);
   const mobileControls = useAnimationControls();
 
-  const mealsPerDay = useAppStore.getState().stepThreeData?.mealsPerDay || 1;
-  const totalRequired = Math.max(mealsPerDay, 5);
-  const approvedCount =
-    useAppStore.getState().stepThreeData?.approvedMeals.length || 0;
-  const remainingMeals = Math.max(totalRequired - approvedCount, 0);
-  const canGenerateFallback =
-    approvedCount >= mealsPerDay && approvedCount < totalRequired;
+  const setMealBrainstormState = useAppStore((s) => s.setMealBrainstormState);
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
@@ -60,87 +54,35 @@ export default function PlanProgressInfoOverlay({
 
   if (isMobile === null) return null;
 
-  const title = isComplete ? "You're Ready!" : "Keep Going...";
-
-  const renderButtons = () => {
-    if (isComplete) {
-      return (
-        <div className="flex flex-col gap-3 mt-6">
-          <GlowingButtonTwo
-            text="Generate my plan"
-            onClick={() => {
-              console.log("Generating full plan...");
-              handleClose();
-            }}
-            fullWidth
-            animatedBorder
-            className="bg-zinc-800/90 backdrop-blur-md border-zinc-700/70 shadow-xl"
-          />
-
-          <button
-            onClick={handleClose}
-            className="w-full text-sm text-zinc-300 hover:text-white underline"
-          >
-            Approve more meals
-          </button>
-        </div>
-      );
-    }
-
-    return (
-      <div className="flex flex-col gap-3 mt-6">
-        <button
-          onClick={handleClose}
-          className="w-full bg-blue-600 text-white py-2 rounded-full hover:bg-blue-700"
-        >
-          Approve{" "}
-          <span className="font-semibold text-white">{remainingMeals}</span>{" "}
-          More Meal{remainingMeals !== 1 ? "s" : ""}
-        </button>
-
-        {canGenerateFallback && (
-          <button
-            onClick={() => {
-              console.log("Generating fallback plan...");
-              handleClose();
-            }}
-            className="w-full border border-zinc-700 text-zinc-300 py-2 rounded-full hover:border-zinc-500 hover:text-white transition"
-          >
-            Generate Plan with {approvedCount} Meal
-            {approvedCount !== 1 ? "s" : ""}
-          </button>
-        )}
-      </div>
-    );
-  };
-
   const Content = () => (
     <div onClick={(e) => e.stopPropagation()}>
-      <div className="flex items-start gap-4">
-        <div className="mt-[2px]">
-          <FloatingPlanProgressButton overrideOnClick={() => {}} />
-        </div>
-        <div>
-          <h2 className="text-lg font-semibold">{title}</h2>
-          <div className="text-sm text-zinc-300 mt-1">
-            {isComplete ? (
-              <>
-                You’ve approved enough meals to generate your weekly plan! Click
-                below to let our AI handle the rest.
-              </>
-            ) : (
-              <>
-                We recommend approving at least{" "}
-                <span className="font-semibold text-white">
-                  {totalRequired}
-                </span>{" "}
-                meals for your weekly plan.
-              </>
-            )}
-          </div>
-        </div>
+      <h2 className="text-lg font-semibold">Want More?</h2>
+      <p className="text-sm text-zinc-300 mt-1">
+        Generate more meals with your current preferences, or edit your
+        preferences first.
+      </p>
+
+      <div className="flex flex-col gap-3 mt-6">
+        <GlowingButtonTwo
+          onClick={() => {
+            onGenerate();
+            handleClose();
+          }}
+          text="Generate More Meals"
+          animatedBorder
+          className="bg-zinc-800/90 backdrop-blur-md border-zinc-700/70 shadow-xl h-10 px-6 text-sm font-semibold"
+          fullWidth
+        />
+        <button
+          onClick={() => {
+            setMealBrainstormState("editing");
+            handleClose();
+          }}
+          className="w-full border border-zinc-700 text-zinc-300 py-2 rounded-full hover:border-zinc-500 hover:text-white transition"
+        >
+          Edit Preferences
+        </button>
       </div>
-      {renderButtons()}
     </div>
   );
 
