@@ -1,5 +1,3 @@
-// /lib/mealBrainstorm.ts
-
 export function buildMealBrainstormPrompt(
   preferences: any,
   mealsPerDay: number,
@@ -47,36 +45,44 @@ Return the result as a JSON array of meals in this format:
     "bestFor": "lunch",
     "ingredients": [
       {
-        "name": "chicken breast",
+        "name": "skinless chicken breast",
         "amount": "6 oz",
         "grams": 170,
-        "main": 1,
-        "protein": 38,
-        "calories": 280
+        "mainProtein": 1,
+        "recommended_unit": "oz",
+        "grams_per_unit": 28.35,
+        "protein_per_gram": 0.224,
+        "calories_per_gram": 1.647
       },
       {
         "name": "white rice",
         "amount": "3/4 cup",
         "grams": 130,
-        "main": 1,
-        "protein": 8,
-        "calories": 222
+        "mainProtein": 0,
+        "recommended_unit": "cup",
+        "grams_per_unit": 175,
+        "protein_per_gram": 0.062,
+        "calories_per_gram": 1.708
       },
       {
         "name": "broccoli",
         "amount": "1 cup",
         "grams": 90,
-        "main": 0,
-        "protein": 2.5,
-        "calories": 30
+        "mainProtein": 0,
+        "recommended_unit": "cup",
+        "grams_per_unit": 90,
+        "protein_per_gram": 0.028,
+        "calories_per_gram": 0.333
       },
       {
         "name": "tzatziki sauce",
         "amount": "2 tbsp",
         "grams": 30,
-        "main": 0,
-        "protein": 1,
-        "calories": 50
+        "mainProtein": 0,
+        "recommended_unit": "tbsp",
+        "grams_per_unit": 15,
+        "protein_per_gram": 0.033,
+        "calories_per_gram": 1.667
       }
     ],
     "recipe": [
@@ -90,11 +96,12 @@ Return the result as a JSON array of meals in this format:
 \`\`\`
 
 Important:
-- 'main' should be 1 for the key protein/carb items, 0 for veggies, sauces, oils, spices, etc.
-- Ingredients must be individual food items. Never include food groups or non-specific ingredients (e.g. never return 'mixed vegetables', list the individual vegetables)
+- 'mainProtein' should be 1 for any ingredient that is considered a main protein ingredient (if any).
+- Ingredients must be individual food items. Never include food groups or non-specific ingredients (e.g. never return 'mixed vegetables', list the individual vegetables).
+- Every ingredient must include these fields: 'name', 'amount', 'grams', 'mainProtein', 'recommended_unit', 'grams_per_unit', 'protein_per_gram', 'calories_per_gram'.
+- 'grams_per_unit' means how many grams are in one recommended unit (e.g., 1 cup, 1 oz, 1 tbsp). This is essential for converting between units and grams.
 - Be detailed with the type of ingredient, like meat leanness, chicken type, etc.
-- Every ingredient must include a realistic 'grams' value and 'amount'.
-- Use the same name for the same ingredients across all meals. 
+- Use the same name for the same ingredients across all meals.
 - Return only the JSON array. Do not include commentary or explanation.
 `;
 }

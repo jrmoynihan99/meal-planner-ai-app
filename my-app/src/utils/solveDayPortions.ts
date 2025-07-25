@@ -1,0 +1,390 @@
+import initGLPK, { GLPK } from "glpk.js";
+import { Meal, MealIngredient } from "../lib/store";
+
+// ---------- Interfaces ----------
+export interface PortionedMeal {
+  mealId: string;
+  mealName: string;
+  ingredients: MealIngredient[];
+  totalCalories: number;
+  totalProtein: number;
+}
+
+export interface DayPortionResult {
+  meals: PortionedMeal[];
+  dayCalories: number;
+  dayProtein: number;
+  valid: boolean;
+}
+
+// ---------- Utility: Async Solver ----------
+function getPerMealBounds(mealsPerDay: number) {
+  const base = 1 / mealsPerDay;
+  const lower = Math.max(0, base - 0.1);
+  const upper = Math.min(1, base + 0.1);
+  return { lower, upper };
+}
+
+export async function solveDayPortions(
+  dayMeals: Meal[],
+  targetCalories: number,
+  targetProtein: number,
+  lockedPortions: Record<string, PortionedMeal>
+): Promise<DayPortionResult> {
+  const glpk: GLPK = await initGLPK();
+
+  // --- 0. Log inputs ---
+  // console.log("solveDayPortions INPUT:");
+  // console.log("  dayMeals:", JSON.stringify(dayMeals, null, 2));
+  // console.log(
+  //   "  targetCalories:",
+  //   targetCalories,
+  //   "targetProtein:",
+  //   targetProtein
+  // );
+  // console.log("  lockedPortions:", JSON.stringify(lockedPortions, null, 2));
+
+  const mealsPerDay = dayMeals.length;
+  const { lower, upper } = getPerMealBounds(mealsPerDay);
+
+  // ------ 1. Build variables ------
+  // For each meal: one scaling variable for non-mainProtein ingredients (s_i)
+  // For each meal: one independent variable for the main protein (q_i)
+  const varNames: string[] = [];
+  const nonProteinVars: string[] = [];
+  const mainProteinVars: string[] = [];
+
+  // Map for ingredient type and bounds
+  const mainProteinBounds: { [key: string]: { lb: number; ub: number } } = {};
+  const scalingBounds: { [key: string]: { lb: number; ub: number } } = {};
+
+  dayMeals.forEach((meal, mIdx) => {
+    // --- Scaling variable for non-mainProtein ---
+    const sVar = `s_${mIdx}`;
+    varNames.push(sVar);
+    nonProteinVars.push(sVar);
+    scalingBounds[sVar] = { lb: 0, ub: 100 };
+
+    // --- Find main protein ingredient ---
+    const mainProtIdx = meal.ingredients.findIndex(
+      (ing) => ing.mainProtein === 1
+    );
+    if (mainProtIdx !== -1) {
+      const qVar = `q_${mIdx}`; // independent main protein grams
+      varNames.push(qVar);
+      mainProteinVars.push(qVar);
+
+      // Reasonable lower/upper bounds: [0, 1000g]
+      mainProteinBounds[qVar] = { lb: 0, ub: 1000 };
+    }
+  });
+
+  // --- Log variable setup ---
+  // console.log("  nonProteinVars:", nonProteinVars);
+  // console.log("  mainProteinVars:", mainProteinVars);
+  // console.log("  varNames:", varNames);
+
+  // ---------- 2. Build constraints ----------
+
+  const constraints: any[] = [];
+
+  // --- (a) Day calorie/protein totals ---
+  let calorieCoeffs = Array(varNames.length).fill(0);
+  let proteinCoeffs = Array(varNames.length).fill(0);
+
+  dayMeals.forEach((meal, mIdx) => {
+    const sIdx = varNames.indexOf(`s_${mIdx}`);
+    const qIdx = varNames.indexOf(`q_${mIdx}`);
+
+    let nonMainCal = 0;
+    let nonMainProt = 0;
+    let mainProtCalPerGram = 0;
+    let mainProtProtPerGram = 0;
+
+    meal.ingredients.forEach((ing, iIdx) => {
+      if (!ing.grams) return;
+      if (ing.mainProtein === 1) {
+        mainProtCalPerGram =
+          ing.calories_per_gram ?? (ing.calories ?? 0) / (ing.grams ?? 1);
+        mainProtProtPerGram =
+          ing.protein_per_gram ?? (ing.protein ?? 0) / (ing.grams ?? 1);
+      } else {
+        nonMainCal +=
+          (ing.grams ?? 0) *
+          (ing.calories_per_gram ?? (ing.calories ?? 0) / (ing.grams ?? 1));
+        nonMainProt +=
+          (ing.grams ?? 0) *
+          (ing.protein_per_gram ?? (ing.protein ?? 0) / (ing.grams ?? 1));
+      }
+    });
+
+    if (sIdx !== -1) {
+      calorieCoeffs[sIdx] = nonMainCal;
+      proteinCoeffs[sIdx] = nonMainProt;
+    }
+    if (qIdx !== -1) {
+      calorieCoeffs[qIdx] = mainProtCalPerGram;
+      proteinCoeffs[qIdx] = mainProtProtPerGram;
+    }
+  });
+
+  // --- Log coefficients
+  // console.log("  calorieCoeffs:", calorieCoeffs);
+  // console.log("  proteinCoeffs:", proteinCoeffs);
+
+  constraints.push({
+    name: "day_cals_lower",
+    vars: varNames,
+    coefs: calorieCoeffs,
+    bnds: { type: glpk.GLP_LO, lb: targetCalories - 100, ub: 0 },
+  });
+  constraints.push({
+    name: "day_cals_upper",
+    vars: varNames,
+    coefs: calorieCoeffs,
+    bnds: { type: glpk.GLP_UP, lb: 0, ub: targetCalories + 100 },
+  });
+  constraints.push({
+    name: "day_protein_lower",
+    vars: varNames,
+    coefs: proteinCoeffs,
+    bnds: { type: glpk.GLP_LO, lb: targetProtein - 10, ub: 0 },
+  });
+
+  // Proportional calorie constraint for each meal
+  const basePercent = 1 / mealsPerDay;
+  const lowerPercent = Math.max(0, basePercent - 0.1);
+  const upperPercent = Math.min(1, basePercent + 0.1);
+
+  dayMeals.forEach((meal, mIdx) => {
+    const sIdx = varNames.indexOf(`s_${mIdx}`);
+    const qIdx = varNames.indexOf(`q_${mIdx}`);
+
+    let nonMainCal = 0;
+    let mainProtCalPerGram = 0;
+
+    meal.ingredients.forEach((ing) => {
+      if (ing.mainProtein === 1) {
+        mainProtCalPerGram =
+          ing.calories_per_gram ?? (ing.calories ?? 0) / (ing.grams ?? 1);
+      } else {
+        nonMainCal +=
+          (ing.grams ?? 0) *
+          (ing.calories_per_gram ?? (ing.calories ?? 0) / (ing.grams ?? 1));
+      }
+    });
+
+    // Build coefficient array for all vars
+    const coefArr = Array(varNames.length).fill(0);
+    if (sIdx !== -1) coefArr[sIdx] = nonMainCal;
+    if (qIdx !== -1) coefArr[qIdx] = mainProtCalPerGram;
+
+    // Lower bound
+    constraints.push({
+      name: `meal_${mIdx}_cals_lower`,
+      vars: varNames,
+      coefs: coefArr,
+      bnds: { type: glpk.GLP_LO, lb: lowerPercent * targetCalories, ub: 0 },
+    });
+    // Upper bound
+    constraints.push({
+      name: `meal_${mIdx}_cals_upper`,
+      vars: varNames,
+      coefs: coefArr,
+      bnds: { type: glpk.GLP_UP, lb: 0, ub: upperPercent * targetCalories },
+    });
+  });
+
+  // For each meal, add "main protein ≥ 75% of total protein" constraint
+  dayMeals.forEach((meal, mIdx) => {
+    const qIdx = varNames.indexOf(`q_${mIdx}`);
+    const sIdx = varNames.indexOf(`s_${mIdx}`);
+
+    // Calculate main protein per gram and non-main-protein total per unit scale
+    let mainProtProteinPerGram = 0;
+    let nonMainProtTotal = 0;
+
+    meal.ingredients.forEach((ing) => {
+      if (ing.mainProtein === 1) {
+        mainProtProteinPerGram =
+          ing.protein_per_gram ?? (ing.protein ?? 0) / (ing.grams ?? 1);
+      } else {
+        nonMainProtTotal +=
+          (ing.grams ?? 0) *
+          (ing.protein_per_gram ?? (ing.protein ?? 0) / (ing.grams ?? 1));
+      }
+    });
+
+    // Build coefficient array for all vars
+    const coefArr = Array(varNames.length).fill(0);
+    if (qIdx !== -1) coefArr[qIdx] = mainProtProteinPerGram;
+    if (sIdx !== -1) coefArr[sIdx] = -1.9 * nonMainProtTotal;
+
+    constraints.push({
+      name: `main_protein_75pct_meal_${mIdx}`,
+      vars: varNames,
+      coefs: coefArr,
+      bnds: { type: glpk.GLP_LO, lb: 0, ub: 0 }, // ≥ 0
+    });
+  });
+
+  // --- (b) Per-meal calorie contribution (optional: usually not needed with 1 meal) ---
+  // If needed for multi-meal balance, copy/adapt logic here
+
+  // --- Log all constraints ---
+  // console.log("  constraints:", JSON.stringify(constraints, null, 2));
+
+  // ---------- 3. Variable bounds ----------
+  const bounds: any[] = [];
+  varNames.forEach((v) => {
+    if (nonProteinVars.includes(v)) {
+      bounds.push({
+        name: v,
+        type: glpk.GLP_LO,
+        lb: scalingBounds[v]?.lb ?? 0,
+        ub: scalingBounds[v]?.ub ?? 100,
+      });
+    }
+    if (mainProteinVars.includes(v)) {
+      bounds.push({
+        name: v,
+        type: glpk.GLP_LO,
+        lb: mainProteinBounds[v]?.lb ?? 0,
+        ub: mainProteinBounds[v]?.ub ?? 1000,
+      });
+    }
+  });
+
+  // --- Log bounds ---
+  // console.log("  bounds:", JSON.stringify(bounds, null, 2));
+
+  // ---------- 4. Objective ----------
+  let objective = Array(varNames.length).fill(1);
+
+  // --- Log objective ---
+  // console.log("  objective:", objective);
+
+  // ---------- 5. Build GLPK problem ----------
+  const glpkProblem = {
+    name: "dayPlan",
+    objective: {
+      direction: glpk.GLP_MIN,
+      name: "totalScaling",
+      vars: varNames.map((v, i) => ({ name: v, coef: objective[i] })),
+    },
+    subjectTo: constraints.map((c) => ({
+      name: c.name,
+      vars: c.vars.map((v, i) => ({ name: v, coef: c.coefs[i] })),
+      bnds: c.bnds,
+    })),
+    bounds: bounds,
+  };
+
+  // --- Log GLPK problem (entire model) ---
+  // console.log("  glpkProblem:", JSON.stringify(glpkProblem, null, 2));
+
+  // ---------- 6. Solve ----------
+  const solveOutput = (await glpk.solve(glpkProblem, { msglev: 0 })) as any;
+  //console.log("  GLPK solve output:", solveOutput);
+
+  if (!solveOutput || !solveOutput.result) {
+    // console.error("GLPK failed to solve problem. Output:", solveOutput);
+    return {
+      meals: [],
+      dayCalories: 0,
+      dayProtein: 0,
+      valid: false,
+    };
+  }
+
+  const { result } = solveOutput;
+  const vars = result?.vars || {};
+
+  if (result.status !== glpk.GLP_OPT && result.status !== glpk.GLP_FEAS) {
+    // No solution
+    return {
+      meals: [],
+      dayCalories: 0,
+      dayProtein: 0,
+      valid: false,
+    };
+  }
+
+  // ---------- 7. Build PortionedMeals ----------
+  const portionedMeals: PortionedMeal[] = [];
+  let totalDayCalories = 0;
+  let totalDayProtein = 0;
+
+  dayMeals.forEach((meal, mIdx) => {
+    const sVar = `s_${mIdx}`;
+    const qVar = `q_${mIdx}`;
+    const scale = vars[sVar] ?? 1;
+    const mainProteinGrams = vars[qVar] ?? 0;
+    const portionedIngredients: MealIngredient[] = [];
+    let mealCalories = 0;
+    let mealProtein = 0;
+
+    meal.ingredients.forEach((ing) => {
+      let grams = 0;
+      if (ing.mainProtein === 1) {
+        grams = mainProteinGrams;
+      } else {
+        grams = (ing.grams ?? 0) * scale;
+      }
+
+      const protein_per_gram =
+        ing.protein_per_gram ??
+        (ing.protein !== undefined && ing.grams ? ing.protein / ing.grams : 0);
+      const calories_per_gram =
+        ing.calories_per_gram ??
+        (ing.calories !== undefined && ing.grams
+          ? ing.calories / ing.grams
+          : 0);
+
+      const protein = grams * protein_per_gram;
+      const calories = grams * calories_per_gram;
+
+      // --- Convert grams back to amount using grams_per_unit ---
+      let newAmount = ing.amount;
+      if (ing.grams_per_unit && ing.recommended_unit) {
+        const units = grams / ing.grams_per_unit;
+        const displayUnits =
+          Math.abs(Math.round(units) - units) < 0.05
+            ? Math.round(units).toString()
+            : units.toFixed(2);
+        newAmount = `${displayUnits} ${ing.recommended_unit}`;
+      }
+
+      mealCalories += calories;
+      mealProtein += protein;
+
+      portionedIngredients.push({
+        ...ing,
+        grams,
+        amount: newAmount, // updated!
+        protein_per_gram,
+        calories_per_gram,
+        protein,
+        calories,
+      });
+    });
+
+    portionedMeals.push({
+      mealId: meal.id,
+      mealName: meal.name,
+      ingredients: portionedIngredients,
+      totalCalories: mealCalories,
+      totalProtein: mealProtein,
+    });
+
+    totalDayCalories += mealCalories;
+    totalDayProtein += mealProtein;
+  });
+
+  return {
+    meals: portionedMeals,
+    dayCalories: totalDayCalories,
+    dayProtein: totalDayProtein,
+    valid: true,
+  };
+}

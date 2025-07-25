@@ -61,9 +61,13 @@ export interface MealIngredient {
   name: string;
   amount: string; // For user-friendly display (e.g., "1 tbsp")
   grams?: number; // Required for portion scaling (used in solver)
-  main?: 0 | 1; // 1 = scalable, 0 = fixed
-  protein?: number; // Optional precomputed macros
+  mainProtein?: 0 | 1; // 1 = scalable, 0 = fixed
+  grams_per_unit?: number;
+  protein_per_gram?: number; // Optional precomputed macros
+  calories_per_gram?: number;
+  recommended_unit?: string;
   calories?: number;
+  protein?: number;
 }
 
 export interface DayPlan {
@@ -83,10 +87,11 @@ export interface DayPlan {
     totalProtein: number;
     totalCalories: number;
     recipe: string[];
+    bestFor?: "breakfast" | "lunch" | "dinner" | "versatile";
+    imageUrl?: string;
   }[];
   dayProtein: number;
   dayCalories: number;
-  isCheatDay?: boolean;
 }
 
 export interface StepThreePlannerData {
@@ -95,7 +100,9 @@ export interface StepThreePlannerData {
   approvedMeals: Meal[];
   savedMeals: Meal[];
   generatedMeals: Meal[];
-  allDays: DayPlan[]; // ← master list
+  allPlanOneDays: DayPlan[];
+  allPlanTwoDays: DayPlan[];
+  allPlanThreeDays: DayPlan[];
   approvedDays: DayPlan[];
   unapprovedDays: DayPlan[]; // ← renamed from allGeneratedDays
   mealBrainstormState: "not_started" | "loading" | "completed" | "editing";
@@ -115,6 +122,8 @@ export interface StepThreePlannerData {
   };
   dayGenerationState: "not_started" | "started" | "completed";
   weeklySchedule: Record<DayOfWeek, DayPlan | null>;
+  weeklyScheduleTwo: Record<DayOfWeek, DayPlan | null>;
+  weeklyScheduleThree: Record<DayOfWeek, DayPlan | null>;
   skippedDays: DayOfWeek[];
   mealTimes: Record<string, string>;
 }
@@ -173,7 +182,9 @@ const defaultStepThreeData: StepThreePlannerData = {
   approvedMeals: [],
   savedMeals: [],
   generatedMeals: [],
-  allDays: [],
+  allPlanOneDays: [],
+  allPlanTwoDays: [],
+  allPlanThreeDays: [],
   approvedDays: [],
   unapprovedDays: [],
   mealBrainstormState: "not_started",
@@ -193,6 +204,24 @@ const defaultStepThreeData: StepThreePlannerData = {
   },
   dayGenerationState: "not_started",
   weeklySchedule: {
+    Monday: null,
+    Tuesday: null,
+    Wednesday: null,
+    Thursday: null,
+    Friday: null,
+    Saturday: null,
+    Sunday: null,
+  },
+  weeklyScheduleTwo: {
+    Monday: null,
+    Tuesday: null,
+    Wednesday: null,
+    Thursday: null,
+    Friday: null,
+    Saturday: null,
+    Sunday: null,
+  },
+  weeklyScheduleThree: {
     Monday: null,
     Tuesday: null,
     Wednesday: null,
