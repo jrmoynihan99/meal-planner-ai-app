@@ -169,10 +169,10 @@ export default function GenerateLoadingPage() {
 
       // Get Weekly Schedules setup with moderate variety
       console.log("[page.tsx] Calling WeeklySchedule builder");
-      const planIndices = [1, 2]; // (1 = allPlanOneDays, 2 = allPlanTwoDays, 3 = allPlanThreeDays)
-      const variety = "moderate"; // "less", "moderate", or "lots"
+      const planIndices = [1, 2, 3];
+      const variety =
+        useAppStore.getState().stepThreeData?.variety || "moderate"; // from zustand
 
-      // 4. Call your builder
       const { weeklySchedule, weeklyScheduleTwo, weeklyScheduleThree } =
         buildWeeklySchedulesWithVariety(planIndices, variety, {
           allPlanOneDays,

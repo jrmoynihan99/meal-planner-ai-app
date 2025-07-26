@@ -121,5 +121,10 @@ export function generateDayCombinations(
     generateCombos(slotMeals);
   });
 
-  return allDayCombos;
+  // Remove duplicate combos (using JSON.stringify to compare arrays)
+  const uniqueCombos = Array.from(
+    new Set(allDayCombos.map((combo) => JSON.stringify(combo)))
+  ).map((str) => JSON.parse(str));
+
+  return uniqueCombos;
 }

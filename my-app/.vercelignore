@@ -1,0 +1,5 @@
+# Ignore deprecated step-three-planner folder
+src/app/(step-layout)/step-three-planner/deprecated/
+
+# Ignore meal-solver folder at root
+meal-solver/

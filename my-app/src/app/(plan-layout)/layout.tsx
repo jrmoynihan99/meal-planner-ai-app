@@ -3,13 +3,13 @@
 "use client";
 
 import { SidebarProvider } from "@/components/SidebarContext";
-import { Sidebar } from "@/components/Sidebar";
-import { Header } from "@/components/Header";
+import { PlanSidebar } from "@/components/PlanSidebar";
+import { PlanHeader } from "@/components/PlanHeader";
 import { MenuButton } from "@/components/MenuButton";
 import { useSidebar } from "@/components/SidebarContext";
 import { motion } from "framer-motion";
 import { GroceryCartProvider } from "./your-plan/GroceryCartContext";
-import { ViewModeProvider } from "./your-plan/ViewModeContext"; // ✅ NEW
+import { ViewModeProvider } from "./your-plan/ViewModeContext";
 
 export default function YourPlanLayout({
   children,
@@ -32,8 +32,8 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="relative flex h-full w-full overflow-hidden bg-black text-white">
-      {/* Sidebar — placeholder for now */}
-      <Sidebar />
+      {/* Plan Sidebar */}
+      <PlanSidebar />
 
       {/* Sticky MenuButton */}
       <div className="fixed top-4 left-4 z-60 sm:hidden">
@@ -50,7 +50,7 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
         transition={{ type: "spring", stiffness: 260, damping: 20 }}
         style={{ originX: 0 }}
       >
-        <Header />
+        <PlanHeader />
         <main className="flex-1 h-full overflow-hidden">{children}</main>
       </motion.div>
     </div>

@@ -23,6 +23,7 @@ export function buildZustandDayPlans(
           mealDescription: refMeal?.description || "",
           bestFor: refMeal?.bestFor || undefined,
           imageUrl: refMeal?.imageUrl || undefined,
+          color: refMeal?.color || undefined,
           ingredients: mealObj.ingredients.map((ing: any) => ({
             name: ing.name,
             grams: ing.grams ?? 0,

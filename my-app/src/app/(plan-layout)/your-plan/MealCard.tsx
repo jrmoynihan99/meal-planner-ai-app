@@ -51,9 +51,13 @@ export default function MealCard({
       onClick={onClick}
     >
       <div
-        className="bg-blue-400 text-black rounded-xl px-4 py-3 
-               hover:bg-blue-300 hover:shadow-lg hover:scale-[1.02] 
-               active:scale-95 transition-transform duration-200 ease-out"
+        className="rounded-xl px-4 py-3 
+                   hover:shadow-lg hover:scale-[1.02] 
+                   active:scale-95 transition-transform duration-200 ease-out"
+        style={{
+          backgroundColor: meal.color ?? "#4F81BD",
+          color: "#111",
+        }}
       >
         <div className="flex justify-between items-center">
           <span className="font-semibold text-sm text-black truncate">

@@ -11,6 +11,7 @@ import MealResultsInfoOverlay from "@/components/MealResultsInfoOverlay";
 import { GlowingButtonTwo } from "@/components/GlowingButtonTwo";
 import { generateMeals } from "../QuestionnaireView/mealGeneration";
 import GenerateMoreMealsOverlay from "./GenerateMoreMealsOverlay";
+import { getNextMealColor } from "@/utils/getNextMealColor";
 
 const FILTERS = ["all", "approved", "unapproved", "saved"] as const;
 type FilterType = (typeof FILTERS)[number];
@@ -40,7 +41,15 @@ export default function MealResultsView() {
   const isMealSaved = (meal: Meal) => savedMeals.some((m) => m.id === meal.id);
 
   const handleApprove = (meal: Meal) => {
-    const updatedApproved = [...approvedMeals, meal];
+    // If already approved, keep its color
+    if (approvedMeals.some((m) => m.id === meal.id)) return;
+
+    const nextColor = getNextMealColor(approvedMeals);
+
+    // If meal already has a color (maybe from generatedMeals), keep it
+    const coloredMeal: Meal = meal.color ? meal : { ...meal, color: nextColor };
+
+    const updatedApproved = [...approvedMeals, coloredMeal];
     const updatedSaved = isMealSaved(meal) ? savedMeals : [...savedMeals, meal];
 
     const dedupedSaved = Array.from(
@@ -49,6 +58,11 @@ export default function MealResultsView() {
 
     setApprovedMeals(updatedApproved);
     setSavedMeals(dedupedSaved);
+
+    // Optional: Update generatedMeals so the meal always has its color
+    setGeneratedMeals(
+      allMeals.map((m) => (m.id === coloredMeal.id ? coloredMeal : m))
+    );
   };
 
   const handleUnapprove = (meal: Meal) => {

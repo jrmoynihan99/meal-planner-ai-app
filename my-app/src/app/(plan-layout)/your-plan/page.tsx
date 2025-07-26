@@ -13,7 +13,11 @@ export default function YourPlanPage() {
   const stepThreeData = useAppStore((s) => s.stepThreeData);
   const { isVerticalView } = useViewMode();
 
-  const weeklySchedule = stepThreeData?.weeklySchedule ?? {
+  const selectedScheduleKey =
+    stepThreeData?.selectedScheduleKey || "weeklySchedule";
+
+  const weeklySchedule = (stepThreeData &&
+    stepThreeData[selectedScheduleKey]) || {
     Monday: null,
     Tuesday: null,
     Wednesday: null,

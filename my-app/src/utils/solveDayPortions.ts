@@ -33,23 +33,73 @@ export async function solveDayPortions(
 ): Promise<DayPortionResult> {
   const glpk: GLPK = await initGLPK();
 
-  // --- 0. Log inputs ---
-  // console.log("solveDayPortions INPUT:");
-  // console.log("  dayMeals:", JSON.stringify(dayMeals, null, 2));
-  // console.log(
-  //   "  targetCalories:",
-  //   targetCalories,
-  //   "targetProtein:",
-  //   targetProtein
-  // );
-  // console.log("  lockedPortions:", JSON.stringify(lockedPortions, null, 2));
+  // --- 0. Separate locked and unlocked meals ---
+  const mealStatus: Array<{
+    meal: Meal;
+    originalIndex: number;
+    isLocked: boolean;
+    lockedPortion?: PortionedMeal;
+  }> = [];
 
-  const mealsPerDay = dayMeals.length;
+  const unlockedMeals: Meal[] = [];
+  const unlockedMealIndices: number[] = [];
+
+  let lockedCalories = 0;
+  let lockedProtein = 0;
+
+  dayMeals.forEach((meal, originalIndex) => {
+    const locked = lockedPortions[meal.id];
+    if (locked) {
+      mealStatus.push({
+        meal,
+        originalIndex,
+        isLocked: true,
+        lockedPortion: locked,
+      });
+      lockedCalories += locked.totalCalories;
+      lockedProtein += locked.totalProtein;
+    } else {
+      mealStatus.push({
+        meal,
+        originalIndex,
+        isLocked: false,
+      });
+      unlockedMeals.push(meal);
+      unlockedMealIndices.push(originalIndex);
+    }
+  });
+
+  // If all meals are locked, just return them in original order
+  if (unlockedMeals.length === 0) {
+    const orderedLockedMeals = mealStatus.map(
+      (status) => status.lockedPortion!
+    );
+    return {
+      meals: orderedLockedMeals,
+      dayCalories: lockedCalories,
+      dayProtein: lockedProtein,
+      valid: true,
+    };
+  }
+
+  // Adjust targets for remaining unlocked meals
+  const remainingCalories = targetCalories - lockedCalories;
+  const remainingProtein = targetProtein - lockedProtein;
+
+  // If locked portions already exceed targets, this day is invalid
+  if (remainingCalories < 0 || remainingProtein < 0) {
+    return {
+      meals: [],
+      dayCalories: 0,
+      dayProtein: 0,
+      valid: false,
+    };
+  }
+
+  const mealsPerDay = unlockedMeals.length;
   const { lower, upper } = getPerMealBounds(mealsPerDay);
 
-  // ------ 1. Build variables ------
-  // For each meal: one scaling variable for non-mainProtein ingredients (s_i)
-  // For each meal: one independent variable for the main protein (q_i)
+  // ------ 1. Build variables for unlocked meals only ------
   const varNames: string[] = [];
   const nonProteinVars: string[] = [];
   const mainProteinVars: string[] = [];
@@ -58,7 +108,7 @@ export async function solveDayPortions(
   const mainProteinBounds: { [key: string]: { lb: number; ub: number } } = {};
   const scalingBounds: { [key: string]: { lb: number; ub: number } } = {};
 
-  dayMeals.forEach((meal, mIdx) => {
+  unlockedMeals.forEach((meal, mIdx) => {
     // --- Scaling variable for non-mainProtein ---
     const sVar = `s_${mIdx}`;
     varNames.push(sVar);
@@ -79,20 +129,14 @@ export async function solveDayPortions(
     }
   });
 
-  // --- Log variable setup ---
-  // console.log("  nonProteinVars:", nonProteinVars);
-  // console.log("  mainProteinVars:", mainProteinVars);
-  // console.log("  varNames:", varNames);
-
   // ---------- 2. Build constraints ----------
-
   const constraints: any[] = [];
 
-  // --- (a) Day calorie/protein totals ---
+  // --- (a) Day calorie/protein totals (adjusted for locked portions) ---
   let calorieCoeffs = Array(varNames.length).fill(0);
   let proteinCoeffs = Array(varNames.length).fill(0);
 
-  dayMeals.forEach((meal, mIdx) => {
+  unlockedMeals.forEach((meal, mIdx) => {
     const sIdx = varNames.indexOf(`s_${mIdx}`);
     const qIdx = varNames.indexOf(`q_${mIdx}`);
 
@@ -128,35 +172,33 @@ export async function solveDayPortions(
     }
   });
 
-  // --- Log coefficients
-  // console.log("  calorieCoeffs:", calorieCoeffs);
-  // console.log("  proteinCoeffs:", proteinCoeffs);
-
+  // Use remaining targets instead of full targets
   constraints.push({
     name: "day_cals_lower",
     vars: varNames,
     coefs: calorieCoeffs,
-    bnds: { type: glpk.GLP_LO, lb: targetCalories - 100, ub: 0 },
+    bnds: { type: glpk.GLP_LO, lb: remainingCalories - 100, ub: 0 },
   });
   constraints.push({
     name: "day_cals_upper",
     vars: varNames,
     coefs: calorieCoeffs,
-    bnds: { type: glpk.GLP_UP, lb: 0, ub: targetCalories + 100 },
+    bnds: { type: glpk.GLP_UP, lb: 0, ub: remainingCalories + 100 },
   });
   constraints.push({
     name: "day_protein_lower",
     vars: varNames,
     coefs: proteinCoeffs,
-    bnds: { type: glpk.GLP_LO, lb: targetProtein - 10, ub: 0 },
+    bnds: { type: glpk.GLP_LO, lb: remainingProtein - 10, ub: 0 },
   });
 
-  // Proportional calorie constraint for each meal
-  const basePercent = 1 / mealsPerDay;
+  // Proportional calorie constraint for each unlocked meal
+  // Note: We need to adjust this since we're only considering unlocked meals
+  const basePercent = 1 / unlockedMeals.length;
   const lowerPercent = Math.max(0, basePercent - 0.1);
   const upperPercent = Math.min(1, basePercent + 0.1);
 
-  dayMeals.forEach((meal, mIdx) => {
+  unlockedMeals.forEach((meal, mIdx) => {
     const sIdx = varNames.indexOf(`s_${mIdx}`);
     const qIdx = varNames.indexOf(`q_${mIdx}`);
 
@@ -179,24 +221,25 @@ export async function solveDayPortions(
     if (sIdx !== -1) coefArr[sIdx] = nonMainCal;
     if (qIdx !== -1) coefArr[qIdx] = mainProtCalPerGram;
 
+    // Use remaining calories for proportional constraints
     // Lower bound
     constraints.push({
       name: `meal_${mIdx}_cals_lower`,
       vars: varNames,
       coefs: coefArr,
-      bnds: { type: glpk.GLP_LO, lb: lowerPercent * targetCalories, ub: 0 },
+      bnds: { type: glpk.GLP_LO, lb: lowerPercent * remainingCalories, ub: 0 },
     });
     // Upper bound
     constraints.push({
       name: `meal_${mIdx}_cals_upper`,
       vars: varNames,
       coefs: coefArr,
-      bnds: { type: glpk.GLP_UP, lb: 0, ub: upperPercent * targetCalories },
+      bnds: { type: glpk.GLP_UP, lb: 0, ub: upperPercent * remainingCalories },
     });
   });
 
-  // For each meal, add "main protein ≥ 75% of total protein" constraint
-  dayMeals.forEach((meal, mIdx) => {
+  // For each unlocked meal, add "main protein ≥ 75% of total protein" constraint
+  unlockedMeals.forEach((meal, mIdx) => {
     const qIdx = varNames.indexOf(`q_${mIdx}`);
     const sIdx = varNames.indexOf(`s_${mIdx}`);
 
@@ -228,12 +271,6 @@ export async function solveDayPortions(
     });
   });
 
-  // --- (b) Per-meal calorie contribution (optional: usually not needed with 1 meal) ---
-  // If needed for multi-meal balance, copy/adapt logic here
-
-  // --- Log all constraints ---
-  // console.log("  constraints:", JSON.stringify(constraints, null, 2));
-
   // ---------- 3. Variable bounds ----------
   const bounds: any[] = [];
   varNames.forEach((v) => {
@@ -255,14 +292,8 @@ export async function solveDayPortions(
     }
   });
 
-  // --- Log bounds ---
-  // console.log("  bounds:", JSON.stringify(bounds, null, 2));
-
   // ---------- 4. Objective ----------
   let objective = Array(varNames.length).fill(1);
-
-  // --- Log objective ---
-  // console.log("  objective:", objective);
 
   // ---------- 5. Build GLPK problem ----------
   const glpkProblem = {
@@ -280,15 +311,10 @@ export async function solveDayPortions(
     bounds: bounds,
   };
 
-  // --- Log GLPK problem (entire model) ---
-  // console.log("  glpkProblem:", JSON.stringify(glpkProblem, null, 2));
-
   // ---------- 6. Solve ----------
   const solveOutput = (await glpk.solve(glpkProblem, { msglev: 0 })) as any;
-  //console.log("  GLPK solve output:", solveOutput);
 
   if (!solveOutput || !solveOutput.result) {
-    // console.error("GLPK failed to solve problem. Output:", solveOutput);
     return {
       meals: [],
       dayCalories: 0,
@@ -310,12 +336,12 @@ export async function solveDayPortions(
     };
   }
 
-  // ---------- 7. Build PortionedMeals ----------
-  const portionedMeals: PortionedMeal[] = [];
-  let totalDayCalories = 0;
-  let totalDayProtein = 0;
+  // ---------- 7. Build PortionedMeals for unlocked meals ----------
+  const newPortionedMeals: PortionedMeal[] = [];
+  let newMealCalories = 0;
+  let newMealProtein = 0;
 
-  dayMeals.forEach((meal, mIdx) => {
+  unlockedMeals.forEach((meal, mIdx) => {
     const sVar = `s_${mIdx}`;
     const qVar = `q_${mIdx}`;
     const scale = vars[sVar] ?? 1;
@@ -361,7 +387,7 @@ export async function solveDayPortions(
       portionedIngredients.push({
         ...ing,
         grams,
-        amount: newAmount, // updated!
+        amount: newAmount,
         protein_per_gram,
         calories_per_gram,
         protein,
@@ -369,7 +395,7 @@ export async function solveDayPortions(
       });
     });
 
-    portionedMeals.push({
+    newPortionedMeals.push({
       mealId: meal.id,
       mealName: meal.name,
       ingredients: portionedIngredients,
@@ -377,12 +403,30 @@ export async function solveDayPortions(
       totalProtein: mealProtein,
     });
 
-    totalDayCalories += mealCalories;
-    totalDayProtein += mealProtein;
+    newMealCalories += mealCalories;
+    newMealProtein += mealProtein;
   });
 
+  // ---------- 8. Rebuild meals in original order ----------
+  const finalMeals: PortionedMeal[] = [];
+  let newMealIndex = 0;
+
+  for (const status of mealStatus) {
+    if (status.isLocked) {
+      // Use the locked portion
+      finalMeals.push(status.lockedPortion!);
+    } else {
+      // Use the newly solved portion
+      finalMeals.push(newPortionedMeals[newMealIndex]);
+      newMealIndex++;
+    }
+  }
+
+  const totalDayCalories = lockedCalories + newMealCalories;
+  const totalDayProtein = lockedProtein + newMealProtein;
+
   return {
-    meals: portionedMeals,
+    meals: finalMeals,
     dayCalories: totalDayCalories,
     dayProtein: totalDayProtein,
     valid: true,

@@ -45,10 +45,22 @@ export function findValidDaySets<T extends string | number>(
       : Math.max(...validSets.map((set) => set.length));
   const largestSets = validSets.filter((set) => set.length === maxLen);
 
+  let resultSets = largestSets;
   if (largestSets.length > 3) {
     // Randomly shuffle and return up to 3
     const shuffled = [...largestSets].sort(() => Math.random() - 0.5);
-    return shuffled.slice(0, 3);
+    resultSets = shuffled.slice(0, 3);
   }
-  return largestSets;
+
+  // ---- NEW: Sort so least slot-0 variety comes first ----
+  const setsWithVarietyScore = resultSets.map((set) => {
+    const uniqueSlot0 = new Set(set.map((combo) => combo[0]));
+    return { set, variety: uniqueSlot0.size };
+  });
+
+  setsWithVarietyScore.sort((a, b) => a.variety - b.variety);
+
+  const sortedSets = setsWithVarietyScore.map((obj) => obj.set);
+
+  return sortedSets;
 }

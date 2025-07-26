@@ -55,6 +55,7 @@ export interface Meal {
   recipe: string[];
   bestFor?: "breakfast" | "lunch" | "dinner" | "versatile";
   imageUrl?: string;
+  color?: string;
 }
 
 export interface MealIngredient {
@@ -89,6 +90,7 @@ export interface DayPlan {
     recipe: string[];
     bestFor?: "breakfast" | "lunch" | "dinner" | "versatile";
     imageUrl?: string;
+    color?: string;
   }[];
   dayProtein: number;
   dayCalories: number;
@@ -124,6 +126,11 @@ export interface StepThreePlannerData {
   weeklySchedule: Record<DayOfWeek, DayPlan | null>;
   weeklyScheduleTwo: Record<DayOfWeek, DayPlan | null>;
   weeklyScheduleThree: Record<DayOfWeek, DayPlan | null>;
+  selectedScheduleKey:
+    | "weeklySchedule"
+    | "weeklyScheduleTwo"
+    | "weeklyScheduleThree";
+  variety: "none" | "less" | "moderate" | "lots";
   skippedDays: DayOfWeek[];
   mealTimes: Record<string, string>;
 }
@@ -170,6 +177,12 @@ interface AppState {
     field: keyof StepThreePlannerData["ingredientPreferences"]["customFoods"],
     item: string
   ) => void;
+
+  setSelectedScheduleKey: (
+    key: "weeklySchedule" | "weeklyScheduleTwo" | "weeklyScheduleThree"
+  ) => void;
+
+  setVariety: (variety: "none" | "less" | "moderate" | "lots") => void;
 
   setGeneratedMeals: (meals: Meal[]) => void;
   setApprovedMeals: (meals: Meal[]) => void;
@@ -230,6 +243,8 @@ const defaultStepThreeData: StepThreePlannerData = {
     Saturday: null,
     Sunday: null,
   },
+  selectedScheduleKey: "weeklySchedule",
+  variety: "moderate",
   skippedDays: [],
   mealTimes: {}, // ← Add this missing property
 };
@@ -296,6 +311,22 @@ export const useAppStore = create<AppState>()(
           stepThreeData: {
             ...s.stepThreeData!,
             ingredientPreferences: prefs,
+          },
+        })),
+
+      setSelectedScheduleKey: (key) =>
+        set((s) => ({
+          stepThreeData: {
+            ...s.stepThreeData!,
+            selectedScheduleKey: key,
+          },
+        })),
+
+      setVariety: (variety) =>
+        set((s) => ({
+          stepThreeData: {
+            ...s.stepThreeData!,
+            variety,
           },
         })),
 

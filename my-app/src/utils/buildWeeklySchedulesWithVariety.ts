@@ -1,6 +1,6 @@
 // utils/buildWeeklySchedulesWithVariety.ts
 
-import { DayPlan, DayOfWeek } from "@/lib/store";
+import { DayPlan, DayOfWeek, StepThreePlannerData } from "@/lib/store";
 
 // Days of week in order
 const daysOfWeek: DayOfWeek[] = [
@@ -13,12 +13,10 @@ const daysOfWeek: DayOfWeek[] = [
   "Sunday",
 ];
 
-type Variety = "less" | "moderate" | "lots";
-
 // Takes: which [1,2,3], variety string, and allPlanDays object from Zustand
 export function buildWeeklySchedulesWithVariety(
-  planIndices: number[], // e.g. [1,2] for first and second plan
-  variety: Variety,
+  planIndices: number[],
+  variety: StepThreePlannerData["variety"], // optional, for TS help
   allPlanDaysObj: {
     allPlanOneDays: DayPlan[];
     allPlanTwoDays: DayPlan[];
@@ -44,9 +42,19 @@ export function buildWeeklySchedulesWithVariety(
   // Given days, assign to week by variety
   function assignToWeek(
     days: DayPlan[],
-    variety: Variety
+    variety: StepThreePlannerData["variety"]
   ): Record<DayOfWeek, DayPlan | null> {
     let chosenDays: DayPlan[];
+
+    if (variety === "none") {
+      // If we have at least one day, use the first one for every day; else null.
+      const day = days[0] ?? null;
+      return Object.fromEntries(daysOfWeek.map((dow) => [dow, day])) as Record<
+        DayOfWeek,
+        DayPlan | null
+      >;
+    }
+
     if (variety === "less") {
       chosenDays = pickRandomUnique(days, Math.min(2, days.length));
       // Alternate: 0, 1, 0, 1, ...
