@@ -31,5 +31,5 @@
     ".next/types/**/*.ts",
     "src/app/api/meal-brainstorm/route.ts"
   ],
-  "exclude": ["node_modules", "src/deprecated/**/*", "meal-solver/**/*"]
+  "exclude": ["node_modules", "deprecated/**/*", "meal-solver/**/*"]
 }

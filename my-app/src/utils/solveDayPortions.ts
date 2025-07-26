@@ -44,12 +44,12 @@ interface GLPKSolveResult {
 }
 
 // ---------- Utility: Async Solver ----------
-function getPerMealBounds(mealsPerDay: number) {
+/*function getPerMealBounds(mealsPerDay: number) {
   const base = 1 / mealsPerDay;
   const lower = Math.max(0, base - 0.1);
   const upper = Math.min(1, base + 0.1);
   return { lower, upper };
-}
+}*/
 
 export async function solveDayPortions(
   dayMeals: Meal[],
@@ -122,7 +122,7 @@ export async function solveDayPortions(
     };
   }
 
-  const mealsPerDay = unlockedMeals.length;
+  //const mealsPerDay = unlockedMeals.length;
 
   // ------ 1. Build variables for unlocked meals only ------
   const varNames: string[] = [];
