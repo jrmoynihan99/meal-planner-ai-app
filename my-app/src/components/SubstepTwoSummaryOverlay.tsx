@@ -3,7 +3,6 @@
 import { CloseButton } from "./CloseButton";
 import { Pencil } from "lucide-react";
 import { useAppStore } from "@/lib/store";
-import clsx from "clsx";
 
 interface SubstepTwoSummaryOverlayProps {
   onClose: () => void;
@@ -22,7 +21,6 @@ export function SubstepTwoSummaryOverlay({
     : 0;
 
   const totalSpots = uniqueWeeklyMeals || 0;
-  const filledSpots = Math.min(approvedCount, totalSpots);
 
   return (
     <div className="fixed inset-0 z-60 backdrop-blur-sm bg-black/30 flex items-center justify-center p-4">

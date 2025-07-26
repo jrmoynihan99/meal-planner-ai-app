@@ -1,8 +1,13 @@
+import type { Meal, StepThreePlannerData } from "@/lib/store";
+
+type IngredientPreferences = StepThreePlannerData["ingredientPreferences"];
+type MealPreview = Pick<Meal, "name">;
+
 export function buildMealBrainstormPrompt(
-  preferences: any,
+  preferences: IngredientPreferences,
   mealsPerDay: number,
-  previouslyApprovedMeals: any[] = [],
-  previouslyGeneratedMeals: any[] = []
+  previouslyApprovedMeals: MealPreview[] = [],
+  previouslyGeneratedMeals: MealPreview[] = []
 ) {
   const approvedNames = previouslyApprovedMeals.map((m) => m.name).join(", ");
   const generatedNames = previouslyGeneratedMeals.map((m) => m.name).join(", ");
@@ -17,7 +22,7 @@ They have already approved these meals:
 ${approvedNames || "None"}
 
 Generate ${
-    mealsPerDay * 2
+    mealsPerDay * 1
   } new, **unique** meals that are **not duplicates** or too similar to any of the meals listed above.
 
 Use these preferences:

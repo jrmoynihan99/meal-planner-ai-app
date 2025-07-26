@@ -9,7 +9,7 @@ interface FruitToggleProps {
 }
 
 export default function FruitToggle({ value, onChange }: FruitToggleProps) {
-  const [isMobile, setIsMobile] = useState(false);
+  const [, setIsMobile] = useState(false);
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);

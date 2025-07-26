@@ -3,14 +3,12 @@
 import { useEffect, useState } from "react";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import FoodToggleGrid from "../MealResultsView/FoodToggleGrid";
-import { StepThreePlannerData } from "@/lib/store";
 import { AnimatePresence, motion } from "framer-motion";
 
 interface CollapsibleSectionProps {
   index: number;
   total: number;
   title: string;
-  field: keyof StepThreePlannerData["ingredientPreferences"];
   options: string[];
   customOptions: string[];
   values: string[];
@@ -25,7 +23,6 @@ export default function CollapsibleSection({
   index,
   total,
   title,
-  field,
   options,
   customOptions,
   values,

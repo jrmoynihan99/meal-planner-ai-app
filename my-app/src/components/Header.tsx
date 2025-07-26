@@ -4,21 +4,12 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useAppStore } from "@/lib/store";
 import { GeneralInfoOverlay } from "@/components/GeneralInfoOverlay";
-import {
-  Info,
-  RotateCcw,
-  LayoutList,
-  LayoutGrid,
-  ShoppingCart,
-} from "lucide-react";
+import { Info, RotateCcw } from "lucide-react";
 import { OverlayPortal } from "@/components/OverlayPortal";
-import { useGroceryCart } from "@/app/(plan-layout)/your-plan/GroceryCartContext";
-import { useViewMode } from "@/app/(plan-layout)/your-plan/ViewModeContext";
 import QuestionnaireViewInfoOverlay from "@/components/QuestionnaireViewInfoOverlay";
 import MealResultsInfoOverlay from "@/components/MealResultsInfoOverlay";
 import StepOneInfoOverlay from "@/components/StepOneInfoOverlay";
 import StepTwoInfoOverlay from "@/components/StepTwoInfoOverlay";
-import clsx from "clsx";
 
 const routeTitles: Record<string, string> = {
   "/step-one-data": "Input Your Data",
@@ -26,7 +17,6 @@ const routeTitles: Record<string, string> = {
   "/step-three-planner/meal-brainstorm": "Brainstorm Meals",
   "/step-three-planner/create-days": "Approve Days",
   "/step-three-planner/weekly-assignment": "Weekly Assignment",
-  "/your-plan": "Your Plan",
 };
 
 export function Header() {
@@ -34,12 +24,6 @@ export function Header() {
   const title = routeTitles[pathname] || "Step";
   const [showOverlay, setShowOverlay] = useState(false);
   const [showInfoOverlay, setShowInfoOverlay] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
-
-  const isYourPlan = pathname === "/your-plan";
-
-  const groceryCart = isYourPlan ? useGroceryCart() : null;
-  const viewMode = isYourPlan ? useViewMode() : null;
 
   const resetStepOneData = useAppStore((s) => s.setStepOneData);
   const resetStepTwoData = useAppStore((s) => s.setStepTwoData);
@@ -103,13 +87,6 @@ export function Header() {
       });
   }
 
-  useEffect(() => {
-    const check = () => setIsMobile(window.innerWidth < 768);
-    check();
-    window.addEventListener("resize", check);
-    return () => window.removeEventListener("resize", check);
-  }, []);
-
   const renderInfoOverlay = () => {
     if (pathname === "/step-one-data")
       return (
@@ -151,53 +128,21 @@ export function Header() {
         {title}
       </div>
 
-      <div
-        className={clsx(
-          "absolute right-4 inset-y-0 my-auto flex items-center gap-4",
-          isMobile && isYourPlan ? "flex-row-reverse" : ""
-        )}
-      >
-        {isYourPlan ? (
-          <>
-            <button
-              onClick={groceryCart?.open}
-              className="p-1 text-white hover:text-green-400 transition cursor-pointer"
-              title="Open Grocery List"
-            >
-              <ShoppingCart className="w-5 h-5" />
-            </button>
-            {isMobile && (
-              <button
-                onClick={viewMode?.toggleVerticalView}
-                className="p-1 text-white hover:text-blue-400 transition cursor-pointer"
-                title="Toggle Layout"
-              >
-                {viewMode?.isVerticalView ? (
-                  <LayoutGrid className="w-5 h-5" />
-                ) : (
-                  <LayoutList className="w-5 h-5" />
-                )}
-              </button>
-            )}
-          </>
-        ) : (
-          <>
-            <button
-              onClick={() => setShowInfoOverlay(true)}
-              className="p-1 text-white hover:text-blue-400 transition cursor-pointer"
-              title="Step Info"
-            >
-              <Info className="w-5 h-5" />
-            </button>
-            <button
-              onClick={() => setShowOverlay(true)}
-              className="p-1 text-white hover:text-red-400 transition cursor-pointer"
-              title="Reset This Step"
-            >
-              <RotateCcw className="w-5 h-5" />
-            </button>
-          </>
-        )}
+      <div className="absolute right-4 inset-y-0 my-auto flex items-center gap-4">
+        <button
+          onClick={() => setShowInfoOverlay(true)}
+          className="p-1 text-white hover:text-blue-400 transition cursor-pointer"
+          title="Step Info"
+        >
+          <Info className="w-5 h-5" />
+        </button>
+        <button
+          onClick={() => setShowOverlay(true)}
+          className="p-1 text-white hover:text-red-400 transition cursor-pointer"
+          title="Reset This Step"
+        >
+          <RotateCcw className="w-5 h-5" />
+        </button>
       </div>
 
       {showOverlay && (

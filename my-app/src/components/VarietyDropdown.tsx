@@ -3,6 +3,7 @@ import { ChevronDown } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { useAppStore } from "@/lib/store";
 import { buildWeeklySchedulesWithVariety } from "@/utils/buildWeeklySchedulesWithVariety";
+import type { DayPlan } from "@/lib/store";
 
 const VARIETY_OPTIONS = [
   { key: "none", label: "None" },
@@ -14,9 +15,9 @@ const VARIETY_OPTIONS = [
 type VarietyOption = (typeof VARIETY_OPTIONS)[number]["key"];
 
 interface VarietyDropdownProps {
-  allPlanOneDays: any[];
-  allPlanTwoDays: any[];
-  allPlanThreeDays: any[];
+  allPlanOneDays: DayPlan[];
+  allPlanTwoDays: DayPlan[];
+  allPlanThreeDays: DayPlan[];
 }
 
 export function VarietyDropdown({

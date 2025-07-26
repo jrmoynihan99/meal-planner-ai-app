@@ -14,7 +14,7 @@ import FruitToggle from "./FruitToggle";
 import CustomInput from "./CustomInput";
 import MealsPerDaySelector from "./MealsPerDaySelector";
 import { GlowingButtonTwo } from "@/components/GlowingButtonTwo";
-import type { StepThreePlannerData, Meal } from "@/lib/store";
+import type { StepThreePlannerData } from "@/lib/store";
 import QuestionnaireViewInfoOverlay from "@/components/QuestionnaireViewInfoOverlay";
 import { generateMeals } from "./mealGeneration";
 
@@ -34,7 +34,6 @@ export default function QuestionnaireView() {
   const addCustomFoodItem = useAppStore((s) => s.addCustomFoodItem);
 
   const hiddenOverlays = useAppStore((s) => s.hiddenOverlays);
-  const setOverlayHidden = useAppStore((s) => s.setOverlayHidden);
 
   const [showOverlay, setShowOverlay] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
@@ -105,7 +104,6 @@ export default function QuestionnaireView() {
               index={i}
               total={sections.length}
               title={section.title}
-              field={section.key}
               options={section.options}
               customOptions={ingredientPrefs.customFoods?.[section.key] ?? []}
               values={ingredientPrefs[section.key] as string[]}

@@ -1,7 +1,6 @@
-// utils/buildAllPlanDays.ts
-
 import { DayPlan, Meal } from "@/lib/store";
 import { OrderingResult } from "@/utils/solveOrderingSequence";
+import { PortionedMeal } from "@/utils/solveDayPortions";
 
 export function buildZustandDayPlans(
   chosenResults: OrderingResult[],
@@ -11,20 +10,23 @@ export function buildZustandDayPlans(
   const allPlanTwoDays: DayPlan[] = [];
   const allPlanThreeDays: DayPlan[] = [];
 
-  function buildDaysArray(validDayPlans: any[], planIndex: number): DayPlan[] {
+  function buildDaysArray(
+    validDayPlans: PortionedMeal[][],
+    planIndex: number
+  ): DayPlan[] {
     return validDayPlans.map((mealsArr, i) => ({
       id: `plan${planIndex + 1}-day${i + 1}`,
       planNumber: i + 1,
-      meals: mealsArr.map((mealObj: any) => {
+      meals: mealsArr.map((mealObj) => {
         const refMeal = approvedMeals.find((m) => m.id === mealObj.mealId);
         return {
           mealId: mealObj.mealId,
           mealName: mealObj.mealName,
           mealDescription: refMeal?.description || "",
-          bestFor: refMeal?.bestFor || undefined,
-          imageUrl: refMeal?.imageUrl || undefined,
-          color: refMeal?.color || undefined,
-          ingredients: mealObj.ingredients.map((ing: any) => ({
+          bestFor: refMeal?.bestFor,
+          imageUrl: refMeal?.imageUrl,
+          color: refMeal?.color,
+          ingredients: mealObj.ingredients.map((ing) => ({
             name: ing.name,
             grams: ing.grams ?? 0,
             protein: ing.protein ?? 0,
@@ -36,14 +38,8 @@ export function buildZustandDayPlans(
           recipe: refMeal?.recipe ?? [],
         };
       }),
-      dayProtein: mealsArr.reduce(
-        (sum: number, m: any) => sum + (m.totalProtein ?? 0),
-        0
-      ),
-      dayCalories: mealsArr.reduce(
-        (sum: number, m: any) => sum + (m.totalCalories ?? 0),
-        0
-      ),
+      dayProtein: mealsArr.reduce((sum, m) => sum + (m.totalProtein ?? 0), 0),
+      dayCalories: mealsArr.reduce((sum, m) => sum + (m.totalCalories ?? 0), 0),
       isCheatDay: false,
     }));
   }

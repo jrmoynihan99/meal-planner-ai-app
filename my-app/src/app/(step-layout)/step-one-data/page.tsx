@@ -65,7 +65,6 @@ export default function StepOneSetupPage() {
   const hasHydrated = useAppStore((s) => s.hasHydrated);
   const stepKey = "step-one-info";
   const hiddenOverlays = useAppStore((s) => s.hiddenOverlays);
-  const setOverlayHidden = useAppStore((s) => s.setOverlayHidden);
   const [showOverlay, setShowOverlay] = useState(false);
 
   console.log("✅ Hydrated:", hasHydrated);

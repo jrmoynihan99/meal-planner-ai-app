@@ -14,7 +14,7 @@ export default function MealsPerDaySelector({
   value,
   onChange,
 }: MealsPerDaySelectorProps) {
-  const [isMobile, setIsMobile] = useState(false);
+  const [, setIsMobile] = useState(false);
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);

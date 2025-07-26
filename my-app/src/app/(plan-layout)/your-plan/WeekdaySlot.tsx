@@ -132,7 +132,6 @@ export default function WeekdaySlot({
               >
                 <MealCard
                   meal={meal}
-                  index={index}
                   dayOfWeek={dayOfWeek}
                   onClick={() => onMealClick(meal)}
                 />
@@ -152,12 +151,7 @@ export default function WeekdaySlot({
         }}
       >
         {activeId && activeMeal ? (
-          <MealCard
-            meal={activeMeal}
-            index={0}
-            dayOfWeek={dayOfWeek}
-            isDragging
-          />
+          <MealCard meal={activeMeal} dayOfWeek={dayOfWeek} isDragging />
         ) : null}
       </DragOverlay>
     </DndContext>

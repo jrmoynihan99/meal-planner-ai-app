@@ -6,18 +6,14 @@ import type { DayPlan, DayOfWeek } from "@/lib/store";
 
 interface MealCardProps {
   meal: DayPlan["meals"][number];
-  index: number;
   dayOfWeek: DayOfWeek;
-  savedTime?: string;
   isDragging?: boolean;
   onClick?: () => void;
 }
 
 export default function MealCard({
   meal,
-  index,
   dayOfWeek,
-  savedTime,
   isDragging = false,
   onClick,
 }: MealCardProps) {

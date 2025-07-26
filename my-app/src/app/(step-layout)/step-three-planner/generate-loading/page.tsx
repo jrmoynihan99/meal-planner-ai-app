@@ -12,7 +12,7 @@ import { Meal } from "@/lib/store";
 import { solveOrderingSequence } from "@/utils/solveOrderingSequence";
 import { buildZustandDayPlans } from "@/utils/buildZustandDayPlans";
 import { buildWeeklySchedulesWithVariety } from "@/utils/buildWeeklySchedulesWithVariety";
-import { DayOfWeek } from "@/lib/store";
+import type { OrderingResult } from "@/utils/solveOrderingSequence";
 
 const loadingTexts = [
   "Cooking up your meals...",
@@ -81,9 +81,9 @@ export default function GenerateLoadingPage() {
 
       // logic currently built for multiple orderings, but we've coded "1" so there's only 1 iteration of outer loop.
       // Holds all bestResults arrays, one per valid set
-      const allBestResults: any[][] = [];
+      const allBestResults: OrderingResult[][] = [];
       // Array of just the one chosen per set
-      const chosenResults: any[] = [];
+      const chosenResults: OrderingResult[] = [];
 
       for (let setIdx = 0; setIdx < validSets.length; setIdx++) {
         const validSet = validSets[setIdx];
@@ -131,12 +131,13 @@ export default function GenerateLoadingPage() {
         }, 0);
 
         // Gather all results with maxValidDays for this set
-        const bestResults = results.filter(
-          (curr) => curr && curr.validDays === maxValidDays
+        const bestResults: OrderingResult[] = results.filter(
+          (curr): curr is OrderingResult =>
+            curr !== null && curr.validDays === maxValidDays
         );
 
         // Randomly pick ONE from bestResults
-        let chosen = null;
+        let chosen: OrderingResult | null = null;
         if (bestResults.length > 0) {
           const randIdx = Math.floor(Math.random() * bestResults.length);
           chosen = bestResults[randIdx];

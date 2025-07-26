@@ -1,5 +1,4 @@
 // /app/api/meal-brainstorm/route.ts
-import { openai } from "@ai-sdk/openai";
 import OpenAI from "openai";
 import { buildMealBrainstormPrompt } from "@/lib/prompts/mealBrainstorm";
 import { NextRequest, NextResponse } from "next/server";
@@ -56,7 +55,7 @@ export async function POST(req: NextRequest) {
 }
 
 // Simple JSON block extractor
-function extractJsonArray(text: string): any[] {
+function extractJsonArray(text: string): unknown[] {
   try {
     const cleaned = text
       .replace(/```json/g, "")

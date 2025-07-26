@@ -19,7 +19,10 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const ingredientNames = meal.ingredients.map((i: any) => i.name).join(", ");
+    const ingredientNames = meal.ingredients
+      .map((i: { name: string }) => i.name)
+      .join(", ");
+
     const prompt = `Realistic photo of a meal called "${meal.name}", made with ${ingredientNames}. Top-down food photography, vibrant lighting, plated beautifully.`;
 
     console.log(`🧠 [API] Prompt for ${meal.name}: ${prompt}`);

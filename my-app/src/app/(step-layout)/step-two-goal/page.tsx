@@ -48,7 +48,6 @@ export default function StepTwoGoalPage() {
   const setStepTwoData = useAppStore((s) => s.setStepTwoData);
   const stepKey = "step-two-goal";
   const hiddenOverlays = useAppStore((s) => s.hiddenOverlays);
-  const setOverlayHidden = useAppStore((s) => s.setOverlayHidden);
   const [showOverlay, setShowOverlay] = useState(false);
 
   const selectedGoal = stepTwoData?.selectedGoalTitle ?? null;

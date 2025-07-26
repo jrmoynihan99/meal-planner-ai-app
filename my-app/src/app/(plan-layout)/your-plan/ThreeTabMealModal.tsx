@@ -65,10 +65,10 @@ export function ThreeTabMealModal({
           </div>
 
           <div className="flex gap-3 mb-5">
-            {["details", "ingredients", "recipe"].map((tab) => (
+            {(["details", "ingredients", "recipe"] as const).map((tab) => (
               <button
                 key={tab}
-                onClick={() => setActiveTab(tab as any)}
+                onClick={() => setActiveTab(tab)}
                 className={`px-3 py-1.5 text-sm rounded-md font-mono transition ${
                   activeTab === tab
                     ? "bg-blue-600 text-white"

@@ -38,7 +38,7 @@ export default function MealResultsInfoOverlay({
         mobileControls.start({ y: "25%" });
       });
     }
-  }, [isMobile]);
+  }, [isMobile, mobileControls]);
 
   useEffect(() => {
     setDontShow(initiallyHidden);
@@ -198,8 +198,8 @@ export default function MealResultsInfoOverlay({
                       </div>
                       <div className="w-px h-6 bg-zinc-700 mx-2" />
                       <p className="text-zinc-400 flex-1">
-                        Tracks how many meals you've approved. Click for more
-                        info.
+                        Tracks how many meals you&#39;ve approved. Click for
+                        more info.
                       </p>
                     </div>
                   </div>
@@ -214,7 +214,7 @@ export default function MealResultsInfoOverlay({
                       className="h-4 w-4 text-blue-600 bg-zinc-900 border border-zinc-700 rounded-sm focus:ring-2 focus:ring-blue-500"
                     />
                     <span className="text-sm text-zinc-300 select-none">
-                      Don’t show this again
+                      Don&#39;t show this again
                     </span>
                   </label>
 

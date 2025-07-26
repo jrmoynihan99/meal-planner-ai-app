@@ -17,6 +17,32 @@ export interface DayPortionResult {
   valid: boolean;
 }
 
+// ---------- Type definitions for GLPK ----------
+interface GLPKConstraint {
+  name: string;
+  vars: string[];
+  coefs: number[];
+  bnds: {
+    type: number;
+    lb: number;
+    ub: number;
+  };
+}
+
+interface GLPKBound {
+  name: string;
+  type: number;
+  lb: number;
+  ub: number;
+}
+
+interface GLPKSolveResult {
+  result?: {
+    status: number;
+    vars?: Record<string, number>;
+  };
+}
+
 // ---------- Utility: Async Solver ----------
 function getPerMealBounds(mealsPerDay: number) {
   const base = 1 / mealsPerDay;
@@ -130,11 +156,11 @@ export async function solveDayPortions(
   });
 
   // ---------- 2. Build constraints ----------
-  const constraints: any[] = [];
+  const constraints: GLPKConstraint[] = [];
 
   // --- (a) Day calorie/protein totals (adjusted for locked portions) ---
-  let calorieCoeffs = Array(varNames.length).fill(0);
-  let proteinCoeffs = Array(varNames.length).fill(0);
+  const calorieCoeffs = Array(varNames.length).fill(0);
+  const proteinCoeffs = Array(varNames.length).fill(0);
 
   unlockedMeals.forEach((meal, mIdx) => {
     const sIdx = varNames.indexOf(`s_${mIdx}`);
@@ -145,7 +171,7 @@ export async function solveDayPortions(
     let mainProtCalPerGram = 0;
     let mainProtProtPerGram = 0;
 
-    meal.ingredients.forEach((ing, iIdx) => {
+    meal.ingredients.forEach((ing) => {
       if (!ing.grams) return;
       if (ing.mainProtein === 1) {
         mainProtCalPerGram =
@@ -272,7 +298,7 @@ export async function solveDayPortions(
   });
 
   // ---------- 3. Variable bounds ----------
-  const bounds: any[] = [];
+  const bounds: GLPKBound[] = [];
   varNames.forEach((v) => {
     if (nonProteinVars.includes(v)) {
       bounds.push({
@@ -293,7 +319,7 @@ export async function solveDayPortions(
   });
 
   // ---------- 4. Objective ----------
-  let objective = Array(varNames.length).fill(1);
+  const objective = Array(varNames.length).fill(1);
 
   // ---------- 5. Build GLPK problem ----------
   const glpkProblem = {
@@ -312,7 +338,9 @@ export async function solveDayPortions(
   };
 
   // ---------- 6. Solve ----------
-  const solveOutput = (await glpk.solve(glpkProblem, { msglev: 0 })) as any;
+  const solveOutput = (await glpk.solve(glpkProblem, {
+    msglev: 0,
+  })) as GLPKSolveResult;
 
   if (!solveOutput || !solveOutput.result) {
     return {

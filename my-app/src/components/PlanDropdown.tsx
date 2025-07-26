@@ -1,19 +1,22 @@
 import { ChevronDown } from "lucide-react";
-import { useState, useRef, useEffect, Fragment } from "react";
+import { useState, useRef, useEffect } from "react";
+import type { DayPlan, DayOfWeek } from "@/lib/store";
 
 interface PlanDropdownProps {
   // Pass the plans directly with their data
   plans: {
     key: string;
     label: string;
-    schedule: Record<string, any> | undefined;
+    schedule: Record<DayOfWeek, DayPlan | null> | undefined;
   }[];
   value: string;
   onChange: (val: string) => void;
 }
 
 // Helper: checks if a schedule is complete (all days not null)
-function isPlanComplete(schedule: Record<string, any> | undefined) {
+function isPlanComplete(
+  schedule: Record<DayOfWeek, DayPlan | null> | undefined
+) {
   return !!schedule && Object.values(schedule).every((val) => val !== null);
 }
 
