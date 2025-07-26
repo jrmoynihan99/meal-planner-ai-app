@@ -112,7 +112,7 @@ export default function StepTwoInfoOverlay({
                   </h2>
                   <div className="text-sm text-zinc-300 mt-2">
                     Choose whether you want to lose, maintain, or gain weight —
-                    and at what pace. We'll calculate your daily calorie and
+                    and at what pace. We&#39;ll calculate your daily calorie and
                     protein targets based on this.
                   </div>
                   <label className="flex items-center gap-2 pt-4">
@@ -121,7 +121,7 @@ export default function StepTwoInfoOverlay({
                       checked={dontShow}
                       onChange={() => setDontShow(!dontShow)}
                     />
-                    <span className="text-sm">Don't show this again</span>
+                    <span className="text-sm">Don&#39;t show this again</span>
                   </label>
                   <button
                     onClick={handleBackdropClick}
@@ -155,7 +155,7 @@ export default function StepTwoInfoOverlay({
                   </h2>
                   <div className="text-sm text-zinc-300 mb-4">
                     Choose whether you want to lose, maintain, or gain weight —
-                    and at what pace. We'll calculate your daily calorie and
+                    and at what pace. We&#39;ll calculate your daily calorie and
                     protein targets based on this.
                   </div>
                   <label className="flex items-center gap-2 mb-4">
@@ -164,7 +164,7 @@ export default function StepTwoInfoOverlay({
                       checked={dontShow}
                       onChange={() => setDontShow(!dontShow)}
                     />
-                    <span className="text-sm">Don't show this again</span>
+                    <span className="text-sm">Don&#39;t show this again</span>
                   </label>
                   <button
                     onClick={handleClose}

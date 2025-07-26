@@ -114,8 +114,8 @@ export default function QUestionnaireViewInfoOverlay({
                   </h2>
                   <div className="text-sm text-zinc-300 mt-2">
                     Select your favorite foods! These preferences help guide our
-                    AI towards your tastes and generate meals you'll actually
-                    want to eat.
+                    AI towards your tastes and generate meals you&#39;ll
+                    actually want to eat.
                   </div>
                   <div className="mt-4 p-3 rounded-lg bg-zinc-800 border border-zinc-700 text-sm text-zinc-200">
                     <strong className="text-white">Important: </strong>
@@ -155,7 +155,7 @@ export default function QUestionnaireViewInfoOverlay({
                       checked={dontShow}
                       onChange={() => setDontShow(!dontShow)}
                     />
-                    <span className="text-sm">Don't show this again</span>
+                    <span className="text-sm">Don&#39;t show this again</span>
                   </label>
                   <button
                     onClick={handleBackdropClick}
@@ -190,8 +190,8 @@ export default function QUestionnaireViewInfoOverlay({
 
                   <div className="text-sm text-zinc-300">
                     Select your favorite foods! These preferences help guide our
-                    AI towards your tastes and generate meals you'll actually
-                    want to eat.
+                    AI towards your tastes and generate meals you&#39;ll
+                    actually want to eat.
                   </div>
 
                   <div className="mt-4 p-3 rounded-lg bg-zinc-800 border border-zinc-700 text-sm text-zinc-200">

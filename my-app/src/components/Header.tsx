@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useAppStore } from "@/lib/store";
 import { GeneralInfoOverlay } from "@/components/GeneralInfoOverlay";
 import { Info, RotateCcw } from "lucide-react";

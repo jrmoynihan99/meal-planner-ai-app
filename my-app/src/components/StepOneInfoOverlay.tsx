@@ -121,7 +121,7 @@ export default function StepOneInfoOverlay({
                       checked={dontShow}
                       onChange={() => setDontShow(!dontShow)}
                     />
-                    <span className="text-sm">Don't show this again</span>
+                    <span className="text-sm">Don&#39;t show this again</span>
                   </label>
                   <button
                     onClick={handleBackdropClick}
@@ -160,7 +160,7 @@ export default function StepOneInfoOverlay({
                       checked={dontShow}
                       onChange={() => setDontShow(!dontShow)}
                     />
-                    <span className="text-sm">Don't show this again</span>
+                    <span className="text-sm">Don&#39;t show this again</span>
                   </label>
                   <button
                     onClick={handleClose}

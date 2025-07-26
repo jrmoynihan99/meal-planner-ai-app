@@ -337,8 +337,8 @@ export default function MealResultsInfoOverlay({
                       </div>
                       <div className="w-px h-6 bg-zinc-700 mx-2" />
                       <p className="text-zinc-400 flex-1">
-                        Tracks how many meals you've approved. Click for more
-                        info.
+                        Tracks how many meals you&#39;ve approved. Click for
+                        more info.
                       </p>
                     </div>
                   </div>

@@ -20,8 +20,6 @@ export function SubstepTwoSummaryOverlay({
     ? Math.min((approvedCount / uniqueWeeklyMeals) * 100, 100)
     : 0;
 
-  const totalSpots = uniqueWeeklyMeals || 0;
-
   return (
     <div className="fixed inset-0 z-60 backdrop-blur-sm bg-black/30 flex items-center justify-center p-4">
       <div className="relative inline-flex">

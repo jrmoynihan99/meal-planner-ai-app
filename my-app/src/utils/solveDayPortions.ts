@@ -123,7 +123,6 @@ export async function solveDayPortions(
   }
 
   const mealsPerDay = unlockedMeals.length;
-  const { lower, upper } = getPerMealBounds(mealsPerDay);
 
   // ------ 1. Build variables for unlocked meals only ------
   const varNames: string[] = [];
