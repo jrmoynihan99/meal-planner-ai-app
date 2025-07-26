@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { CloseButton } from "./CloseButton";
+import { CloseButton } from "../../src/components/CloseButton";
 import { useAppStore, DayOfWeek, DayPlan } from "@/lib/store";
 import { ChevronDown, ChevronUp, Utensils } from "lucide-react";
 import Link from "next/link";
@@ -70,7 +70,6 @@ export function SubstepFourSummaryOverlay({
                 const entry = weeklySchedule[dayOfWeek];
                 if (!entry) return null;
 
-                const isCheatDay = entry.isCheatDay === true;
                 const isOpen = openDropdowns[dayOfWeek];
 
                 return (
