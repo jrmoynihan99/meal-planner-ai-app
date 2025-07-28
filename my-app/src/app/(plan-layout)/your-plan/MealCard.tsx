@@ -38,9 +38,10 @@ export default function MealCard({
   });
 
   const { isVerticalView } = useViewMode();
+  const mealTimes = useAppStore((s) => s.stepThreeData?.mealTimes || {});
 
   // Detect mobile screen width
-  const [isMobile, setIsMobile] = useState(false);
+  const [, setIsMobile] = useState(false);
   useEffect(() => {
     const handleResize = () => {
       setIsMobile(window.innerWidth < 768);
@@ -63,6 +64,13 @@ export default function MealCard({
 
   // List variant for VerticalList component
   if (variant === "list") {
+    // 🟦 Use a default time as fallback
+    const mealTimeKey = `${dayOfWeek}-${meal.mealId}`;
+    const defaultTimes = ["07:00", "12:00", "18:00"];
+    const fallbackTime = defaultTimes[0] || "12:00"; // You can adjust the index logic
+
+    const time = mealTimes[mealTimeKey] || fallbackTime;
+
     return (
       <div className="cursor-pointer" onClick={onClick} style={combinedStyle}>
         <div
@@ -79,22 +87,8 @@ export default function MealCard({
             <span className="text-sm font-bold text-black truncate">
               {meal.mealName}
             </span>
-            <span className="text-xs text-black/70">
-              {(() => {
-                const mealTimes = useAppStore(
-                  (s) => s.stepThreeData?.mealTimes || {}
-                );
-                const mealTimeKey = `${dayOfWeek}-${meal.mealId}`;
-
-                const defaultTimes = ["07:00", "12:00", "18:00"];
-                const index = 0; // You can optionally pass this in as a prop if you know the meal's index
-                const fallbackTime = defaultTimes[index] || "12:00";
-
-                const time = mealTimes[mealTimeKey] || fallbackTime;
-
-                return <span className="text-xs text-black/70">{time}</span>;
-              })()}
-            </span>
+            {/* 🟦 Fixed: Use mealTimes from hook */}
+            <span className="text-xs text-black/70">{time}</span>
           </div>
 
           {/* Right side - Nutrition and icons */}

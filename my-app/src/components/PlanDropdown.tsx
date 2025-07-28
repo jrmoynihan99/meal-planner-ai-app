@@ -89,7 +89,14 @@ export function PlanDropdown({ plans, value, onChange }: PlanDropdownProps) {
                 {opt.label}
               </button>
               <button
-                onClick={() => setFavoriteKey(opt.key as any)}
+                onClick={() =>
+                  setFavoriteKey(
+                    opt.key as
+                      | "weeklySchedule"
+                      | "weeklyScheduleTwo"
+                      | "weeklyScheduleThree"
+                  )
+                }
                 className="ml-2 text-zinc-400 hover:text-yellow-400 cursor-pointer"
                 aria-label="Set as favorite plan"
               >
