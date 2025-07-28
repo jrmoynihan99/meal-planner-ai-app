@@ -161,18 +161,26 @@ export default function GenerateLoadingPage() {
       console.log("[page.tsx] allPlanOneDays:", allPlanOneDays);
       console.log("[page.tsx] allPlanTwoDays:", allPlanTwoDays);
       console.log("[page.tsx] allPlanThreeDays:", allPlanThreeDays);
+
+      let variety: "none" | "less" | "moderate";
+      if (allPlanOneDays.length > 5) {
+        variety = "moderate";
+      } else if (allPlanOneDays.length > 2) {
+        variety = "less";
+      } else {
+        variety = "none";
+      }
       // Now update Zustand with these arrays
       setStepThreeData({
         allPlanOneDays,
         allPlanTwoDays,
         allPlanThreeDays,
+        variety,
       });
 
       // Get Weekly Schedules setup with moderate variety
       console.log("[page.tsx] Calling WeeklySchedule builder");
       const planIndices = [1, 2, 3];
-      const variety =
-        useAppStore.getState().stepThreeData?.variety || "moderate"; // from zustand
 
       const { weeklySchedule, weeklyScheduleTwo, weeklyScheduleThree } =
         buildWeeklySchedulesWithVariety(planIndices, variety, {

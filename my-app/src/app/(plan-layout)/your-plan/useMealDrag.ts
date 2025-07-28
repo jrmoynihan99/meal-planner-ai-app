@@ -1,96 +1,87 @@
 // useMealDrag.ts
-import { useEffect, useState } from "react";
+import { useState, useCallback } from "react";
 import {
-  PointerSensor,
   useSensor,
   useSensors,
+  PointerSensor,
+  TouchSensor,
   DragStartEvent,
   DragEndEvent,
 } from "@dnd-kit/core";
-import { TimeUtils } from "./timeUtils";
 import type { DayOfWeek, DayPlan } from "@/lib/store";
-import { useAppStore } from "@/lib/store";
 
-export function useMealDrag(dayOfWeek: DayOfWeek, meals: DayPlan["meals"]) {
+interface MealWithDay {
+  meal: DayPlan["meals"][number];
+  day: DayOfWeek;
+}
+
+export function useMealDrag(mealsWithDays: MealWithDay[]) {
   const [activeId, setActiveId] = useState<string | null>(null);
   const [activeMeal, setActiveMeal] = useState<DayPlan["meals"][number] | null>(
     null
   );
+  const [activeDayOfWeek, setActiveDayOfWeek] = useState<DayOfWeek | null>(
+    null
+  );
   const [scrollOffset, setScrollOffset] = useState(0);
-
-  const stepThreeData = useAppStore((s) => s.stepThreeData);
-  const setStepThreeData = useAppStore((s) => s.setStepThreeData);
-  const timeUtils = new TimeUtils();
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
-        distance: 5,
+        distance: 8,
+      },
+    }),
+    useSensor(TouchSensor, {
+      activationConstraint: {
+        delay: 300,
+        tolerance: 8,
       },
     })
   );
 
-  useEffect(() => {
-    const handleScroll = () => {
-      setScrollOffset(window.scrollY);
-    };
+  const handleDragStart = useCallback(
+    (event: DragStartEvent) => {
+      const { active } = event;
+      const activeIdStr = active.id as string;
 
-    if (activeId) {
-      window.addEventListener("scroll", handleScroll);
-      return () => window.removeEventListener("scroll", handleScroll);
-    }
-  }, [activeId]);
+      // Find the meal and day from the flattened array
+      const mealWithDay = mealsWithDays.find(
+        ({ meal, day }) => `${day}-${meal.mealId}` === activeIdStr
+      );
 
-  function handleDragStart(event: DragStartEvent) {
-    const activeIdStr = event.active.id as string;
-    setActiveId(activeIdStr);
-    setScrollOffset(window.scrollY);
+      if (mealWithDay) {
+        setActiveId(activeIdStr);
+        setActiveMeal(mealWithDay.meal);
+        setActiveDayOfWeek(mealWithDay.day);
 
-    const mealId = activeIdStr.split("-")[1];
-    const meal = meals.find((m) => m.mealId === mealId);
-    if (meal) {
-      setActiveMeal(meal);
-    }
-  }
+        // Capture scroll offset for drag overlay positioning
+        setScrollOffset(window.scrollY);
+      }
+    },
+    [mealsWithDays]
+  );
 
-  function handleDragEnd(event: DragEndEvent) {
+  const handleDragEnd = useCallback((event: DragEndEvent) => {
     const { active, over } = event;
 
+    if (over && active.id !== over.id) {
+      // Handle the drop logic here
+      // You'll need to implement the actual meal moving logic
+      console.log("Move meal from", active.id, "to", over.id);
+    }
+
+    // Reset drag state
     setActiveId(null);
     setActiveMeal(null);
-
-    if (!over || !stepThreeData) return;
-
-    const activeIdStr = active.id as string;
-    const overId = over.id as string;
-    if (overId !== `day-${dayOfWeek}`) return;
-
-    const dropContainer = over.rect;
-    const dragRect = active.rect.current.translated;
-    if (!dropContainer || !dragRect) return;
-
-    const dropY = dragRect.top - dropContainer.top;
-
-    // Convert drop position to time using the same logic as the preview
-    // This ensures consistency between preview and actual drop behavior
-    const newTime = timeUtils.parseDropPositionToTime(dropY);
-
-    const meal = meals.find((m) => `${dayOfWeek}-${m.mealId}` === activeIdStr);
-    if (!meal) return;
-
-    const mealTimeKey = `${dayOfWeek}-${meal.mealId}`;
-    const updatedMealTimes = {
-      ...stepThreeData.mealTimes,
-      [mealTimeKey]: newTime,
-    };
-
-    setStepThreeData({ ...stepThreeData, mealTimes: updatedMealTimes });
-  }
+    setActiveDayOfWeek(null);
+    setScrollOffset(0);
+  }, []);
 
   return {
     sensors,
     activeId,
     activeMeal,
+    activeDayOfWeek,
     scrollOffset,
     handleDragStart,
     handleDragEnd,

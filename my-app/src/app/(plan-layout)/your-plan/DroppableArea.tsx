@@ -1,71 +1,89 @@
-// DroppableArea.tsx
-"use client";
+// useMealDrag.ts
+import { useState, useCallback } from "react";
+import {
+  useSensor,
+  useSensors,
+  PointerSensor,
+  TouchSensor,
+  DragStartEvent,
+  DragEndEvent,
+} from "@dnd-kit/core";
+import type { DayOfWeek, DayPlan } from "@/lib/store";
 
-import { useDroppable } from "@dnd-kit/core";
-import { useState } from "react";
-import { TimeUtils } from "./timeUtils";
-import { CalendarStyles } from "./calendarStyles";
-import type { DayOfWeek } from "@/lib/store";
-
-interface DroppableAreaProps {
-  dayOfWeek: DayOfWeek;
-  children: React.ReactNode;
+interface MealWithDay {
+  meal: DayPlan["meals"][number];
+  day: DayOfWeek;
 }
 
-export default function DroppableArea({
-  dayOfWeek,
-  children,
-}: DroppableAreaProps) {
-  const [dropY, setDropY] = useState<number | null>(null);
-  const timeUtils = new TimeUtils();
-  const styles = new CalendarStyles();
-
-  const { isOver, setNodeRef } = useDroppable({
-    id: `day-${dayOfWeek}`,
-    data: { dayOfWeek },
-  });
-
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (!isOver) return;
-
-    const rect = e.currentTarget.getBoundingClientRect();
-    const mouseY = e.clientY - rect.top;
-
-    // The drop handler calculates position based on the top of the dragged card.
-    // We need to estimate where the card's top would be relative to the mouse.
-    // This offset should match how far the mouse is from the card's top edge when dragging starts.
-    const CARD_HEIGHT = 50; // Approximate height of your meal card
-    const MOUSE_TO_CARD_TOP_OFFSET = CARD_HEIGHT / 2; // Assume mouse grabs middle of card
-
-    const estimatedCardTop = mouseY - MOUSE_TO_CARD_TOP_OFFSET;
-
-    setDropY(estimatedCardTop);
-  };
-
-  const handleMouseLeave = () => setDropY(null);
-
-  const getDropPreviewPosition = (yPos: number) => {
-    return timeUtils.getDropPreviewPosition(yPos);
-  };
-
-  return (
-    <div
-      ref={setNodeRef}
-      className="relative"
-      style={styles.getContainerStyle()}
-      onMouseMove={handleMouseMove}
-      onMouseLeave={handleMouseLeave}
-    >
-      {isOver && dropY !== null && (
-        <div
-          className="absolute left-2 right-2 bg-blue-400 rounded-xl opacity-40 z-20 pointer-events-none"
-          style={{
-            top: getDropPreviewPosition(dropY),
-            ...styles.getDropPreviewStyle(),
-          }}
-        />
-      )}
-      {children}
-    </div>
+export function useMealDrag(mealsWithDays: MealWithDay[]) {
+  const [activeId, setActiveId] = useState<string | null>(null);
+  const [activeMeal, setActiveMeal] = useState<DayPlan["meals"][number] | null>(
+    null
   );
+  const [activeDayOfWeek, setActiveDayOfWeek] = useState<DayOfWeek | null>(
+    null
+  );
+  const [scrollOffset, setScrollOffset] = useState(0);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
+    useSensor(TouchSensor, {
+      activationConstraint: {
+        delay: 300,
+        tolerance: 8,
+      },
+    })
+  );
+
+  const handleDragStart = useCallback(
+    (event: DragStartEvent) => {
+      const { active } = event;
+      const activeIdStr = active.id as string;
+
+      // Find the meal and day from the flattened array
+      const mealWithDay = mealsWithDays.find(
+        ({ meal, day }) => `${day}-${meal.mealId}` === activeIdStr
+      );
+
+      if (mealWithDay) {
+        setActiveId(activeIdStr);
+        setActiveMeal(mealWithDay.meal);
+        setActiveDayOfWeek(mealWithDay.day);
+
+        // Capture scroll offset for drag overlay positioning
+        setScrollOffset(window.scrollY);
+      }
+    },
+    [mealsWithDays]
+  );
+
+  const handleDragEnd = useCallback((event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (over && active.id !== over.id) {
+      // Handle the drop logic here
+      // You'll need to implement the actual meal moving logic
+      console.log("Move meal from", active.id, "to", over.id);
+    }
+
+    // Reset drag state
+    setActiveId(null);
+    setActiveMeal(null);
+    setActiveDayOfWeek(null);
+    setScrollOffset(0);
+  }, []);
+
+  return {
+    sensors,
+    activeId,
+    activeMeal,
+    activeDayOfWeek,
+    scrollOffset,
+    handleDragStart,
+    handleDragEnd,
+  };
 }

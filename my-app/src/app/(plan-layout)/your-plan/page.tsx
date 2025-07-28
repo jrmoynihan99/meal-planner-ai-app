@@ -32,7 +32,7 @@ export default function YourPlanPage() {
   >(null);
 
   return (
-    <div className="h-full w-full overflow-auto relative">
+    <div className="h-full w-full relative bg-black">
       {isVerticalView ? (
         <VerticalList
           weeklySchedule={weeklySchedule}

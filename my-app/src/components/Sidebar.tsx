@@ -74,10 +74,19 @@ export function Sidebar() {
 
       {/* Sidebar */}
       <aside
-        className={`fixed top-0 left-0 z-52 h-full w-72 bg-zinc-900 border-r border-zinc-800 shadow-lg transform transition-transform duration-500 ease-in-out pt-16
+        className={`fixed top-0 left-0 z-52 h-full w-72 bg-zinc-900 border-r border-zinc-800 shadow-lg transform transition-transform duration-500 ease-in-out pt-0
         ${isOpen ? "translate-x-0" : "-translate-x-full"} 
         sm:static sm:translate-x-0 sm:shadow-none sm:border-r`}
       >
+        <div className="flex justify-center items-center py-4 border-b border-zinc-800">
+          <img
+            src="/logo.png"
+            alt="Dialed Logo"
+            className="h-8 object-contain"
+            draggable={false}
+            style={{ userSelect: "none" }}
+          />
+        </div>
         <nav className="p-6 space-y-4">
           {steps.map((step) => {
             const isComplete =

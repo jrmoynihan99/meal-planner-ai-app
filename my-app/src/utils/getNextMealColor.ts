@@ -3,16 +3,16 @@
 import { Meal } from "@/lib/store";
 
 export const MEAL_COLORS = [
-  "#4F81BD", // muted blue
-  "#C0504D", // muted brick red
-  "#9BBB59", // muted green
-  "#8064A2", // muted purple
-  "#4BACC6", // muted teal
-  "#F79646", // muted orange
-  "#A6A6A6", // muted gray
-  "#7F6084", // muted plum
-  "#A2A2B8", // muted lavender
-  "#C9B28E", // muted tan
+  "#79a7d9", // Soft Blue (less bright)
+  "#6cb7ae", // Dusty Aqua
+  "#8ab595", // Muted Sage
+  "#b7a6de", // Lilac Lavender
+  "#c6bac8", // Misty Mauve
+  "#b89586", // Dusty Coral
+  "#8a99a7", // Slate Blue Gray
+  "#e7cf93", // Soft Sand Yellow
+  "#e8bfa7", // Muted Peach
+  "#e2aab3", // Dusty Rose Pink
 ];
 
 export function getNextMealColor(approvedMeals: Meal[]): string {

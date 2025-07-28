@@ -1,9 +1,11 @@
-import { ChevronDown } from "lucide-react";
+"use client";
+
+import { ChevronDown, Star, StarIcon } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import type { DayPlan, DayOfWeek } from "@/lib/store";
+import { useAppStore } from "@/lib/store";
 
 interface PlanDropdownProps {
-  // Pass the plans directly with their data
   plans: {
     key: string;
     label: string;
@@ -24,7 +26,11 @@ export function PlanDropdown({ plans, value, onChange }: PlanDropdownProps) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
-  // Only show fully-complete plans
+  const favoriteKey = useAppStore(
+    (s) => s.stepThreeData?.favoriteWeeklySchedule
+  );
+  const setFavoriteKey = useAppStore((s) => s.setFavoriteScheduleKey);
+
   const completePlans = plans.filter((plan) => isPlanComplete(plan.schedule));
   const selected = completePlans.find((opt) => opt.key === value);
 
@@ -41,17 +47,15 @@ export function PlanDropdown({ plans, value, onChange }: PlanDropdownProps) {
     return () => window.removeEventListener("mousedown", handleClick);
   }, [open]);
 
-  // If the current value is not among available options, fallback to the first
+  // If current value is not valid, fallback to first
   useEffect(() => {
     if (completePlans.length && !selected) {
       onChange(completePlans[0].key);
     }
-    // Only run when completePlans change or value changes
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [completePlans.length, value]);
 
   return (
-    <div className="relative w-24" ref={ref}>
+    <div className="relative w-28" ref={ref}>
       <button
         type="button"
         className="flex items-center justify-between w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-1 text-white font-semibold text-sm transition hover:bg-zinc-700 relative z-50 cursor-pointer"
@@ -63,33 +67,39 @@ export function PlanDropdown({ plans, value, onChange }: PlanDropdownProps) {
         {selected?.label ?? completePlans[0]?.label ?? "No Plans"}
         <ChevronDown className="ml-2 w-4 h-4" />
       </button>
+
       {open && completePlans.length > 0 && (
-        <div
-          className="absolute left-0 mt-2 w-full bg-zinc-800 border border-zinc-700 rounded-lg shadow-lg animate-fadeIn"
-          style={{
-            zIndex: 9999,
-            position: "absolute",
-            top: "100%",
-            left: 0,
-            right: 0,
-          }}
-        >
+        <div className="absolute left-0 mt-2 w-full bg-zinc-800 border border-zinc-700 rounded-lg shadow-lg animate-fadeIn z-[9999]">
           {completePlans.map((opt) => (
-            <button
+            <div
               key={opt.key}
-              className={`w-full text-left px-3 py-2 text-sm transition first:rounded-t-lg last:rounded-b-lg cursor-pointer
-                ${
-                  value === opt.key
-                    ? "bg-blue-600 text-white"
-                    : "text-zinc-100 hover:bg-zinc-700"
-                }`}
-              onClick={() => {
-                onChange(opt.key);
-                setOpen(false);
-              }}
+              className={`flex items-center justify-between px-3 py-2 text-sm transition first:rounded-t-lg last:rounded-b-lg ${
+                value === opt.key
+                  ? "bg-blue-600 text-white"
+                  : "text-zinc-100 hover:bg-zinc-700"
+              }`}
             >
-              {opt.label}
-            </button>
+              <button
+                onClick={() => {
+                  onChange(opt.key);
+                  setOpen(false);
+                }}
+                className="flex-1 text-left cursor-pointer"
+              >
+                {opt.label}
+              </button>
+              <button
+                onClick={() => setFavoriteKey(opt.key as any)}
+                className="ml-2 text-zinc-400 hover:text-yellow-400 cursor-pointer"
+                aria-label="Set as favorite plan"
+              >
+                {favoriteKey === opt.key ? (
+                  <StarIcon className="w-4 h-4 fill-yellow-400 stroke-yellow-400" />
+                ) : (
+                  <Star className="w-4 h-4" />
+                )}
+              </button>
+            </div>
           ))}
         </div>
       )}

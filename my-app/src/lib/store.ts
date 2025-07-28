@@ -94,6 +94,7 @@ export interface DayPlan {
   }[];
   dayProtein: number;
   dayCalories: number;
+  isCheatDay?: boolean;
 }
 
 export interface StepThreePlannerData {
@@ -127,6 +128,10 @@ export interface StepThreePlannerData {
   weeklyScheduleTwo: Record<DayOfWeek, DayPlan | null>;
   weeklyScheduleThree: Record<DayOfWeek, DayPlan | null>;
   selectedScheduleKey:
+    | "weeklySchedule"
+    | "weeklyScheduleTwo"
+    | "weeklyScheduleThree";
+  favoriteWeeklySchedule?:
     | "weeklySchedule"
     | "weeklyScheduleTwo"
     | "weeklyScheduleThree";
@@ -179,6 +184,10 @@ interface AppState {
   ) => void;
 
   setSelectedScheduleKey: (
+    key: "weeklySchedule" | "weeklyScheduleTwo" | "weeklyScheduleThree"
+  ) => void;
+
+  setFavoriteScheduleKey: (
     key: "weeklySchedule" | "weeklyScheduleTwo" | "weeklyScheduleThree"
   ) => void;
 
@@ -319,6 +328,16 @@ export const useAppStore = create<AppState>()(
           stepThreeData: {
             ...s.stepThreeData!,
             selectedScheduleKey: key,
+          },
+        })),
+
+      setFavoriteScheduleKey: (
+        key: "weeklySchedule" | "weeklyScheduleTwo" | "weeklyScheduleThree"
+      ) =>
+        set((s) => ({
+          stepThreeData: {
+            ...s.stepThreeData!,
+            favoriteWeeklySchedule: key,
           },
         })),
 
