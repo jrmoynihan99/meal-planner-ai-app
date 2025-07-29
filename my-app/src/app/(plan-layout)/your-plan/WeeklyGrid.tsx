@@ -134,9 +134,9 @@ export default function WeeklyGrid({
               style={{ width: minContentWidth }}
             />
             <div className="flex" style={{ minWidth: minContentWidth }}>
-              {/* Time column header */}
+              {/* Time column header - sticky with higher z-index */}
               <div
-                className="bg-black border-r border-zinc-800 flex items-center justify-center text-xs text-gray-400 flex-shrink-0"
+                className="bg-black border-r-2 border-zinc-600 flex items-center justify-center text-xs text-gray-400 flex-shrink-0 sticky left-0 z-30"
                 style={{ width: CALENDAR_CONFIG.timeColumnWidth }}
               ></div>
 
@@ -225,10 +225,13 @@ export default function WeeklyGrid({
           </div>
 
           {/* Calendar grid content */}
-          <div className="flex flex-1" style={{ minWidth: minContentWidth }}>
-            {/* Time column */}
+          <div
+            className="flex flex-1 relative"
+            style={{ minWidth: minContentWidth }}
+          >
+            {/* Sticky Time column */}
             <div
-              className="bg-black border-r border-zinc-800 flex-shrink-0"
+              className="bg-black border-r-2 border-zinc-600 flex-shrink-0 sticky left-0 z-20"
               style={{ width: CALENDAR_CONFIG.timeColumnWidth }}
             >
               <div
