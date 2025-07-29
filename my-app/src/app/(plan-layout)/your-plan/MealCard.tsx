@@ -38,7 +38,6 @@ export default function MealCard({
   });
 
   const { isVerticalView } = useViewMode();
-  const mealTimes = useAppStore((s) => s.stepThreeData?.mealTimes || {});
 
   // Detect mobile screen width
   const [, setIsMobile] = useState(false);
@@ -65,66 +64,72 @@ export default function MealCard({
   // List variant for VerticalList component
   if (variant === "list") {
     // 🟦 Use a default time as fallback
-    const mealTimeKey = `${dayOfWeek}-${meal.mealId}`;
-    const defaultTimes = ["07:00", "12:00", "18:00"];
-    const fallbackTime = defaultTimes[0] || "12:00"; // You can adjust the index logic
-
-    const time = mealTimes[mealTimeKey] || fallbackTime;
+    const time = meal.mealTime || "12:00";
 
     return (
       <div className="cursor-pointer" onClick={onClick} style={combinedStyle}>
         <div
-          className="relative rounded-lg px-3 py-3 flex items-center justify-between
-                     hover:shadow-lg hover:scale-[1.02] 
-                     active:scale-95 transition-transform duration-200 ease-out"
+          className="relative rounded-lg px-3 py-3 flex items-center
+          hover:shadow-lg hover:scale-[1.02] 
+          active:scale-95 transition-transform duration-200 ease-out"
           style={{
             backgroundColor: meal.color ?? "#4F81BD",
             color: "#111",
           }}
         >
-          {/* Left side - Meal name and time */}
-          <div className="flex flex-col">
-            <span className="text-sm font-bold text-black truncate">
-              {meal.mealName}
-            </span>
-            {/* 🟦 Fixed: Use mealTimes from hook */}
-            <span className="text-xs text-black/70">{time}</span>
-          </div>
-
-          {/* Right side - Nutrition and icons */}
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-3 text-xs">
-              <div className="flex items-center gap-1">
-                <span className="text-black">Cal</span>
-                <span className="bg-white/40 text-black font-mono px-2 py-1 rounded">
-                  {Math.round(meal.totalCalories)}
-                </span>
-              </div>
-              <div className="flex items-center gap-1">
-                <span className="text-black">Prot</span>
-                <span className="bg-white/40 text-black font-mono px-2 py-1 rounded">
-                  {Math.round(meal.totalProtein)}g
-                </span>
-              </div>
+          {/* Row layout: Meal name/time takes all available space, right elements never shrink */}
+          <div className="flex items-center w-full min-w-0">
+            {/* Meal name & time column */}
+            <div className="flex flex-col flex-1 min-w-0">
+              {/* Title: always use all remaining space, truncate with ellipsis */}
+              <span
+                className="
+                font-bold text-black truncate
+                text-xs sm:text-sm
+                min-w-0
+              "
+                title={meal.mealName}
+              >
+                {meal.mealName}
+              </span>
+              <span className="text-xs text-black/70">{time}</span>
             </div>
 
-            <div className="flex items-center gap-2">
-              <Info
-                size={18}
-                className="text-black cursor-pointer hover:text-white/80 transition-colors"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  console.log("Details clicked");
-                }}
-              />
-              <RefreshCw
-                size={18}
-                className="text-black cursor-pointer hover:text-white/80 transition-colors"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  console.log("Swap clicked");
-                }}
-              />
+            {/* Nutrition & icons (never shrink) */}
+            <div className="flex items-center gap-4 flex-shrink-0 ml-4">
+              <div className="flex items-center gap-3 text-xs">
+                <div className="flex items-center gap-1">
+                  <span className="text-black">Cal</span>
+                  <span className="bg-white/40 text-black font-mono px-2 py-1 rounded">
+                    {Math.round(meal.totalCalories)}
+                  </span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <span className="text-black">Prot</span>
+                  <span className="bg-white/40 text-black font-mono px-2 py-1 rounded">
+                    {Math.round(meal.totalProtein)}g
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <Info
+                  size={18}
+                  className="text-black cursor-pointer hover:text-white/80 transition-colors"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    console.log("Details clicked");
+                  }}
+                />
+                <RefreshCw
+                  size={18}
+                  className="text-black cursor-pointer hover:text-white/80 transition-colors"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    console.log("Swap clicked");
+                  }}
+                />
+              </div>
             </div>
           </div>
         </div>

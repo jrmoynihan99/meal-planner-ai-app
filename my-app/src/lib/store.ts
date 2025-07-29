@@ -91,6 +91,7 @@ export interface DayPlan {
     bestFor?: "breakfast" | "lunch" | "dinner" | "versatile";
     imageUrl?: string;
     color?: string;
+    mealTime: string;
   }[];
   dayProtein: number;
   dayCalories: number;
@@ -135,9 +136,8 @@ export interface StepThreePlannerData {
     | "weeklySchedule"
     | "weeklyScheduleTwo"
     | "weeklyScheduleThree";
-  variety: "none" | "less" | "moderate" | "lots";
+  variety: "none" | "less" | "some" | "lots";
   skippedDays: DayOfWeek[];
-  mealTimes: Record<string, string>;
 }
 
 interface AppState {
@@ -191,7 +191,7 @@ interface AppState {
     key: "weeklySchedule" | "weeklyScheduleTwo" | "weeklyScheduleThree"
   ) => void;
 
-  setVariety: (variety: "none" | "less" | "moderate" | "lots") => void;
+  setVariety: (variety: "none" | "less" | "some" | "lots") => void;
 
   setGeneratedMeals: (meals: Meal[]) => void;
   setApprovedMeals: (meals: Meal[]) => void;
@@ -253,9 +253,8 @@ const defaultStepThreeData: StepThreePlannerData = {
     Sunday: null,
   },
   selectedScheduleKey: "weeklySchedule",
-  variety: "moderate",
-  skippedDays: [],
-  mealTimes: {}, // ← Add this missing property
+  variety: "less",
+  skippedDays: [], // ← Add this missing property
 };
 
 export const useAppStore = create<AppState>()(

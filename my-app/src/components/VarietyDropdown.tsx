@@ -8,7 +8,7 @@ import type { DayPlan } from "@/lib/store";
 const VARIETY_OPTIONS = [
   { key: "none", label: "None" },
   { key: "less", label: "Less" },
-  { key: "moderate", label: "Moderate" },
+  { key: "some", label: "Some" },
   { key: "lots", label: "Lots" },
 ] as const;
 
@@ -28,7 +28,7 @@ export function VarietyDropdown({
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
-  const variety = useAppStore((s) => s.stepThreeData?.variety || "moderate");
+  const variety = useAppStore((s) => s.stepThreeData?.variety || "some");
   const setVariety = useAppStore((s) => s.setVariety);
   const setStepThreeData = useAppStore((s) => s.setStepThreeData);
 
@@ -36,20 +36,20 @@ export function VarietyDropdown({
   let enabledMap: Record<VarietyOption, boolean> = {
     none: false,
     less: false,
-    moderate: false,
+    some: false,
     lots: false,
   };
 
   const numDays = allPlanOneDays.length;
 
   if (numDays >= 7) {
-    enabledMap = { none: true, less: true, moderate: true, lots: true };
+    enabledMap = { none: true, less: true, some: true, lots: true };
   } else if (numDays >= 4) {
-    enabledMap = { none: true, less: true, moderate: true, lots: false };
+    enabledMap = { none: true, less: true, some: true, lots: false };
   } else if (numDays >= 2) {
-    enabledMap = { none: true, less: true, moderate: false, lots: false };
+    enabledMap = { none: true, less: true, some: false, lots: false };
   } else if (numDays === 1) {
-    enabledMap = { none: true, less: false, moderate: false, lots: false };
+    enabledMap = { none: true, less: false, some: false, lots: false };
   }
 
   // Close on outside click
@@ -85,16 +85,16 @@ export function VarietyDropdown({
   };
 
   return (
-    <div className="relative w-44" ref={ref}>
+    <div className="relative w-34" ref={ref}>
       <button
         type="button"
-        className="flex items-center justify-between w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-1 text-white font-semibold text-sm transition hover:bg-zinc-700 relative z-50 cursor-pointer"
+        className="flex items-center justify-between w-full bg-zinc-900/80 backdrop-blur border border-zinc-700 rounded-full px-3 py-1 text-white font-semibold text-sm transition hover:bg-zinc-700 relative z-50 cursor-pointer"
         onClick={() => setOpen((v) => !v)}
         aria-haspopup="listbox"
         aria-expanded={open}
       >
         <span className="text-zinc-400 text-xs mr-1">Variety:</span>
-        {VARIETY_OPTIONS.find((o) => o.key === variety)?.label || "Moderate"}
+        {VARIETY_OPTIONS.find((o) => o.key === variety)?.label || "Some"}
         <ChevronDown className="ml-2 w-4 h-4" />
       </button>
       {open && (

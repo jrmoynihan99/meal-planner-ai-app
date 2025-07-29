@@ -65,7 +65,7 @@ export function buildWeeklySchedulesWithVariety(
         ])
       ) as Record<DayOfWeek, DayPlan | null>;
     }
-    if (variety === "moderate") {
+    if (variety === "some") {
       chosenDays = pickRandomUnique(days, Math.min(4, days.length));
       // Alternate: 0,1,2,3,0,1,2
       return Object.fromEntries(

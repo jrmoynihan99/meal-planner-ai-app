@@ -162,9 +162,9 @@ export default function GenerateLoadingPage() {
       console.log("[page.tsx] allPlanTwoDays:", allPlanTwoDays);
       console.log("[page.tsx] allPlanThreeDays:", allPlanThreeDays);
 
-      let variety: "none" | "less" | "moderate";
+      let variety: "none" | "less" | "some";
       if (allPlanOneDays.length > 5) {
-        variety = "moderate";
+        variety = "some";
       } else if (allPlanOneDays.length > 2) {
         variety = "less";
       } else {

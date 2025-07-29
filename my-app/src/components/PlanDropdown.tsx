@@ -55,10 +55,10 @@ export function PlanDropdown({ plans, value, onChange }: PlanDropdownProps) {
   }, [completePlans.length, value]);
 
   return (
-    <div className="relative w-28" ref={ref}>
+    <div className="relative w-26" ref={ref}>
       <button
         type="button"
-        className="flex items-center justify-between w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-1 text-white font-semibold text-sm transition hover:bg-zinc-700 relative z-50 cursor-pointer"
+        className="flex items-center justify-between w-full bg-zinc-900/80 backdrop-blur border border-zinc-700 rounded-full px-3 py-1 text-white font-semibold text-sm transition hover:bg-zinc-700 relative z-50 cursor-pointer"
         onClick={() => setOpen((v) => !v)}
         aria-haspopup="listbox"
         aria-expanded={open}

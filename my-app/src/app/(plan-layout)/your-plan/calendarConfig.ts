@@ -2,9 +2,9 @@
 export const CALENDAR_CONFIG = {
   startHour: 5,
   endHour: 22,
-  hourHeight: 50,
+  hourHeight: 40,
   snapInterval: 15, // minutes
-  headerHeight: 98,
+  headerHeight: 69,
   mobileHeaderHeight: 69,
   mealCardHeight: 70, // Match your current card height
   timeColumnWidth: 64,
@@ -45,16 +45,12 @@ export const timeUtils = {
 
   getYPosition: (timeString: string) => {
     // Convert "HH:MM" to pixel position
-    if (!timeString) return CALENDAR_CONFIG.headerHeight;
+    if (!timeString) return 0;
 
     const [hours, minutes] = timeString.split(":").map(Number);
     const hourOffset = hours - CALENDAR_CONFIG.startHour;
     const minuteOffset = (minutes / 60) * CALENDAR_CONFIG.hourHeight;
-    return (
-      CALENDAR_CONFIG.headerHeight +
-      hourOffset * CALENDAR_CONFIG.hourHeight +
-      minuteOffset
-    );
+    return hourOffset * CALENDAR_CONFIG.hourHeight + minuteOffset;
   },
 
   getCurrentDay: () => {
