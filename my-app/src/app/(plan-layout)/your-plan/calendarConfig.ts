@@ -2,7 +2,7 @@
 export const CALENDAR_CONFIG = {
   startHour: 5,
   endHour: 22,
-  hourHeight: 40,
+  hourHeight: 35,
   snapInterval: 15, // minutes
   headerHeight: 69,
   mobileHeaderHeight: 69,
