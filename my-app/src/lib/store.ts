@@ -199,7 +199,7 @@ interface AppState {
 }
 
 const defaultStepThreeData: StepThreePlannerData = {
-  mealsPerDay: 0,
+  mealsPerDay: 3,
   uniqueWeeklyMeals: 0,
   approvedMeals: [],
   savedMeals: [],

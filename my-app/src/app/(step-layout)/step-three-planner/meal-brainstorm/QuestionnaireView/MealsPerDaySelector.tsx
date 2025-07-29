@@ -8,7 +8,7 @@ interface MealsPerDaySelectorProps {
   onChange: (val: number) => void;
 }
 
-const options = [1, 2, 3, 4];
+const options = [2, 3, 4];
 
 export default function MealsPerDaySelector({
   value,

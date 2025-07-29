@@ -60,7 +60,7 @@ export function PlanHeader() {
         className={clsx(
           "flex-1 flex items-center gap-2 sm:gap-3 min-w-0 px-2 sm:px-0",
           // Center on mobile, left-align on desktop
-          "justify-center sm:justify-start"
+          "justify-center sm:justify-start ml-6 sm:ml-0"
         )}
       >
         <div className="flex-shrink-0">

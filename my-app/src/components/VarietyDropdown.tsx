@@ -29,10 +29,13 @@ export function VarietyDropdown({
   const ref = useRef<HTMLDivElement>(null);
 
   const variety = useAppStore((s) => s.stepThreeData?.variety || "some");
+  const selectedScheduleKey = useAppStore(
+    (s) => s.stepThreeData?.selectedScheduleKey || "weeklySchedule"
+  );
   const setVariety = useAppStore((s) => s.setVariety);
   const setStepThreeData = useAppStore((s) => s.setStepThreeData);
 
-  // Decide which are enabled
+  // Decide which are enabled based on the currently selected schedule
   let enabledMap: Record<VarietyOption, boolean> = {
     none: false,
     less: false,
@@ -40,7 +43,23 @@ export function VarietyDropdown({
     lots: false,
   };
 
-  const numDays = allPlanOneDays.length;
+  // Get the correct day plan array based on selectedScheduleKey
+  let currentDayPlans: DayPlan[];
+  switch (selectedScheduleKey) {
+    case "weeklySchedule":
+      currentDayPlans = allPlanOneDays;
+      break;
+    case "weeklyScheduleTwo":
+      currentDayPlans = allPlanTwoDays;
+      break;
+    case "weeklyScheduleThree":
+      currentDayPlans = allPlanThreeDays;
+      break;
+    default:
+      currentDayPlans = allPlanOneDays;
+  }
+
+  const numDays = currentDayPlans.length;
 
   if (numDays >= 7) {
     enabledMap = { none: true, less: true, some: true, lots: true };
@@ -51,6 +70,26 @@ export function VarietyDropdown({
   } else if (numDays === 1) {
     enabledMap = { none: true, less: false, some: false, lots: false };
   }
+
+  // Auto-adjust variety if current selection is not enabled for this plan
+  useEffect(() => {
+    if (!enabledMap[variety]) {
+      // Find the highest enabled variety option and set it
+      const fallbackVariety = enabledMap.lots
+        ? "lots"
+        : enabledMap.some
+        ? "some"
+        : enabledMap.less
+        ? "less"
+        : "none";
+
+      setVariety(fallbackVariety);
+
+      console.log(
+        `Auto-adjusted variety from "${variety}" to "${fallbackVariety}" because current selection is not supported by plan with ${numDays} days`
+      );
+    }
+  }, [selectedScheduleKey, numDays, variety, enabledMap, setVariety]);
 
   // Close on outside click
   useEffect(() => {

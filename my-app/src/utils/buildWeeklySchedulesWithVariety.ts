@@ -27,6 +27,21 @@ export function buildWeeklySchedulesWithVariety(
   weeklyScheduleTwo?: Record<DayOfWeek, DayPlan | null>;
   weeklyScheduleThree?: Record<DayOfWeek, DayPlan | null>;
 } {
+  console.log(
+    "[buildWeeklySchedulesWithVariety] allPlanOneDays:",
+    allPlanDaysObj.allPlanOneDays
+  );
+  console.log(
+    "[buildWeeklySchedulesWithVariety] allPlanTwoDays:",
+    allPlanDaysObj.allPlanTwoDays
+  );
+  console.log(
+    "[buildWeeklySchedulesWithVariety] allPlanThreeDays:",
+    allPlanDaysObj.allPlanThreeDays
+  );
+  console.log("[buildWeeklySchedulesWithVariety] variety:", variety);
+  console.log("[buildWeeklySchedulesWithVariety] planIndices:", planIndices);
+
   // Helper to pick N unique random elements from array
   function pickRandomUnique<T>(arr: T[], n: number): T[] {
     if (arr.length <= n) return [...arr];
