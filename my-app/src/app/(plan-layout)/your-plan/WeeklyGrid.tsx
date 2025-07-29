@@ -118,132 +118,137 @@ export default function WeeklyGrid({
       onDragEnd={handleDragEnd}
     >
       <div className="flex flex-col h-full bg-black">
-        {/* Fixed header section - NOT scrollable */}
-        <div
-          className="flex bg-black border-b-2 border-zinc-600 flex-shrink-0"
-          style={{ height: headerHeight }}
-        >
-          {/* Time column header */}
+        {/* Main container - horizontally scrollable */}
+        <div className="flex flex-col flex-1 overflow-auto">
+          {/* Header section - now inside scrollable container */}
           <div
-            className="bg-black border-r border-zinc-800 flex items-center justify-center text-xs text-gray-400 flex-shrink-0"
-            style={{ width: CALENDAR_CONFIG.timeColumnWidth }}
-          ></div>
-
-          {/* Day headers */}
-          {DAYS.map((day) => {
-            const isToday = day === timeUtils.getCurrentDay();
-            const dayPlan = weeklySchedule[day];
-
-            return (
-              <div
-                key={day}
-                className="flex-1 min-w-[180px] border-r border-zinc-800 flex flex-col items-center justify-center text-center px-1"
-              >
-                {/* Day of week (no card) */}
-                <div className="text-[16px] sm:text-sm font-semibold flex-shrink-0 mb-1 drop-shadow">
-                  {/* Mobile: circle */}
-                  <span className="sm:hidden">
-                    <span
-                      className={`inline-flex items-center justify-center w-7 h-7 rounded-full
-              transition-all duration-200
-              ${
-                isToday
-                  ? "bg-blue-500 text-white shadow"
-                  : "bg-zinc-900 text-blue-100"
-              }`}
-                    >
-                      {day.charAt(0)}
-                    </span>
-                  </span>
-                  {/* Desktop: pill */}
-                  <span className="hidden sm:inline">
-                    <span
-                      className={`inline-block px-3 py-1 rounded-full
-              transition-all duration-200
-              ${
-                isToday
-                  ? "bg-blue-500 text-white shadow"
-                  : "bg-zinc-900 text-blue-100"
-              }`}
-                    >
-                      {day}
-                    </span>
-                  </span>
-                </div>
-
-                {/* Cals & Protein inline in a filled, rounded card */}
-                {dayPlan?.meals?.length ? (
-                  <div
-                    className="flex flex-row items-center justify-center gap-1 px-2.5 py-1
-            rounded-2xl bg-zinc-800/80 shadow-sm border border-zinc-700
-            text-[11px] font-medium text-blue-100"
-                    style={{
-                      minHeight: "32px",
-                      marginBottom: "2px",
-                    }}
-                  >
-                    <div className="flex items-center gap-1">
-                      <span className="text-gray-300">Cals:</span>
-                      <span className="font-mono text-blue-300 bg-zinc-900/80 px-1 py-[1px] rounded-md border border-blue-500/20">
-                        {Math.round(
-                          dayPlan.meals.reduce(
-                            (sum, m) => sum + m.totalCalories,
-                            0
-                          )
-                        )}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <span className="text-gray-300">Prot:</span>
-                      <span className="font-mono text-blue-300 bg-zinc-900/80 px-1 py-[1px] rounded-md border border-blue-500/20">
-                        {Math.round(
-                          dayPlan.meals.reduce(
-                            (sum, m) => sum + m.totalProtein,
-                            0
-                          )
-                        )}
-                        g
-                      </span>
-                    </div>
-                  </div>
-                ) : null}
-              </div>
-            );
-          })}
-        </div>
-
-        {/* Scrollable calendar grid */}
-        <div className="flex flex-1 overflow-auto">
-          {/* Time column */}
-          <div
-            className="bg-black border-r border-zinc-800 flex-shrink-0"
-            style={{ width: CALENDAR_CONFIG.timeColumnWidth }}
+            className="flex bg-black border-b-2 border-zinc-600 flex-shrink-0 sticky top-0 z-10"
+            style={{ height: headerHeight }}
           >
+            {/* Time column header */}
             <div
-              style={{ height: timeSlots.length * CALENDAR_CONFIG.hourHeight }}
-            >
-              {timeSlots.map(({ hour, label }) => (
+              className="bg-black border-r border-zinc-800 flex items-center justify-center text-xs text-gray-400 flex-shrink-0"
+              style={{ width: CALENDAR_CONFIG.timeColumnWidth }}
+            ></div>
+
+            {/* Day headers */}
+            {DAYS.map((day) => {
+              const isToday = day === timeUtils.getCurrentDay();
+              const dayPlan = weeklySchedule[day];
+
+              return (
                 <div
-                  key={hour}
-                  className="text-xs text-gray-400 px-2 border-b border-zinc-700 flex items-start pt-1"
-                  style={{ height: CALENDAR_CONFIG.hourHeight }}
+                  key={day}
+                  className="flex-1 min-w-[180px] border-r border-zinc-800 flex flex-col items-center justify-center text-center px-1"
                 >
-                  {label}
+                  {/* Day of week (no card) */}
+                  <div className="text-[16px] sm:text-sm font-semibold flex-shrink-0 mb-1 drop-shadow">
+                    {/* Mobile: circle */}
+                    <span className="sm:hidden">
+                      <span
+                        className={`inline-flex items-center justify-center w-7 h-7 rounded-full
+                transition-all duration-200
+                ${
+                  isToday
+                    ? "bg-blue-500 text-white shadow"
+                    : "bg-zinc-900 text-blue-100"
+                }`}
+                      >
+                        {day.charAt(0)}
+                      </span>
+                    </span>
+                    {/* Desktop: pill */}
+                    <span className="hidden sm:inline">
+                      <span
+                        className={`inline-block px-3 py-1 rounded-full
+                transition-all duration-200
+                ${
+                  isToday
+                    ? "bg-blue-500 text-white shadow"
+                    : "bg-zinc-900 text-blue-100"
+                }`}
+                      >
+                        {day}
+                      </span>
+                    </span>
+                  </div>
+
+                  {/* Cals & Protein inline in a filled, rounded card */}
+                  {dayPlan?.meals?.length ? (
+                    <div
+                      className="flex flex-row items-center justify-center gap-1 px-2.5 py-1
+              rounded-2xl bg-zinc-800/80 shadow-sm border border-zinc-700
+              text-[11px] font-medium text-blue-100"
+                      style={{
+                        minHeight: "32px",
+                        marginBottom: "2px",
+                      }}
+                    >
+                      <div className="flex items-center gap-1">
+                        <span className="text-gray-300">Cals:</span>
+                        <span className="font-mono text-blue-300 bg-zinc-900/80 px-1 py-[1px] rounded-md border border-blue-500/20">
+                          {Math.round(
+                            dayPlan.meals.reduce(
+                              (sum, m) => sum + m.totalCalories,
+                              0
+                            )
+                          )}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <span className="text-gray-300">Prot:</span>
+                        <span className="font-mono text-blue-300 bg-zinc-900/80 px-1 py-[1px] rounded-md border border-blue-500/20">
+                          {Math.round(
+                            dayPlan.meals.reduce(
+                              (sum, m) => sum + m.totalProtein,
+                              0
+                            )
+                          )}
+                          g
+                        </span>
+                      </div>
+                    </div>
+                  ) : null}
                 </div>
-              ))}
-            </div>
+              );
+            })}
           </div>
 
-          {/* Days container */}
-          <div className="flex flex-1 min-w-0">
-            {DAYS.map((day) => (
-              <DayColumn
-                key={day}
-                day={day}
-                dayPlan={weeklySchedule[day]}
-                onMealClick={onMealClick}
-              />
-            ))}
+          {/* Calendar grid content */}
+          <div className="flex flex-1">
+            {/* Time column */}
+            <div
+              className="bg-black border-r border-zinc-800 flex-shrink-0"
+              style={{ width: CALENDAR_CONFIG.timeColumnWidth }}
+            >
+              <div
+                style={{
+                  height: timeSlots.length * CALENDAR_CONFIG.hourHeight,
+                }}
+              >
+                {timeSlots.map(({ hour, label }) => (
+                  <div
+                    key={hour}
+                    className="text-xs text-gray-400 px-2 border-b border-zinc-700 flex items-start pt-1"
+                    style={{ height: CALENDAR_CONFIG.hourHeight }}
+                  >
+                    {label}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Days container */}
+            <div className="flex flex-1 min-w-0">
+              {DAYS.map((day) => (
+                <DayColumn
+                  key={day}
+                  day={day}
+                  dayPlan={weeklySchedule[day]}
+                  onMealClick={onMealClick}
+                />
+              ))}
+            </div>
           </div>
         </div>
       </div>
