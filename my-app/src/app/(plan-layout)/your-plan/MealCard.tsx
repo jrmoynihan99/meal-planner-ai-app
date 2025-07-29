@@ -5,7 +5,6 @@ import type { DayPlan, DayOfWeek } from "@/lib/store";
 import { RefreshCw, Info } from "lucide-react";
 import { useViewMode } from "./ViewModeContext";
 import { useEffect, useState } from "react";
-import { useAppStore } from "@/lib/store";
 
 interface MealCardProps {
   meal: DayPlan["meals"][number];

@@ -6,7 +6,6 @@ import MealCard from "./MealCard";
 import { CALENDAR_CONFIG, DAYS, timeUtils } from "./calendarConfig";
 import { useMealDrag } from "./useMealDrag";
 import type { DayOfWeek, DayPlan } from "@/lib/store";
-import { useDroppable } from "@dnd-kit/core";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface WeeklyGridProps {
@@ -141,17 +140,43 @@ export default function WeeklyGrid({
                 className="flex-1 min-w-[180px] border-r border-zinc-800 flex flex-col items-center justify-center text-center px-1"
               >
                 {/* Day of week (no card) */}
-                <div className="text-[16px] sm:text-sm font-semibold flex-shrink-0 mb-1 text-blue-100 drop-shadow">
-                  <span className="sm:hidden">{day.charAt(0)}</span>
-                  <span className="hidden sm:inline">{day}</span>
+                <div className="text-[16px] sm:text-sm font-semibold flex-shrink-0 mb-1 drop-shadow">
+                  {/* Mobile: circle */}
+                  <span className="sm:hidden">
+                    <span
+                      className={`inline-flex items-center justify-center w-7 h-7 rounded-full
+              transition-all duration-200
+              ${
+                isToday
+                  ? "bg-blue-500 text-white shadow"
+                  : "bg-zinc-900 text-blue-100"
+              }`}
+                    >
+                      {day.charAt(0)}
+                    </span>
+                  </span>
+                  {/* Desktop: pill */}
+                  <span className="hidden sm:inline">
+                    <span
+                      className={`inline-block px-3 py-1 rounded-full
+              transition-all duration-200
+              ${
+                isToday
+                  ? "bg-blue-500 text-white shadow"
+                  : "bg-zinc-900 text-blue-100"
+              }`}
+                    >
+                      {day}
+                    </span>
+                  </span>
                 </div>
 
                 {/* Cals & Protein inline in a filled, rounded card */}
                 {dayPlan?.meals?.length ? (
                   <div
                     className="flex flex-row items-center justify-center gap-1 px-2.5 py-1
-                rounded-2xl bg-zinc-800/80 shadow-sm border border-zinc-700
-                text-[11px] font-medium text-blue-100"
+            rounded-2xl bg-zinc-800/80 shadow-sm border border-zinc-700
+            text-[11px] font-medium text-blue-100"
                     style={{
                       minHeight: "32px",
                       marginBottom: "2px",
