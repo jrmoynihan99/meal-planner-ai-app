@@ -7,7 +7,7 @@ export const CALENDAR_CONFIG = {
   headerHeight: 69,
   mobileHeaderHeight: 69,
   mealCardHeight: 70, // Match your current card height
-  timeColumnWidth: 64,
+  timeColumnWidth: 48,
 } as const;
 
 export const DAYS = [
