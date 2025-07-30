@@ -30,7 +30,8 @@
     "!src/deprecated/**/*",
     ".next/types/**/*.ts",
     "src/app/api/meal-brainstorm/route.ts",
-    "deprecated/components/SubstepFourSummaryOverlay.tsx"
+    "deprecated/components/SubstepFourSummaryOverlay.tsx",
+    "deprecated/buildWeeklySchedulesWithVariety.ts"
   ],
   "exclude": ["node_modules", "deprecated/**/*", "meal-solver/**/*"]
 }

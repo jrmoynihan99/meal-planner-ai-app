@@ -4,7 +4,7 @@ import WeeklyGrid from "./WeeklyGrid";
 import VerticalList from "./VerticalList";
 import { useAppStore, defaultStepThreeData } from "@/lib/store";
 import { useViewMode } from "./ViewModeContext";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { ThreeTabMealModal } from "./ThreeTabMealModal";
 import { GroceryCartSidebar } from "./GroceryCartSidebar";
 import type { DayPlan } from "@/lib/store";
