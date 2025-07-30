@@ -74,7 +74,7 @@ export default function VerticalList({
             <div className="space-y-3">
               <AnimatePresence mode="popLayout">
                 {dayPlan?.meals?.length ? (
-                  dayPlan.meals.map((meal) => (
+                  dayPlan.meals.map((meal, index) => (
                     <motion.div
                       key={meal.mealId}
                       layout
@@ -86,6 +86,7 @@ export default function VerticalList({
                       <MealCard
                         meal={meal}
                         dayOfWeek={day}
+                        slotIdx={index}
                         onClick={() => onMealClick(meal)}
                         variant="list"
                       />
