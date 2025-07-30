@@ -2,13 +2,16 @@
 
 import { useDraggable } from "@dnd-kit/core";
 import type { DayPlan, DayOfWeek } from "@/lib/store";
-import { RefreshCw, Info } from "lucide-react";
+import { RefreshCw, Lock, Unlock } from "lucide-react";
 import { useViewMode } from "./ViewModeContext";
+import { useAppStore } from "@/lib/store";
 import { useEffect, useState } from "react";
 
+// --- YOU SHOULD PASS slotIdx as a prop for maximum reliability!
 interface MealCardProps {
   meal: DayPlan["meals"][number];
   dayOfWeek: DayOfWeek;
+  slotIdx: number; // <--- new: slot index of this meal in the day's array!
   isDragging?: boolean;
   onClick?: () => void;
   variant?: "grid" | "list";
@@ -18,6 +21,7 @@ interface MealCardProps {
 export default function MealCard({
   meal,
   dayOfWeek,
+  slotIdx,
   isDragging = false,
   onClick,
   variant = "grid",
@@ -33,12 +37,21 @@ export default function MealCard({
     isDragging: isBeingDragged,
   } = useDraggable({
     id: uniqueId,
-    disabled: variant === "list", // Disable dragging in list view
+    disabled: variant === "list",
   });
 
   const { isVerticalView } = useViewMode();
 
-  // Detect mobile screen width
+  // Get lock state from Zustand
+  const lockedMeals = useAppStore((s) => s.stepThreeData?.lockedMeals);
+  const setLockedMeal = useAppStore((s) => s.setLockedMeal);
+  const unsetLockedMeal = useAppStore((s) => s.unsetLockedMeal);
+
+  const isLocked = (lockedMeals?.[slotIdx] ?? null) === meal.mealId;
+
+  // (Optional) - if you want to auto-update schedule after lock/unlock, use the appropriate callback here!
+
+  // Detect mobile screen width (unchanged)
   const [, setIsMobile] = useState(false);
   useEffect(() => {
     const handleResize = () => {
@@ -56,21 +69,18 @@ export default function MealCard({
     : undefined;
 
   const combinedStyle = { ...style, ...transformStyle };
-
   const iconSize = isVerticalView ? 18 : 16;
   const textSizeClass = isVerticalView ? "text-[12px]" : "text-[11px]";
 
   // List variant for VerticalList component
   if (variant === "list") {
-    // 🟦 Use a default time as fallback
     const time = meal.mealTime || "12:00";
-
     return (
       <div className="cursor-pointer" onClick={onClick} style={combinedStyle}>
         <div
           className="relative rounded-lg px-3 py-3 flex items-center
-          hover:shadow-lg hover:scale-[1.02] 
-          active:scale-95 transition-transform duration-200 ease-out"
+            hover:shadow-lg hover:scale-[1.02] 
+            active:scale-95 transition-transform duration-200 ease-out"
           style={{
             backgroundColor: meal.color ?? "#4F81BD",
             color: "#111",
@@ -80,13 +90,12 @@ export default function MealCard({
           <div className="flex items-center w-full min-w-0">
             {/* Meal name & time column */}
             <div className="flex flex-col flex-1 min-w-0">
-              {/* Title: always use all remaining space, truncate with ellipsis */}
               <span
                 className="
-                font-bold text-black truncate
-                text-xs sm:text-sm
-                min-w-0
-              "
+                  font-bold text-black truncate
+                  text-xs sm:text-sm
+                  min-w-0
+                "
                 title={meal.mealName}
               >
                 {meal.mealName}
@@ -94,7 +103,7 @@ export default function MealCard({
               <span className="text-xs text-black/70">{time}</span>
             </div>
 
-            {/* Nutrition & icons (never shrink) */}
+            {/* Nutrition & icons */}
             <div className="flex items-center gap-4 flex-shrink-0 ml-4">
               <div className="flex items-center gap-3 text-xs">
                 <div className="flex items-center gap-1">
@@ -110,18 +119,28 @@ export default function MealCard({
                   </span>
                 </div>
               </div>
-
               <div className="flex items-center gap-2">
-                <Info
-                  size={18}
-                  className="text-black cursor-pointer hover:text-white/80 transition-colors"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    console.log("Details clicked");
-                  }}
-                />
+                {isLocked ? (
+                  <Lock
+                    size={iconSize}
+                    className="cursor-pointer text-blue-600 hover:text-blue-700 transition-colors"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      unsetLockedMeal(slotIdx);
+                    }}
+                  />
+                ) : (
+                  <Unlock
+                    size={iconSize}
+                    className="cursor-pointer text-zinc-400 hover:text-blue-400 transition-colors"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setLockedMeal(slotIdx, meal.mealId);
+                    }}
+                  />
+                )}
                 <RefreshCw
-                  size={18}
+                  size={iconSize}
                   className="text-black cursor-pointer hover:text-white/80 transition-colors"
                   onClick={(e) => {
                     e.stopPropagation();
@@ -200,14 +219,25 @@ export default function MealCard({
 
           {/* Icons */}
           <div className="flex items-center gap-2 pr-1 pb-[2px]">
-            <Info
-              size={iconSize}
-              className="text-black cursor-pointer hover:text-white/80 transition-colors"
-              onClick={(e) => {
-                e.stopPropagation();
-                console.log("Details clicked");
-              }}
-            />
+            {isLocked ? (
+              <Lock
+                size={iconSize}
+                className="cursor-pointer text-blue-600 hover:text-blue-700 transition-colors"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  unsetLockedMeal(slotIdx);
+                }}
+              />
+            ) : (
+              <Unlock
+                size={iconSize}
+                className="cursor-pointer text-zinc-400 hover:text-blue-400 transition-colors"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setLockedMeal(slotIdx, meal.mealId);
+                }}
+              />
+            )}
             <RefreshCw
               size={iconSize}
               className="text-black cursor-pointer hover:text-white/80 transition-colors"

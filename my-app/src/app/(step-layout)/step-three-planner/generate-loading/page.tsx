@@ -11,8 +11,8 @@ import { generateRandomOrderings } from "@/utils/generate-random-orderings";
 import { Meal } from "@/lib/store";
 import { solveOrderingSequence } from "@/utils/solveOrderingSequence";
 import { buildZustandDayPlans } from "@/utils/buildZustandDayPlans";
-import { buildWeeklySchedulesWithVariety } from "@/utils/buildWeeklySchedulesWithVariety";
 import type { OrderingResult } from "@/utils/solveOrderingSequence";
+import { updateWeeklyScheduleForVariety } from "@/utils/updateWeeklySchedule";
 
 const loadingTexts = [
   "Cooking up your meals...",
@@ -162,43 +162,50 @@ export default function GenerateLoadingPage() {
       console.log("[page.tsx] allPlanTwoDays:", allPlanTwoDays);
       console.log("[page.tsx] allPlanThreeDays:", allPlanThreeDays);
 
-      let variety: "none" | "less" | "some";
-      if (allPlanOneDays.length > 5) {
+      let variety: "none" | "less" | "some" | "lots";
+      if (
+        allPlanOneDays.length >= 4 ||
+        allPlanTwoDays.length >= 4 ||
+        allPlanTwoDays.length >= 4
+      ) {
         variety = "some";
-      } else if (allPlanOneDays.length > 2) {
+      } else if (
+        allPlanOneDays.length >= 2 ||
+        allPlanTwoDays.length >= 2 ||
+        allPlanTwoDays.length >= 2
+      ) {
         variety = "less";
       } else {
         variety = "none";
       }
+
+      console.log("[page.tsx: Variety:", variety);
+
+      const shuffleIndices = {
+        weeklySchedule: { none: 0, less: 0, some: 0, lots: 0 },
+        weeklyScheduleTwo: { none: 0, less: 0, some: 0, lots: 0 },
+        weeklyScheduleThree: { none: 0, less: 0, some: 0, lots: 0 },
+      };
       // Now update Zustand with these arrays
       setStepThreeData({
         allPlanOneDays,
         allPlanTwoDays,
         allPlanThreeDays,
         variety,
+        shuffleIndices,
       });
 
       // Get Weekly Schedules setup with moderate variety
       console.log("[page.tsx] Calling WeeklySchedule builder");
-      const planIndices = [1, 2, 3];
-
-      const { weeklySchedule, weeklyScheduleTwo, weeklyScheduleThree } =
-        buildWeeklySchedulesWithVariety(planIndices, variety, {
-          allPlanOneDays,
-          allPlanTwoDays,
-          allPlanThreeDays,
-        });
-
-      console.log("[page.tsx] weeklySchedule:", weeklySchedule);
-      console.log("[page.tsx] weeklyScheduleTwo:", weeklyScheduleTwo);
-      console.log("[page.tsx] weeklyScheduleThree:", weeklyScheduleThree);
-
-      // 5. Update weekly schedules in Zustand
-      setStepThreeData({
-        ...(weeklySchedule && { weeklySchedule }),
-        ...(weeklyScheduleTwo && { weeklyScheduleTwo }),
-        ...(weeklyScheduleThree && { weeklyScheduleThree }),
-      });
+      updateWeeklyScheduleForVariety(
+        variety,
+        allPlanOneDays,
+        allPlanTwoDays,
+        allPlanThreeDays,
+        shuffleIndices,
+        setStepThreeData,
+        "set"
+      );
 
       // Redirect to /your-plan if still mounted
       if (isMounted) {

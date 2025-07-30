@@ -1,9 +1,11 @@
-// components/VarietyDropdown.tsx
+"use client";
+
 import { ChevronDown } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { useAppStore } from "@/lib/store";
-import { buildWeeklySchedulesWithVariety } from "@/utils/buildWeeklySchedulesWithVariety";
 import type { DayPlan } from "@/lib/store";
+import { updateWeeklyScheduleForVariety } from "@/utils/updateWeeklySchedule";
+import { defaultStepThreeData } from "@/lib/store";
 
 const VARIETY_OPTIONS = [
   { key: "none", label: "None" },
@@ -26,72 +28,65 @@ export function VarietyDropdown({
   allPlanThreeDays,
 }: VarietyDropdownProps) {
   const [open, setOpen] = useState(false);
+  const [isHydrated, setIsHydrated] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
+  // Selectors (safe now that hydration is handled by parent)
   const variety = useAppStore((s) => s.stepThreeData?.variety || "some");
-  const selectedScheduleKey = useAppStore(
-    (s) => s.stepThreeData?.selectedScheduleKey || "weeklySchedule"
+  const shuffleIndices = useAppStore(
+    (s) =>
+      s.stepThreeData?.shuffleIndices || defaultStepThreeData.shuffleIndices
   );
   const setVariety = useAppStore((s) => s.setVariety);
   const setStepThreeData = useAppStore((s) => s.setStepThreeData);
 
-  // Decide which are enabled based on the currently selected schedule
-  let enabledMap: Record<VarietyOption, boolean> = {
-    none: false,
-    less: false,
-    some: false,
-    lots: false,
+  // Handle hydration
+  useEffect(() => {
+    setIsHydrated(true);
+  }, []);
+
+  // --- Build enabled map: a variety is available if ANY plan supports it ---
+  const enabledMap: Record<VarietyOption, boolean> = {
+    none: [allPlanOneDays, allPlanTwoDays, allPlanThreeDays].some(
+      (plan) => plan.length >= 1
+    ),
+    less: [allPlanOneDays, allPlanTwoDays, allPlanThreeDays].some(
+      (plan) => plan.length >= 2
+    ),
+    some: [allPlanOneDays, allPlanTwoDays, allPlanThreeDays].some(
+      (plan) => plan.length >= 4
+    ),
+    lots: [allPlanOneDays, allPlanTwoDays, allPlanThreeDays].some(
+      (plan) => plan.length >= 7
+    ),
   };
 
-  // Get the correct day plan array based on selectedScheduleKey
-  let currentDayPlans: DayPlan[];
-  switch (selectedScheduleKey) {
-    case "weeklySchedule":
-      currentDayPlans = allPlanOneDays;
-      break;
-    case "weeklyScheduleTwo":
-      currentDayPlans = allPlanTwoDays;
-      break;
-    case "weeklyScheduleThree":
-      currentDayPlans = allPlanThreeDays;
-      break;
-    default:
-      currentDayPlans = allPlanOneDays;
-  }
-
-  const numDays = currentDayPlans.length;
-
-  if (numDays >= 7) {
-    enabledMap = { none: true, less: true, some: true, lots: true };
-  } else if (numDays >= 4) {
-    enabledMap = { none: true, less: true, some: true, lots: false };
-  } else if (numDays >= 2) {
-    enabledMap = { none: true, less: true, some: false, lots: false };
-  } else if (numDays === 1) {
-    enabledMap = { none: true, less: false, some: false, lots: false };
-  }
-
-  // Auto-adjust variety if current selection is not enabled for this plan
+  // Update weekly schedule when variety changes
   useEffect(() => {
-    if (!enabledMap[variety]) {
-      // Find the highest enabled variety option and set it
-      const fallbackVariety = enabledMap.lots
-        ? "lots"
-        : enabledMap.some
-        ? "some"
-        : enabledMap.less
-        ? "less"
-        : "none";
-
-      setVariety(fallbackVariety);
-
-      console.log(
-        `Auto-adjusted variety from "${variety}" to "${fallbackVariety}" because current selection is not supported by plan with ${numDays} days`
+    if (isHydrated && enabledMap[variety]) {
+      updateWeeklyScheduleForVariety(
+        variety,
+        allPlanOneDays,
+        allPlanTwoDays,
+        allPlanThreeDays,
+        shuffleIndices,
+        setStepThreeData,
+        "set"
       );
     }
-  }, [selectedScheduleKey, numDays, variety, enabledMap, setVariety]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    variety,
+    allPlanOneDays,
+    allPlanTwoDays,
+    allPlanThreeDays,
+    setStepThreeData,
+    shuffleIndices,
+    enabledMap,
+    isHydrated,
+  ]);
 
-  // Close on outside click
+  // Dropdown click-outside handling
   useEffect(() => {
     function handleClick(e: MouseEvent) {
       if (ref.current && !ref.current.contains(e.target as Node))
@@ -101,28 +96,30 @@ export function VarietyDropdown({
     return () => window.removeEventListener("mousedown", handleClick);
   }, [open]);
 
+  // On change: set variety, reset shuffle index for that variety, and update schedule
   const handleChange = (optKey: VarietyOption) => {
     if (!enabledMap[optKey]) return;
     setVariety(optKey);
 
-    // For simplicity, always update all three plans (or you can filter based on available)
-    const planIndices: number[] = [1, 2, 3];
-    const { weeklySchedule, weeklyScheduleTwo, weeklyScheduleThree } =
-      buildWeeklySchedulesWithVariety(planIndices, optKey, {
-        allPlanOneDays,
-        allPlanTwoDays,
-        allPlanThreeDays,
-      });
-
-    setStepThreeData({
-      weeklySchedule,
-      weeklyScheduleTwo,
-      weeklyScheduleThree,
-    });
-
+    updateWeeklyScheduleForVariety(
+      optKey,
+      allPlanOneDays,
+      allPlanTwoDays,
+      allPlanThreeDays,
+      {
+        ...shuffleIndices,
+        weeklySchedule: {
+          ...shuffleIndices.weeklySchedule,
+          [optKey]: 0,
+        },
+      },
+      setStepThreeData,
+      "set"
+    );
     setOpen(false);
   };
 
+  // --- MAIN RENDER ---
   return (
     <div className="relative w-34" ref={ref}>
       <button
@@ -131,12 +128,17 @@ export function VarietyDropdown({
         onClick={() => setOpen((v) => !v)}
         aria-haspopup="listbox"
         aria-expanded={open}
+        disabled={!isHydrated}
       >
         <span className="text-zinc-400 text-xs mr-1">Variety:</span>
-        {VARIETY_OPTIONS.find((o) => o.key === variety)?.label || "Some"}
+        {!isHydrated ? (
+          <span className="text-zinc-500 text-xs">Loading...</span>
+        ) : (
+          VARIETY_OPTIONS.find((o) => o.key === variety)?.label || "Some"
+        )}
         <ChevronDown className="ml-2 w-4 h-4" />
       </button>
-      {open && (
+      {open && isHydrated && (
         <div
           className="absolute left-0 mt-2 w-full bg-zinc-800 border border-zinc-700 rounded-lg shadow-lg animate-fadeIn"
           style={{

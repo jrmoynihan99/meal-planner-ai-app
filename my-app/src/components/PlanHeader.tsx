@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { ShoppingCart, LayoutList, LayoutGrid } from "lucide-react";
 import { useGroceryCart } from "@/app/(plan-layout)/your-plan/GroceryCartContext";
 import { useViewMode } from "@/app/(plan-layout)/your-plan/ViewModeContext";
-import { PlanDropdown } from "@/components/PlanDropdown";
 import { VarietyDropdown } from "@/components/VarietyDropdown";
 import { useAppStore } from "@/lib/store";
 import clsx from "clsx";
@@ -17,31 +16,10 @@ export function PlanHeader() {
 
   // Zustand state
   const stepThreeData = useAppStore((s) => s.stepThreeData);
-  const selectedScheduleKey =
-    stepThreeData?.selectedScheduleKey || "weeklySchedule";
-  const setSelectedScheduleKey = useAppStore((s) => s.setSelectedScheduleKey);
 
   const allPlanOneDays = stepThreeData?.allPlanOneDays ?? [];
   const allPlanTwoDays = stepThreeData?.allPlanTwoDays ?? [];
   const allPlanThreeDays = stepThreeData?.allPlanThreeDays ?? [];
-
-  const plans = [
-    {
-      key: "weeklySchedule",
-      label: "Plan 1",
-      schedule: stepThreeData?.weeklySchedule,
-    },
-    {
-      key: "weeklyScheduleTwo",
-      label: "Plan 2",
-      schedule: stepThreeData?.weeklyScheduleTwo,
-    },
-    {
-      key: "weeklyScheduleThree",
-      label: "Plan 3",
-      schedule: stepThreeData?.weeklyScheduleThree,
-    },
-  ];
 
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 768);
@@ -63,20 +41,6 @@ export function PlanHeader() {
           "justify-center sm:justify-start ml-6 sm:ml-0"
         )}
       >
-        <div className="flex-shrink-0">
-          <PlanDropdown
-            plans={plans}
-            value={selectedScheduleKey}
-            onChange={(key) =>
-              setSelectedScheduleKey(
-                key as
-                  | "weeklySchedule"
-                  | "weeklyScheduleTwo"
-                  | "weeklyScheduleThree"
-              )
-            }
-          />
-        </div>
         <div className="flex-shrink-0">
           <VarietyDropdown
             allPlanOneDays={allPlanOneDays}

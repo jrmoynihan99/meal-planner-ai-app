@@ -126,17 +126,11 @@ export interface StepThreePlannerData {
   };
   dayGenerationState: "not_started" | "started" | "completed";
   weeklySchedule: Record<DayOfWeek, DayPlan | null>;
-  weeklyScheduleTwo: Record<DayOfWeek, DayPlan | null>;
-  weeklyScheduleThree: Record<DayOfWeek, DayPlan | null>;
-  selectedScheduleKey:
-    | "weeklySchedule"
-    | "weeklyScheduleTwo"
-    | "weeklyScheduleThree";
-  favoriteWeeklySchedule?:
-    | "weeklySchedule"
-    | "weeklyScheduleTwo"
-    | "weeklyScheduleThree";
   variety: "none" | "less" | "some" | "lots";
+  shuffleIndices: {
+    weeklySchedule: { none: number; less: number; some: number; lots: number };
+  };
+  lockedMeals: { [slotIdx: number]: string };
   skippedDays: DayOfWeek[];
 }
 
@@ -196,9 +190,13 @@ interface AppState {
   setGeneratedMeals: (meals: Meal[]) => void;
   setApprovedMeals: (meals: Meal[]) => void;
   setSavedMeals: (meals: Meal[]) => void;
+
+  setLockedMeal: (slotIdx: number, mealId: string) => void;
+  unsetLockedMeal: (slotIdx: number) => void;
+  resetAllLockedMeals: () => void;
 }
 
-const defaultStepThreeData: StepThreePlannerData = {
+export const defaultStepThreeData: StepThreePlannerData = {
   mealsPerDay: 3,
   uniqueWeeklyMeals: 0,
   approvedMeals: [],
@@ -234,26 +232,11 @@ const defaultStepThreeData: StepThreePlannerData = {
     Saturday: null,
     Sunday: null,
   },
-  weeklyScheduleTwo: {
-    Monday: null,
-    Tuesday: null,
-    Wednesday: null,
-    Thursday: null,
-    Friday: null,
-    Saturday: null,
-    Sunday: null,
-  },
-  weeklyScheduleThree: {
-    Monday: null,
-    Tuesday: null,
-    Wednesday: null,
-    Thursday: null,
-    Friday: null,
-    Saturday: null,
-    Sunday: null,
-  },
-  selectedScheduleKey: "weeklySchedule",
   variety: "less",
+  shuffleIndices: {
+    weeklySchedule: { none: 0, less: 0, some: 0, lots: 0 },
+  },
+  lockedMeals: {},
   skippedDays: [], // ← Add this missing property
 };
 
@@ -392,6 +375,38 @@ export const useAppStore = create<AppState>()(
             ...s.stepThreeData!,
             generatedMeals: meals,
           },
+        })),
+
+      setLockedMeal: (slotIdx: number, mealId: string) =>
+        set((s) => ({
+          stepThreeData: s.stepThreeData
+            ? {
+                ...s.stepThreeData,
+                lockedMeals: {
+                  ...(s.stepThreeData.lockedMeals ?? {}),
+                  [slotIdx]: mealId,
+                },
+              }
+            : null,
+        })),
+      unsetLockedMeal: (slotIdx: number) =>
+        set((s) => {
+          if (!s.stepThreeData) return {};
+          const lockedMeals = { ...(s.stepThreeData.lockedMeals ?? {}) };
+          delete lockedMeals[slotIdx];
+          return {
+            stepThreeData: {
+              ...s.stepThreeData,
+              lockedMeals,
+            },
+          };
+        }),
+
+      resetAllLockedMeals: () =>
+        set((s) => ({
+          stepThreeData: s.stepThreeData
+            ? { ...s.stepThreeData, lockedMeals: {} }
+            : null,
         })),
 
       resetStepOneData: () => set({ stepOneData: null }),

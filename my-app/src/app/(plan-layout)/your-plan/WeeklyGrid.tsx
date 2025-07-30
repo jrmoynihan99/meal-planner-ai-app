@@ -68,6 +68,7 @@ function DayColumn({ day, dayPlan, onMealClick }: DayColumnProps) {
                 <MealCard
                   meal={meal}
                   dayOfWeek={day}
+                  slotIdx={index}
                   onClick={() => onMealClick(meal)}
                 />
               </motion.div>
@@ -277,7 +278,12 @@ export default function WeeklyGrid({
         }}
       >
         {activeId && activeMeal && activeDayOfWeek ? (
-          <MealCard meal={activeMeal} dayOfWeek={activeDayOfWeek} isDragging />
+          <MealCard
+            meal={activeMeal}
+            dayOfWeek={activeDayOfWeek}
+            slotIdx={0} // Or whatever slotIdx makes sense (optional for overlay)
+            isDragging
+          />
         ) : null}
       </DragOverlay>
     </DndContext>
