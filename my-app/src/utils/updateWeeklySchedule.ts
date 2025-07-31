@@ -1,10 +1,9 @@
 import type { DayPlan } from "@/lib/store";
 import type { StepThreePlannerData } from "@/lib/store";
-import { useAppStore } from "@/lib/store"; // <-- add this import
+import { useAppStore } from "@/lib/store";
 
 export type VarietyOption = StepThreePlannerData["variety"];
 
-// Helper: How many unique days per variety
 const VARIETY_TO_COUNT: Record<VarietyOption, number> = {
   none: 1,
   less: 2,
@@ -12,7 +11,6 @@ const VARIETY_TO_COUNT: Record<VarietyOption, number> = {
   lots: 7,
 };
 
-// All days of the week (keep in sync with your DayOfWeek type)
 const DAYS_OF_WEEK = [
   "Monday",
   "Tuesday",
@@ -23,8 +21,25 @@ const DAYS_OF_WEEK = [
   "Sunday",
 ] as const;
 
+// =========== LOCKED FILTER ===========
+// True if every day's locked slots match lockedMeals {slotIdx: mealId}
+function comboRespectsLockedMeals(
+  combo: DayPlan[],
+  lockedMeals: Record<number, string | null>
+) {
+  const lockedEntries = Object.entries(lockedMeals).filter(
+    ([, mealId]) => mealId
+  );
+  if (!lockedEntries.length) return true; // No locks, all combos valid
+
+  return combo.every((dayPlan) =>
+    lockedEntries.every(
+      ([slotIdx, mealId]) => dayPlan.meals[Number(slotIdx)]?.mealId === mealId
+    )
+  );
+}
+
 // ===== COMBO GENERATOR =====
-// Returns all combos of length N from one array
 function getCombos<T>(arr: T[], n: number): T[][] {
   if (n === 0) return [[]];
   if (arr.length < n) return [];
@@ -35,22 +50,27 @@ function getCombos<T>(arr: T[], n: number): T[][] {
   return withFirst.concat(withoutFirst);
 }
 
-// Returns: Array of arrays, each is N unique days (from a single plan)
+// =========== ALL COMBOS, FILTERED BY LOCKED ===========
+// Returns array of combos (length N), only if all locked slots match in each day
 export function getAllCombosForVariety(
   allPlanOneDays: DayPlan[],
   allPlanTwoDays: DayPlan[],
   allPlanThreeDays: DayPlan[],
-  variety: VarietyOption
+  variety: VarietyOption,
+  lockedMeals: Record<number, string | null> = {}
 ): DayPlan[][] {
   const n = VARIETY_TO_COUNT[variety];
-  return [
+  const allCombos = [
     ...getCombos(allPlanOneDays, n),
     ...getCombos(allPlanTwoDays, n),
     ...getCombos(allPlanThreeDays, n),
   ];
+  return allCombos.filter((combo) =>
+    comboRespectsLockedMeals(combo, lockedMeals)
+  );
 }
 
-// ===== MAIN FUNCTION =====
+// ===== MAIN FUNCTION (respects lockedMeals) =====
 export function updateWeeklyScheduleForVariety(
   variety: VarietyOption,
   allPlanOneDays: DayPlan[],
@@ -58,13 +78,16 @@ export function updateWeeklyScheduleForVariety(
   allPlanThreeDays: DayPlan[],
   shuffleIndices: StepThreePlannerData["shuffleIndices"],
   setStepThreeData: (fields: Partial<StepThreePlannerData>) => void,
-  action: "shuffle" | "set" = "set"
+  action: "shuffle" | "set" = "set",
+  lockedMeals: Record<number, string | null> = {}
 ) {
+  // Filter combos to respect locked meals!
   const combos = getAllCombosForVariety(
     allPlanOneDays,
     allPlanTwoDays,
     allPlanThreeDays,
-    variety
+    variety,
+    lockedMeals
   );
 
   if (!combos.length) {
@@ -73,7 +96,7 @@ export function updateWeeklyScheduleForVariety(
       DAYS_OF_WEEK.map((d) => [d, null])
     ) as Record<(typeof DAYS_OF_WEEK)[number], null>;
 
-    // --- GUARD: only update if schedule is actually changing ---
+    // Only update if changed
     const current = useAppStore.getState().stepThreeData;
     if (
       JSON.stringify(current?.weeklySchedule) === JSON.stringify(emptySchedule)
@@ -113,7 +136,7 @@ export function updateWeeklyScheduleForVariety(
     weeklySchedule[DAYS_OF_WEEK[i]] = selectedCombo[i % selectedCombo.length];
   }
 
-  // --- GUARD: only update if actual data has changed ---
+  // Only update if changed
   const current = useAppStore.getState().stepThreeData;
   const sameSchedule =
     JSON.stringify(current?.weeklySchedule) ===

@@ -6,6 +6,7 @@ import { useAppStore } from "@/lib/store";
 import type { DayPlan } from "@/lib/store";
 import { updateWeeklyScheduleForVariety } from "@/utils/updateWeeklySchedule";
 import { defaultStepThreeData } from "@/lib/store";
+import { getAllCombosForVariety } from "@/utils/updateWeeklySchedule";
 
 const VARIETY_OPTIONS = [
   { key: "none", label: "None" },
@@ -39,6 +40,7 @@ export function VarietyDropdown({
   );
   const setVariety = useAppStore((s) => s.setVariety);
   const setStepThreeData = useAppStore((s) => s.setStepThreeData);
+  const lockedMeals = useAppStore((s) => s.stepThreeData?.lockedMeals ?? {});
 
   // Handle hydration
   useEffect(() => {
@@ -46,20 +48,17 @@ export function VarietyDropdown({
   }, []);
 
   // --- Build enabled map: a variety is available if ANY plan supports it ---
-  const enabledMap: Record<VarietyOption, boolean> = {
-    none: [allPlanOneDays, allPlanTwoDays, allPlanThreeDays].some(
-      (plan) => plan.length >= 1
-    ),
-    less: [allPlanOneDays, allPlanTwoDays, allPlanThreeDays].some(
-      (plan) => plan.length >= 2
-    ),
-    some: [allPlanOneDays, allPlanTwoDays, allPlanThreeDays].some(
-      (plan) => plan.length >= 4
-    ),
-    lots: [allPlanOneDays, allPlanTwoDays, allPlanThreeDays].some(
-      (plan) => plan.length >= 7
-    ),
-  };
+  const enabledMap: Record<VarietyOption, boolean> = {} as any;
+  for (const opt of VARIETY_OPTIONS) {
+    const combos = getAllCombosForVariety(
+      allPlanOneDays,
+      allPlanTwoDays,
+      allPlanThreeDays,
+      opt.key,
+      lockedMeals
+    );
+    enabledMap[opt.key] = combos.length > 0;
+  }
 
   // Update weekly schedule when variety changes
   useEffect(() => {
@@ -71,7 +70,8 @@ export function VarietyDropdown({
         allPlanThreeDays,
         shuffleIndices,
         setStepThreeData,
-        "set"
+        "set",
+        lockedMeals
       );
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -114,7 +114,8 @@ export function VarietyDropdown({
         },
       },
       setStepThreeData,
-      "set"
+      "set",
+      lockedMeals
     );
     setOpen(false);
   };
@@ -140,7 +141,7 @@ export function VarietyDropdown({
       </button>
       {open && isHydrated && (
         <div
-          className="absolute left-0 mt-2 w-full bg-zinc-800 border border-zinc-700 rounded-lg shadow-lg animate-fadeIn"
+          className="absolute left-0 mt-2 w-full bg-zinc-800 rounded-2xl shadow-2xl drop-shadow-lg animate-fadeIn p-2 flex flex-col gap-1"
           style={{
             zIndex: 9999,
             position: "absolute",
@@ -149,24 +150,29 @@ export function VarietyDropdown({
             right: 0,
           }}
         >
-          {VARIETY_OPTIONS.map((opt) => (
-            <button
-              key={opt.key}
-              disabled={!enabledMap[opt.key]}
-              className={`w-full text-left px-3 py-2 text-sm transition first:rounded-t-lg last:rounded-b-lg
-                ${
-                  variety === opt.key
-                    ? "bg-blue-600 text-white cursor-pointer"
-                    : !enabledMap[opt.key]
-                    ? "text-zinc-500 bg-zinc-900 cursor-not-allowed opacity-50"
-                    : "text-zinc-100 hover:bg-zinc-700 cursor-pointer"
-                }`}
-              onClick={() => handleChange(opt.key)}
-              tabIndex={enabledMap[opt.key] ? 0 : -1}
-            >
-              {opt.label}
-            </button>
-          ))}
+          {VARIETY_OPTIONS.map((opt) => {
+            const isSelected = variety === opt.key;
+            return (
+              <button
+                key={opt.key}
+                disabled={!enabledMap[opt.key]}
+                className={`
+            flex items-center  cursor-pointer w-full px-3 py-1.5 rounded-xl transition text-sm
+            ${
+              isSelected
+                ? "bg-zinc-700 text-white font-semibold"
+                : !enabledMap[opt.key]
+                ? "text-zinc-500 bg-zinc-900 cursor-not-allowed opacity-60"
+                : "text-zinc-100 hover:bg-zinc-700 hover:text-white"
+            }
+          `}
+                onClick={() => handleChange(opt.key)}
+                tabIndex={enabledMap[opt.key] ? 0 : -1}
+              >
+                {opt.label}
+              </button>
+            );
+          })}
         </div>
       )}
     </div>

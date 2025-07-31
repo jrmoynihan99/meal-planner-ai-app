@@ -166,13 +166,13 @@ export function ThreeTabMealModal({
             >
               <div className="relative w-full h-full">
                 {/* BLUR GLOW using meal color */}
-                <div
+                {/*<div
                   className="absolute -inset-[1px] rounded-t-2xl blur-[16px] opacity-100 transition-all duration-500 ease-in-out"
                   style={{
                     background: mealColor,
                     boxShadow: `0 0 5px 5px ${mealColor}`,
                   }}
-                />
+                />*/}
                 <div
                   ref={modalRef}
                   className="relative bg-zinc-900 border border-zinc-800 rounded-t-2xl pt-1.5 px-6 pb-6 h-full text-white shadow-xl overflow-y-auto"
@@ -290,13 +290,13 @@ export function ThreeTabMealModal({
             >
               <div className="relative inline-flex group">
                 {/* BLUR GLOW using meal color */}
-                <div
+                {/*<div
                   className="absolute -inset-[1px] rounded-xl blur-[16px] opacity-100 group-hover:opacity-100 transition-all duration-500 ease-in-out"
                   style={{
                     background: mealColor,
                     boxShadow: `0 0 5px 5px ${mealColor}`,
                   }}
-                />
+                />*/}
                 <div
                   ref={modalRef}
                   className="relative bg-zinc-900 border border-zinc-800 p-6 rounded-xl w-[460px] max-w-full text-white shadow-xl"

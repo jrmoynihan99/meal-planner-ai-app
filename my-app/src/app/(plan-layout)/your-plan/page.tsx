@@ -30,6 +30,7 @@ export default function YourPlanPage() {
   const shuffleIndices =
     stepThreeData?.shuffleIndices || defaultStepThreeData.shuffleIndices;
   const setStepThreeData = useAppStore((s) => s.setStepThreeData);
+  const lockedMeals = stepThreeData?.lockedMeals ?? {};
 
   const weeklySchedule = stepThreeData?.weeklySchedule || {
     Monday: null,
@@ -46,7 +47,8 @@ export default function YourPlanPage() {
     allPlanOneDays,
     allPlanTwoDays,
     allPlanThreeDays,
-    variety
+    variety,
+    lockedMeals
   );
   const totalCombos = combos.length;
   const currentComboIdx = (shuffleIndices.weeklySchedule?.[variety] ?? 0) + 1; // 1-based for user display
@@ -65,7 +67,8 @@ export default function YourPlanPage() {
       allPlanThreeDays,
       shuffleIndices,
       setStepThreeData,
-      "shuffle"
+      "shuffle",
+      lockedMeals
     );
   }
 

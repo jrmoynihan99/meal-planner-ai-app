@@ -2,7 +2,7 @@
 
 import { useDraggable } from "@dnd-kit/core";
 import type { DayPlan, DayOfWeek } from "@/lib/store";
-import { RefreshCw, Lock, Unlock } from "lucide-react";
+import { Shuffle, Lock, Unlock } from "lucide-react";
 import { useViewMode } from "./ViewModeContext";
 import { useAppStore } from "@/lib/store";
 import { useEffect, useState } from "react";
@@ -69,7 +69,7 @@ export default function MealCard({
     : undefined;
 
   const combinedStyle = { ...style, ...transformStyle };
-  const iconSize = isVerticalView ? 18 : 16;
+  const iconSize = isVerticalView ? 20 : 18;
   const textSizeClass = isVerticalView ? "text-[12px]" : "text-[11px]";
 
   // List variant for VerticalList component
@@ -123,7 +123,7 @@ export default function MealCard({
                 {isLocked ? (
                   <Lock
                     size={iconSize}
-                    className="cursor-pointer text-blue-600 hover:text-blue-700 transition-colors"
+                    className="cursor-pointer text-blue-600 hover:text-white/60 transition-colors"
                     onClick={(e) => {
                       e.stopPropagation();
                       unsetLockedMeal(slotIdx);
@@ -132,16 +132,16 @@ export default function MealCard({
                 ) : (
                   <Unlock
                     size={iconSize}
-                    className="cursor-pointer text-zinc-400 hover:text-blue-400 transition-colors"
+                    className="cursor-pointer text-black hover:text-white/60 transition-colors"
                     onClick={(e) => {
                       e.stopPropagation();
                       setLockedMeal(slotIdx, meal.mealId);
                     }}
                   />
                 )}
-                <RefreshCw
+                <Shuffle
                   size={iconSize}
-                  className="text-black cursor-pointer hover:text-white/80 transition-colors"
+                  className="text-black cursor-pointer hover:text-white/60 transition-colors"
                   onClick={(e) => {
                     e.stopPropagation();
                     console.log("Swap clicked");
@@ -222,7 +222,7 @@ export default function MealCard({
             {isLocked ? (
               <Lock
                 size={iconSize}
-                className="cursor-pointer text-blue-600 hover:text-blue-700 transition-colors"
+                className="cursor-pointer text-blue-600 hover:text-white/60 transition-colors"
                 onClick={(e) => {
                   e.stopPropagation();
                   unsetLockedMeal(slotIdx);
@@ -231,16 +231,16 @@ export default function MealCard({
             ) : (
               <Unlock
                 size={iconSize}
-                className="cursor-pointer text-zinc-400 hover:text-blue-400 transition-colors"
+                className="cursor-pointer text-black hover:text-white/60 transition-colors"
                 onClick={(e) => {
                   e.stopPropagation();
                   setLockedMeal(slotIdx, meal.mealId);
                 }}
               />
             )}
-            <RefreshCw
+            <Shuffle
               size={iconSize}
-              className="text-black cursor-pointer hover:text-white/80 transition-colors"
+              className="text-black cursor-pointer hover:text-white/60 transition-colors"
               onClick={(e) => {
                 e.stopPropagation();
                 console.log("Swap clicked");
