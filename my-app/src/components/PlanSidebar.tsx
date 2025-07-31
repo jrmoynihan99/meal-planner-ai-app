@@ -12,15 +12,6 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 
-// Replace with your actual logic
-function openSwapDayOverlay() {}
-function openSwapMealOverlay() {}
-function openCheatDayOverlay() {}
-function openGetMoreMeals() {}
-function openGroceryListOverlay() {}
-function openMyMealsOverlay() {}
-function openGoalSummaryOverlay() {}
-
 function SidebarButton({
   children,
   icon: Icon,
@@ -41,8 +32,25 @@ function SidebarButton({
   );
 }
 
-export function PlanSidebar() {
+export function PlanSidebar({
+  openMealsOverlay,
+}: {
+  openMealsOverlay: (mode: "browse" | "swap") => void;
+}) {
   const { isOpen, close } = useSidebar();
+
+  // Placeholder overlay openers for other actions
+  const openSwapDayOverlay = () =>
+    alert("Swap Day Overlay (not implemented yet)");
+  const openSwapMealOverlay = () =>
+    alert("Swap Meal Overlay (not implemented yet)");
+  const openCheatDayOverlay = () =>
+    alert("Cheat Day Overlay (not implemented yet)");
+  const openGetMoreMeals = () => alert("Get More Meals (not implemented yet)");
+  const openGroceryListOverlay = () =>
+    alert("Grocery List (not implemented yet)");
+  const openGoalSummaryOverlay = () =>
+    alert("Goal Summary (not implemented yet)");
 
   useEffect(() => {
     document.body.style.overflow = isOpen ? "hidden" : "";
@@ -103,7 +111,10 @@ export function PlanSidebar() {
             <SidebarButton icon={ShoppingCart} onClick={openGroceryListOverlay}>
               Grocery List
             </SidebarButton>
-            <SidebarButton icon={UtensilsCrossed} onClick={openMyMealsOverlay}>
+            <SidebarButton
+              icon={UtensilsCrossed}
+              onClick={() => openMealsOverlay("browse")}
+            >
               My Meals
             </SidebarButton>
             <SidebarButton icon={BarChart2} onClick={openGoalSummaryOverlay}>
