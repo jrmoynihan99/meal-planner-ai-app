@@ -48,17 +48,20 @@ export function VarietyDropdown({
   }, []);
 
   // --- Build enabled map: a variety is available if ANY plan supports it ---
-  const enabledMap: Record<VarietyOption, boolean> = {} as any;
-  for (const opt of VARIETY_OPTIONS) {
-    const combos = getAllCombosForVariety(
-      allPlanOneDays,
-      allPlanTwoDays,
-      allPlanThreeDays,
-      opt.key,
-      lockedMeals
-    );
-    enabledMap[opt.key] = combos.length > 0;
-  }
+  const enabledMap: Record<VarietyOption, boolean> = VARIETY_OPTIONS.reduce(
+    (acc, opt) => {
+      const combos = getAllCombosForVariety(
+        allPlanOneDays,
+        allPlanTwoDays,
+        allPlanThreeDays,
+        opt.key,
+        lockedMeals
+      );
+      acc[opt.key] = combos.length > 0;
+      return acc;
+    },
+    {} as Record<VarietyOption, boolean>
+  );
 
   // Update weekly schedule when variety changes
   useEffect(() => {
