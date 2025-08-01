@@ -4,7 +4,6 @@ import { useSidebar } from "@/components/SidebarContext";
 import { useEffect } from "react";
 import {
   Repeat,
-  PlusCircle,
   Shuffle,
   ShoppingCart,
   UtensilsCrossed,
