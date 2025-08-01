@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { ChevronDown, ChevronUp } from "lucide-react";
-import FoodToggleGrid from "../MealResultsView/FoodToggleGrid";
+import FoodToggleGrid from "./FoodToggleGrid";
 import { AnimatePresence, motion } from "framer-motion";
 
 interface CollapsibleSectionProps {
@@ -88,7 +88,7 @@ export default function CollapsibleSection({
           {/* Left: number + title */}
           <div className="flex items-center gap-5 sm:gap-4">
             <div className="text-blue-500 font-bold text-4xl sm:text-5xl leading-none">
-              {index + 2}
+              {index + 3}
             </div>
             <div className="flex flex-col">
               <h2 className="text-white font-[var(--font-inter)] font-semibold text-base sm:text-xl">

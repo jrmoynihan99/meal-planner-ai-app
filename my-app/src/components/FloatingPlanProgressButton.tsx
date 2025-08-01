@@ -10,12 +10,31 @@ interface FloatingPlanProgressButtonProps {
   overrideOnClick?: () => void;
 }
 
+function getRequiredMeals(mealsPerDay: number, variety: string): number {
+  if (mealsPerDay === 2 || mealsPerDay === 3) {
+    if (variety === "none") return 5;
+    if (variety === "some") return 6;
+    if (variety === "lots") return 7;
+  }
+  if (mealsPerDay === 4) {
+    if (variety === "none") return 6;
+    if (variety === "some") return 7;
+    if (variety === "lots") return 8;
+  }
+  // Fallback: never less than mealsPerDay
+  return Math.max(mealsPerDay, 5);
+}
+
 export default function FloatingPlanProgressButton({
   overrideOnClick,
 }: FloatingPlanProgressButtonProps) {
   const approvedMeals = useAppStore((s) => s.stepThreeData?.approvedMeals);
   const mealsPerDay = useAppStore((s) => s.stepThreeData?.mealsPerDay || 1);
-  const totalRequired = Math.max(mealsPerDay, 5);
+  const variety = useAppStore((s) => s.stepThreeData?.variety || "some");
+  const totalRequired = Math.max(
+    getRequiredMeals(mealsPerDay, variety),
+    mealsPerDay
+  );
   const approvedCount = approvedMeals?.length || 0;
   const progress = Math.min(approvedCount / totalRequired, 1);
   const isComplete = progress === 1;

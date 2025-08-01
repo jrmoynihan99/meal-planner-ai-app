@@ -8,11 +8,13 @@ import { motion, AnimatePresence } from "framer-motion";
 interface VerticalListProps {
   weeklySchedule: Record<DayOfWeek, DayPlan | null>;
   onMealClick: (meal: DayPlan["meals"][number]) => void;
+  isEditing: boolean;
 }
 
 export default function VerticalList({
   weeklySchedule,
   onMealClick,
+  isEditing,
 }: VerticalListProps) {
   return (
     <div className="space-y-6 p-4 h-full overflow-y-auto">
@@ -89,6 +91,7 @@ export default function VerticalList({
                         slotIdx={index}
                         onClick={() => onMealClick(meal)}
                         variant="list"
+                        isEditing={isEditing}
                       />
                     </motion.div>
                   ))

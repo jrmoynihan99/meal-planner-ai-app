@@ -3,17 +3,21 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 
-interface MealsPerDaySelectorProps {
-  value: number;
-  onChange: (val: number) => void;
+interface VarietySelectorProps {
+  value: "none" | "some" | "lots";
+  onChange: (val: "none" | "some" | "lots") => void;
 }
 
-const options = [2, 3, 4]; // Or [1,2,3,4] if you want 4 options
+const options: { label: string; value: "none" | "some" | "lots" }[] = [
+  { label: "None", value: "none" },
+  { label: "Some", value: "some" },
+  { label: "Lots", value: "lots" },
+];
 
-export default function MealsPerDaySelector({
+export default function VarietySelector({
   value,
   onChange,
-}: MealsPerDaySelectorProps) {
+}: VarietySelectorProps) {
   const [, setIsMobile] = useState(false);
 
   useEffect(() => {
@@ -23,8 +27,7 @@ export default function MealsPerDaySelector({
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  // Dynamically calculate the index and width of the sliding background
-  const selectedIdx = options.indexOf(value);
+  const selectedIdx = options.findIndex((opt) => opt.value === value);
   const numOptions = options.length;
   const widthPercent = 100 / numOptions;
   const leftPercent = selectedIdx * widthPercent;
@@ -32,27 +35,24 @@ export default function MealsPerDaySelector({
   return (
     <div className="w-full bg-zinc-900 rounded-2xl p-4 mb-6">
       <div className="flex items-center gap-4 w-full px-1 sm:px-2 py-2">
-        {/* Number */}
+        {/* Icon or number (optional, remove if not needed) */}
         <div className="text-blue-500 font-bold text-4xl sm:text-5xl leading-none">
-          1
+          2
         </div>
 
         {/* Label and toggle */}
         <div className="flex-1 flex justify-between items-center">
           <div>
             <h2 className="text-white font-[var(--font-inter)] font-semibold text-base sm:text-xl">
-              Meals Per Day
+              Variety
             </h2>
             <p className="text-sm text-zinc-400 mt-1">
-              How many meals per day you want to eat. We’ll use this to
-              structure your meal plan.
+              Choose how much variety you want in your weekly plan.
             </p>
           </div>
 
           {/* Toggle Group */}
-          <div
-            className={`relative w-40 h-10 bg-zinc-800 rounded-full flex border border-zinc-600 overflow-hidden ml-4 shrink-0`}
-          >
+          <div className="relative w-52 h-10 bg-zinc-800 rounded-full flex border border-zinc-600 overflow-hidden ml-4 shrink-0">
             {/* Sliding background */}
             <motion.div
               className="absolute top-0 h-full rounded-full bg-blue-600 z-0"
@@ -65,16 +65,17 @@ export default function MealsPerDaySelector({
 
             {options.map((opt) => (
               <button
-                key={opt}
+                key={opt.value}
                 className={`z-10 font-mono text-sm flex-1 transition-colors duration-150 ${
-                  value === opt ? "text-white" : "text-zinc-400"
+                  value === opt.value ? "text-white" : "text-zinc-400"
                 }`}
-                onClick={() => onChange(opt)}
+                onClick={() => onChange(opt.value)}
                 style={{
                   width: `${widthPercent}%`,
                 }}
+                type="button"
               >
-                {opt}
+                {opt.label}
               </button>
             ))}
           </div>

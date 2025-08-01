@@ -10,10 +10,28 @@ import { getAllCombosForVariety } from "@/utils/updateWeeklySchedule";
 
 const VARIETY_OPTIONS = [
   { key: "none", label: "None" },
-  { key: "less", label: "Less" },
   { key: "some", label: "Some" },
   { key: "lots", label: "Lots" },
 ] as const;
+
+function getMealsLabel(optKey: VarietyOption, mealsPerDay: number) {
+  if (mealsPerDay === 2) {
+    if (optKey === "none") return "2 Meals";
+    if (optKey === "some") return "3/4 Meals";
+    if (optKey === "lots") return "5+ Meals";
+  }
+  if (mealsPerDay === 3) {
+    if (optKey === "none") return "3 Meals";
+    if (optKey === "some") return "4/5 Meals";
+    if (optKey === "lots") return "6+ Meals";
+  }
+  if (mealsPerDay === 4) {
+    if (optKey === "none") return "4 Meals";
+    if (optKey === "some") return "5/6 Meals";
+    if (optKey === "lots") return "7+ Meals";
+  }
+  return "";
+}
 
 type VarietyOption = (typeof VARIETY_OPTIONS)[number]["key"];
 
@@ -41,6 +59,7 @@ export function VarietyDropdown({
   const setVariety = useAppStore((s) => s.setVariety);
   const setStepThreeData = useAppStore((s) => s.setStepThreeData);
   const lockedMeals = useAppStore((s) => s.stepThreeData?.lockedMeals ?? {});
+  const mealsPerDay = useAppStore((s) => s.stepThreeData?.mealsPerDay || 3);
 
   // Handle hydration
   useEffect(() => {
@@ -55,6 +74,7 @@ export function VarietyDropdown({
         allPlanTwoDays,
         allPlanThreeDays,
         opt.key,
+        mealsPerDay,
         lockedMeals
       );
       acc[opt.key] = combos.length > 0;
@@ -62,32 +82,6 @@ export function VarietyDropdown({
     },
     {} as Record<VarietyOption, boolean>
   );
-
-  // Update weekly schedule when variety changes
-  useEffect(() => {
-    if (isHydrated && enabledMap[variety]) {
-      updateWeeklyScheduleForVariety(
-        variety,
-        allPlanOneDays,
-        allPlanTwoDays,
-        allPlanThreeDays,
-        shuffleIndices,
-        setStepThreeData,
-        "set",
-        lockedMeals
-      );
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    variety,
-    allPlanOneDays,
-    allPlanTwoDays,
-    allPlanThreeDays,
-    setStepThreeData,
-    shuffleIndices,
-    enabledMap,
-    isHydrated,
-  ]);
 
   // Dropdown click-outside handling
   useEffect(() => {
@@ -117,6 +111,7 @@ export function VarietyDropdown({
         },
       },
       setStepThreeData,
+      mealsPerDay,
       "set",
       lockedMeals
     );
@@ -128,7 +123,7 @@ export function VarietyDropdown({
     <div className="relative w-34" ref={ref}>
       <button
         type="button"
-        className="flex items-center justify-between w-full bg-zinc-900/80 backdrop-blur border border-zinc-700 rounded-full px-3 py-1 text-white font-semibold text-sm transition hover:bg-zinc-700 relative z-50 cursor-pointer"
+        className="flex items-center justify-between w-full bg-zinc-900/80 backdrop-blur border border-zinc-700 rounded-xl px-3 py-3 text-white font-semibold text-sm transition hover:bg-zinc-700 relative z-50 cursor-pointer"
         onClick={() => setOpen((v) => !v)}
         aria-haspopup="listbox"
         aria-expanded={open}
@@ -144,11 +139,11 @@ export function VarietyDropdown({
       </button>
       {open && isHydrated && (
         <div
-          className="absolute left-0 mt-2 w-full bg-zinc-800 rounded-2xl shadow-2xl drop-shadow-lg animate-fadeIn p-2 flex flex-col gap-1"
+          className="absolute left-0 mt-2 w-44 bg-zinc-800 rounded-2xl shadow-2xl drop-shadow-lg animate-fadeIn p-2 flex flex-col gap-1"
           style={{
             zIndex: 9999,
             position: "absolute",
-            top: "100%",
+            bottom: "100%",
             left: 0,
             right: 0,
           }}
@@ -160,7 +155,7 @@ export function VarietyDropdown({
                 key={opt.key}
                 disabled={!enabledMap[opt.key]}
                 className={`
-            flex items-center  cursor-pointer w-full px-3 py-1.5 rounded-xl transition text-sm
+            flex items-center cursor-pointer w-full px-3 py-1.5 rounded-xl transition text-sm
             ${
               isSelected
                 ? "bg-zinc-700 text-white font-semibold"
@@ -172,7 +167,10 @@ export function VarietyDropdown({
                 onClick={() => handleChange(opt.key)}
                 tabIndex={enabledMap[opt.key] ? 0 : -1}
               >
-                {opt.label}
+                <span className="flex-1 text-left">{opt.label}</span>
+                <span className="text-xs text-zinc-400 ml-auto font-mono">
+                  {getMealsLabel(opt.key, mealsPerDay)}
+                </span>
               </button>
             );
           })}

@@ -99,12 +99,16 @@ export function EditableMealCard({
         {/* Title + Description */}
         <div>
           <h3
-            className="text-lg font-semibold font-mono text-white pr-14 break-words"
+            className="
+              text-lg font-semibold font-mono text-white pr-14 break-words
+              line-clamp-1 sm:line-clamp-2
+              min-h-[1.75rem] sm:min-h-[2.75rem]
+            "
             title={meal.name}
           >
             {meal.name}
           </h3>
-          <p className="text-gray-400 font-mono text-xs mt-1">
+          <p className="text-gray-400 font-mono text-xs mt-1 line-clamp-2 min-h-[2.25rem]">
             {meal.description}
           </p>
           {meal.bestFor && (

@@ -30,6 +30,7 @@ export default function GenerateLoadingPage() {
   const stepThreeData = useAppStore((s) => s.stepThreeData);
   const stepTwoData = useAppStore((s) => s.stepTwoData);
   const setStepThreeData = useAppStore((s) => s.setStepThreeData);
+  const mealsPerDay = useAppStore((s) => s.stepThreeData?.mealsPerDay || 3);
 
   // Animate loading text cycling
   useEffect(() => {
@@ -162,22 +163,7 @@ export default function GenerateLoadingPage() {
       console.log("[page.tsx] allPlanTwoDays:", allPlanTwoDays);
       console.log("[page.tsx] allPlanThreeDays:", allPlanThreeDays);
 
-      let variety: "none" | "less" | "some" | "lots";
-      if (
-        allPlanOneDays.length >= 4 ||
-        allPlanTwoDays.length >= 4 ||
-        allPlanTwoDays.length >= 4
-      ) {
-        variety = "some";
-      } else if (
-        allPlanOneDays.length >= 2 ||
-        allPlanTwoDays.length >= 2 ||
-        allPlanTwoDays.length >= 2
-      ) {
-        variety = "less";
-      } else {
-        variety = "none";
-      }
+      const variety = stepThreeData.variety;
 
       console.log("[page.tsx: Variety:", variety);
 
@@ -204,6 +190,7 @@ export default function GenerateLoadingPage() {
         allPlanThreeDays,
         shuffleIndices,
         setStepThreeData,
+        mealsPerDay,
         "set"
       );
 

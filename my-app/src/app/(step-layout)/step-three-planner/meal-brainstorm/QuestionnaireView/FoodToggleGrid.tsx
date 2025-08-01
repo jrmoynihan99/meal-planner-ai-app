@@ -1,7 +1,7 @@
 "use client";
 
 import FoodToggleCard from "./FoodToggleCard";
-import FoodAddCard from "../QuestionnaireView/FoodAddCard";
+import FoodAddCard from "./FoodAddCard";
 
 interface FoodToggleGridProps {
   options: string[];

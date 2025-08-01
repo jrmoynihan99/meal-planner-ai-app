@@ -17,6 +17,7 @@ import { GlowingButtonTwo } from "@/components/GlowingButtonTwo";
 import type { StepThreePlannerData } from "@/lib/store";
 import QuestionnaireViewInfoOverlay from "@/components/QuestionnaireViewInfoOverlay";
 import { generateMeals } from "./mealGeneration";
+import VarietySelector from "./VarietySelector"; // Adjust the import path as needed
 
 type ValidSectionKey = "proteins" | "carbs" | "veggies" | "cuisines";
 
@@ -96,6 +97,11 @@ export default function QuestionnaireView() {
           <MealsPerDaySelector
             value={stepThreeData.mealsPerDay}
             onChange={(val) => setStepThreeData({ mealsPerDay: val })}
+          />
+
+          <VarietySelector
+            value={stepThreeData.variety}
+            onChange={(val) => setStepThreeData({ variety: val })}
           />
 
           {sections.map((section, i) => (

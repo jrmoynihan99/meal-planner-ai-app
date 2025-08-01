@@ -45,6 +45,7 @@ export function Header() {
       setStepThreeData({
         mealBrainstormState: "not_started",
         mealsPerDay: 0,
+        variety: undefined,
         approvedMeals: [],
         savedMeals: [],
         generatedMeals: [],

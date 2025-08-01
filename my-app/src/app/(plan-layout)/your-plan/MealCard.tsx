@@ -16,6 +16,7 @@ interface MealCardProps {
   onClick?: () => void;
   variant?: "grid" | "list";
   style?: React.CSSProperties;
+  isEditing?: boolean;
 }
 
 export default function MealCard({
@@ -26,6 +27,7 @@ export default function MealCard({
   onClick,
   variant = "grid",
   style,
+  isEditing = false,
 }: MealCardProps) {
   const uniqueId = `${dayOfWeek}-${meal.mealId}`;
 
@@ -48,8 +50,6 @@ export default function MealCard({
   const unsetLockedMeal = useAppStore((s) => s.unsetLockedMeal);
 
   const isLocked = (lockedMeals?.[slotIdx] ?? null) === meal.mealId;
-
-  // (Optional) - if you want to auto-update schedule after lock/unlock, use the appropriate callback here!
 
   // Detect mobile screen width (unchanged)
   const [, setIsMobile] = useState(false);
@@ -119,35 +119,38 @@ export default function MealCard({
                   </span>
                 </div>
               </div>
-              <div className="flex items-center gap-2">
-                {isLocked ? (
-                  <Lock
+              {/* --- EDITING ICONS (only if isEditing) --- */}
+              {isEditing && (
+                <div className="flex items-center gap-2">
+                  {isLocked ? (
+                    <Lock
+                      size={iconSize}
+                      className="cursor-pointer text-blue-600 hover:text-white/60 transition-colors"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        unsetLockedMeal(slotIdx);
+                      }}
+                    />
+                  ) : (
+                    <Unlock
+                      size={iconSize}
+                      className="cursor-pointer text-black hover:text-white/60 transition-colors"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setLockedMeal(slotIdx, meal.mealId);
+                      }}
+                    />
+                  )}
+                  <Shuffle
                     size={iconSize}
-                    className="cursor-pointer text-blue-600 hover:text-white/60 transition-colors"
+                    className="text-black cursor-pointer hover:text-white/60 transition-colors"
                     onClick={(e) => {
                       e.stopPropagation();
-                      unsetLockedMeal(slotIdx);
+                      console.log("Swap clicked");
                     }}
                   />
-                ) : (
-                  <Unlock
-                    size={iconSize}
-                    className="cursor-pointer text-black hover:text-white/60 transition-colors"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setLockedMeal(slotIdx, meal.mealId);
-                    }}
-                  />
-                )}
-                <Shuffle
-                  size={iconSize}
-                  className="text-black cursor-pointer hover:text-white/60 transition-colors"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    console.log("Swap clicked");
-                  }}
-                />
-              </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -217,36 +220,38 @@ export default function MealCard({
             </div>
           )}
 
-          {/* Icons */}
-          <div className="flex items-center gap-2 pr-1 pb-[2px]">
-            {isLocked ? (
-              <Lock
+          {/* --- EDITING ICONS (only if isEditing) --- */}
+          {isEditing && (
+            <div className="flex items-center gap-2 pr-1 pb-[2px]">
+              {isLocked ? (
+                <Lock
+                  size={iconSize}
+                  className="cursor-pointer text-blue-600 hover:text-white/60 transition-colors"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    unsetLockedMeal(slotIdx);
+                  }}
+                />
+              ) : (
+                <Unlock
+                  size={iconSize}
+                  className="cursor-pointer text-black hover:text-white/60 transition-colors"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setLockedMeal(slotIdx, meal.mealId);
+                  }}
+                />
+              )}
+              <Shuffle
                 size={iconSize}
-                className="cursor-pointer text-blue-600 hover:text-white/60 transition-colors"
+                className="text-black cursor-pointer hover:text-white/60 transition-colors"
                 onClick={(e) => {
                   e.stopPropagation();
-                  unsetLockedMeal(slotIdx);
+                  console.log("Swap clicked");
                 }}
               />
-            ) : (
-              <Unlock
-                size={iconSize}
-                className="cursor-pointer text-black hover:text-white/60 transition-colors"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setLockedMeal(slotIdx, meal.mealId);
-                }}
-              />
-            )}
-            <Shuffle
-              size={iconSize}
-              className="text-black cursor-pointer hover:text-white/60 transition-colors"
-              onClick={(e) => {
-                e.stopPropagation();
-                console.log("Swap clicked");
-              }}
-            />
-          </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

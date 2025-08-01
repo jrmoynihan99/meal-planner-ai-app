@@ -23,7 +23,7 @@ export default function FruitToggle({ value, onChange }: FruitToggleProps) {
       <div className="flex items-center gap-4 w-full px-1 sm:px-2 py-2">
         {/* Number */}
         <div className="text-blue-500 font-bold text-4xl sm:text-5xl leading-none">
-          6
+          7
         </div>
 
         {/* Label and toggle */}

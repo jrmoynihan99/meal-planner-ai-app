@@ -11,15 +11,17 @@ import { motion, AnimatePresence } from "framer-motion";
 interface WeeklyGridProps {
   weeklySchedule: Record<DayOfWeek, DayPlan | null>;
   onMealClick: (meal: DayPlan["meals"][number]) => void;
+  isEditing: boolean;
 }
 
 interface DayColumnProps {
   day: DayOfWeek;
   dayPlan: DayPlan | null;
   onMealClick: (meal: DayPlan["meals"][number]) => void;
+  isEditing: boolean;
 }
 
-function DayColumn({ day, dayPlan, onMealClick }: DayColumnProps) {
+function DayColumn({ day, dayPlan, onMealClick, isEditing }: DayColumnProps) {
   const timeSlots = timeUtils.getTimeSlots();
   const totalGridHeight = timeSlots.length * CALENDAR_CONFIG.hourHeight;
 
@@ -70,6 +72,7 @@ function DayColumn({ day, dayPlan, onMealClick }: DayColumnProps) {
                   dayOfWeek={day}
                   slotIdx={index}
                   onClick={() => onMealClick(meal)}
+                  isEditing={isEditing}
                 />
               </motion.div>
             );
@@ -83,6 +86,7 @@ function DayColumn({ day, dayPlan, onMealClick }: DayColumnProps) {
 export default function WeeklyGrid({
   weeklySchedule,
   onMealClick,
+  isEditing,
 }: WeeklyGridProps) {
   const timeSlots = timeUtils.getTimeSlots();
 
@@ -260,6 +264,7 @@ export default function WeeklyGrid({
                   day={day}
                   dayPlan={weeklySchedule[day]}
                   onMealClick={onMealClick}
+                  isEditing={isEditing}
                 />
               ))}
             </div>

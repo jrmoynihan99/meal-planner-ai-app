@@ -126,9 +126,9 @@ export interface StepThreePlannerData {
   };
   dayGenerationState: "not_started" | "started" | "completed";
   weeklySchedule: Record<DayOfWeek, DayPlan | null>;
-  variety: "none" | "less" | "some" | "lots";
+  variety: "none" | "some" | "lots";
   shuffleIndices: {
-    weeklySchedule: { none: number; less: number; some: number; lots: number };
+    weeklySchedule: { none: number; some: number; lots: number };
   };
   lockedMeals: { [slotIdx: number]: string };
   skippedDays: DayOfWeek[];
@@ -185,7 +185,7 @@ interface AppState {
     key: "weeklySchedule" | "weeklyScheduleTwo" | "weeklyScheduleThree"
   ) => void;
 
-  setVariety: (variety: "none" | "less" | "some" | "lots") => void;
+  setVariety: (variety: "none" | "some" | "lots") => void;
 
   setGeneratedMeals: (meals: Meal[]) => void;
   setApprovedMeals: (meals: Meal[]) => void;
@@ -232,9 +232,9 @@ export const defaultStepThreeData: StepThreePlannerData = {
     Saturday: null,
     Sunday: null,
   },
-  variety: "less",
+  variety: "some",
   shuffleIndices: {
-    weeklySchedule: { none: 0, less: 0, some: 0, lots: 0 },
+    weeklySchedule: { none: 0, some: 0, lots: 0 },
   },
   lockedMeals: {},
   skippedDays: [], // ← Add this missing property
