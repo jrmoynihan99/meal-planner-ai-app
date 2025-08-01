@@ -17,7 +17,10 @@ export default function VerticalList({
   isEditing,
 }: VerticalListProps) {
   return (
-    <div className="space-y-6 p-4 h-full overflow-y-auto">
+    <div
+      id="plan-scroll-container"
+      className="space-y-6 p-4 h-full overflow-y-auto"
+    >
       {DAYS.map((day) => {
         const dayPlan = weeklySchedule[day];
         const isToday =

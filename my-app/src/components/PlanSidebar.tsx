@@ -5,7 +5,7 @@ import { useEffect } from "react";
 import {
   Repeat,
   PlusCircle,
-  PlusSquare,
+  Shuffle,
   ShoppingCart,
   UtensilsCrossed,
   BarChart2,
@@ -44,9 +44,6 @@ export function PlanSidebar({
     alert("Swap Day Overlay (not implemented yet)");
   const openSwapMealOverlay = () =>
     alert("Swap Meal Overlay (not implemented yet)");
-  const openCheatDayOverlay = () =>
-    alert("Cheat Day Overlay (not implemented yet)");
-  const openGetMoreMeals = () => alert("Get More Meals (not implemented yet)");
   const openGroceryListOverlay = () =>
     alert("Grocery List (not implemented yet)");
   const openGoalSummaryOverlay = () =>
@@ -89,17 +86,11 @@ export function PlanSidebar({
             <h2 className="text-sm font-semibold uppercase text-zinc-400 tracking-wider mb-2">
               Customize
             </h2>
-            <SidebarButton icon={Repeat} onClick={openSwapDayOverlay}>
-              Swap a Day
+            <SidebarButton icon={Shuffle} onClick={openSwapDayOverlay}>
+              Edit Plan
             </SidebarButton>
             <SidebarButton icon={Repeat} onClick={openSwapMealOverlay}>
-              Swap a Meal
-            </SidebarButton>
-            <SidebarButton icon={PlusCircle} onClick={openCheatDayOverlay}>
-              Add a Cheat Day
-            </SidebarButton>
-            <SidebarButton icon={PlusSquare} onClick={openGetMoreMeals}>
-              Get More Meals
+              Replace a Meal
             </SidebarButton>
           </div>
 
