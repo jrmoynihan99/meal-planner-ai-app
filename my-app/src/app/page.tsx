@@ -1,8 +1,6 @@
 "use client";
 
 import { Typewriter } from "@/components/Typewriter";
-import { ArrowRight, ChevronDown } from "lucide-react";
-import Link from "next/link";
 import { useState } from "react";
 import { GlowingButton } from "@/components/GlowingButton";
 import { useRouter } from "next/navigation";
