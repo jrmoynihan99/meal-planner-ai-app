@@ -1,36 +1,69 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Dialed
 
-## Getting Started
+**Dialed** is an AI-powered meal planning web app that transforms food preferences and calorie/protein targets into **portion-accurate daily plans and complete weekly schedules**.  
+Built with **Next.js + TypeScript**, it combines GPT meal generation with a custom solver for precise nutrition.
 
-First, run the development server:
+---
+
+## ✨ Features
+
+- Guided ingredient questionnaire → AI-generated meals with recipes + images
+- Approve/edit meals to build a personal library
+- Automatic portioning with a linear programming solver (GLPK.js)
+- Unique daily meal plans with **portion locking** for consistency
+- Weekly planner with drag-and-drop scheduling + meal time snapping
+- Instant meal swaps and auto-regenerated grocery lists
+- Clean, modern UI with animations and responsive design
+
+---
+
+## 🛠️ Tech Stack
+
+- **Frontend**: React, Next.js, TypeScript, Tailwind CSS, shadcn/ui, Zustand, @dnd-kit, Framer Motion
+- **Backend & Optimization**: Next.js API Routes, OpenAI API, GLPK.js (Linear Programming)
+- **Tools & Services**: Vercel, GitHub, ESLint, Vitest/Jest (planned), Storybook (planned)
+
+---
+
+## 🚀 Getting Started
+
+### Prerequisites
+
+- Node.js 18+
+- npm, pnpm, or yarn
+
+### Installation
+
+```bash
+git clone https://github.com/jrmoynihan99/meal-planner-ai-app
+cd meal-planner-ai-app
+npm install
+```
+
+### Run Locally (Dev Mode)
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Production Build
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm run build
+npm start
+```
 
-## Learn More
+---
 
-To learn more about Next.js, take a look at the following resources:
+## 📖 Case Study
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Want to see how it was designed and engineered?  
+Check out the [Dialed Case Study](https://jasonmoynihan.com/projects/dialed).
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+---
 
-## Deploy on Vercel
+## 🧑‍💻 About
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Dialed was built by **Jason Moynihan** as an exploration into how AI + optimization can remove friction from healthy eating while keeping plans realistic.
