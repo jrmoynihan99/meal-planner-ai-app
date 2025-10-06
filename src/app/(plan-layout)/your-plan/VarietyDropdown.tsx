@@ -7,6 +7,7 @@ import type { DayPlan } from "@/lib/store";
 import { updateWeeklyScheduleForVariety } from "@/utils/updateWeeklySchedule";
 import { defaultStepThreeData } from "@/lib/store";
 import { getAllCombosForVariety } from "@/utils/updateWeeklySchedule";
+import { useMemo } from "react";
 
 const VARIETY_OPTIONS = [
   { key: "none", label: "None" },
@@ -67,8 +68,8 @@ export function VarietyDropdown({
   }, []);
 
   // --- Build enabled map: a variety is available if ANY plan supports it ---
-  const enabledMap: Record<VarietyOption, boolean> = VARIETY_OPTIONS.reduce(
-    (acc, opt) => {
+  const enabledMap = useMemo(() => {
+    return VARIETY_OPTIONS.reduce((acc, opt) => {
       const combos = getAllCombosForVariety(
         allPlanOneDays,
         allPlanTwoDays,
@@ -79,9 +80,14 @@ export function VarietyDropdown({
       );
       acc[opt.key] = combos.length > 0;
       return acc;
-    },
-    {} as Record<VarietyOption, boolean>
-  );
+    }, {} as Record<VarietyOption, boolean>);
+  }, [
+    allPlanOneDays,
+    allPlanTwoDays,
+    allPlanThreeDays,
+    mealsPerDay,
+    lockedMeals,
+  ]);
 
   // Dropdown click-outside handling
   useEffect(() => {
