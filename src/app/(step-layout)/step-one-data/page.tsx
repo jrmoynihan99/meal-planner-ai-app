@@ -1,5 +1,4 @@
 "use client";
-
 import { useState, useEffect } from "react";
 import Box from "@mui/material/Box";
 import Slider from "@mui/material/Slider";
@@ -53,9 +52,7 @@ function calculateMaintanenceCalories(
     sex === "male"
       ? 10 * weightKg + 6.25 * heightCm - 5 * age + 5
       : 10 * weightKg + 6.25 * heightCm - 5 * age - 161;
-
   const calories = Math.round(bmr * multiplier);
-
   return calories;
 }
 
@@ -76,7 +73,6 @@ export default function StepOneSetupPage() {
   const [heightIn, setHeightIn] = useState(10);
   const [weight, setWeight] = useState(170);
   const [activity, setActivity] = useState(activityOptions[2]);
-
   const [showActivityInfo, setShowActivityInfo] = useState(false);
   const [showCalorieCalcInfo, setShowCalorieCalcInfo] = useState(false);
   const [showStepInfo, setShowStepInfo] = useState(false);
@@ -162,6 +158,7 @@ export default function StepOneSetupPage() {
       {showOverlay && (
         <StepOneInfoOverlay onClose={() => setShowOverlay(false)} />
       )}
+
       <main className="h-full bg-black text-white px-4 py-8">
         <div className="max-w-xl mx-auto">
           <Box className="text-white pt-0 pr-6 pb-6 pl-6 space-y-6">
@@ -191,23 +188,28 @@ export default function StepOneSetupPage() {
             </div>
 
             {/* Age */}
-            <div>
+            <div style={{ touchAction: "none" }}>
               <label className="block text-sm mb-1">
                 Age: <span className="text-blue-400 font-semibold">{age}</span>
               </label>
               <Slider
                 value={age}
                 onChange={(_, val) => setAge(val as number)}
+                onChangeCommitted={(_, val) => setAge(val as number)}
+                disableSwap
                 min={10}
                 max={100}
                 step={1}
-                sx={{ color: "#60a5fa" }}
+                sx={{
+                  color: "#60a5fa",
+                  touchAction: "none",
+                }}
               />
             </div>
 
             {/* Height */}
             <div className="flex gap-4">
-              <div className="flex-1">
+              <div className="flex-1" style={{ touchAction: "none" }}>
                 <label className="block text-sm mb-2">
                   Height (feet):{" "}
                   <span className="text-blue-400 font-semibold">
@@ -217,13 +219,18 @@ export default function StepOneSetupPage() {
                 <Slider
                   value={heightFt}
                   onChange={(_, val) => setHeightFt(val as number)}
+                  onChangeCommitted={(_, val) => setHeightFt(val as number)}
+                  disableSwap
                   min={3}
                   max={7}
                   step={1}
-                  sx={{ color: "#60a5fa" }}
+                  sx={{
+                    color: "#60a5fa",
+                    touchAction: "none",
+                  }}
                 />
               </div>
-              <div className="flex-1">
+              <div className="flex-1" style={{ touchAction: "none" }}>
                 <label className="block text-sm mb-2">
                   Height (inches):{" "}
                   <span className="text-blue-400 font-semibold">
@@ -233,16 +240,21 @@ export default function StepOneSetupPage() {
                 <Slider
                   value={heightIn}
                   onChange={(_, val) => setHeightIn(val as number)}
+                  onChangeCommitted={(_, val) => setHeightIn(val as number)}
+                  disableSwap
                   min={0}
                   max={11}
                   step={1}
-                  sx={{ color: "#60a5fa" }}
+                  sx={{
+                    color: "#60a5fa",
+                    touchAction: "none",
+                  }}
                 />
               </div>
             </div>
 
             {/* Weight */}
-            <div>
+            <div style={{ touchAction: "none" }}>
               <label className="block text-sm mb-1">
                 Weight (lb):{" "}
                 <span className="text-blue-400 font-semibold">{weight}</span>
@@ -250,10 +262,15 @@ export default function StepOneSetupPage() {
               <Slider
                 value={weight}
                 onChange={(_, val) => setWeight(val as number)}
+                onChangeCommitted={(_, val) => setWeight(val as number)}
+                disableSwap
                 min={80}
                 max={350}
                 step={1}
-                sx={{ color: "#60a5fa" }}
+                sx={{
+                  color: "#60a5fa",
+                  touchAction: "none",
+                }}
               />
             </div>
 
@@ -329,7 +346,6 @@ export default function StepOneSetupPage() {
                 {maintanenceCalories.toLocaleString()} kcal
               </span>
             </div>
-
             {isFormComplete && <NextStepButton href="/step-two-goal" />}
           </div>
         </div>
@@ -345,6 +361,7 @@ export default function StepOneSetupPage() {
           example={`• For weight training only, assume a lower activity level \n• Distance runner, assume more`}
         />
       )}
+
       {showStepInfo && (
         <GeneralInfoOverlay
           onClose={() => setShowStepInfo(false)}
@@ -353,13 +370,13 @@ export default function StepOneSetupPage() {
           description="We'll collect your info here to calculate your maintenance calories. In the next step, we'll identify your goals and generate your personalized daily targets before moving on to your meal plan!"
         />
       )}
+
       {showCalorieCalcInfo && (
         <GeneralInfoOverlay
           onClose={() => setShowCalorieCalcInfo(false)}
           subheading="Maintenance Calories"
           title="How Is This Calculated?"
           description="We use the Mifflin-St Jeor Equation, one of the most trusted formulas for calculating Basal Metabolic Rate (BMR).
-
 Your BMR is how many calories your body burns at rest. We then multiply that number by an activity factor based on your lifestyle to estimate your maintenance calories — the amount you need to eat each day to maintain your current weight."
         />
       )}
