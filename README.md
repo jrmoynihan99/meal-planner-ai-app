@@ -60,7 +60,7 @@ npm start
 ## 📖 Case Study
 
 Want to see how it was designed and engineered?  
-Check out the [Dialed Case Study](https://jasonmoynihan.com/projects/dialed).
+Check out the [Dialed Case Study](https://jasonmoynihan.com/case-studiess/dialed).
 
 ---
 
